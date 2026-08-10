@@ -3,8 +3,6 @@ name: Build Odyssey Glyph APK
 on:
   push:
     branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
   workflow_dispatch:
 
 jobs:
@@ -21,23 +19,24 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Fix line endings and permissions
+      - name: Write local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+
+      - name: Accept Android SDK licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Install required Android SDK components
+        run: $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Make gradlew executable
         run: |
           sed -i 's/\r$//' android/gradlew
           chmod +x android/gradlew
 
-      - name: Configure Android SDK & Accept Licenses
-        run: |
-          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0"
-
       - name: Build Debug APK
-        run: |
-          cd android
-          ./gradlew assembleDebug --stacktrace > gradle_build.log 2>&1 || (cat gradle_build.log && exit 1)
+        run: cd android && ./gradlew assembleDebug --no-daemon
 
-      - name: Upload Debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: OdysseyGlyph-debug-apk
