@@ -29,10 +29,24 @@ python video_to_glyph.py clip.mp4 --fps 12 --gamma 0.6
 
 ## 2. Build and Install on Nothing Phone (3)
 
+### Option A: Cloud Build via GitHub Actions (No Android Studio required!)
+
+1. Create a new repository on GitHub.
+2. Push this folder to GitHub:
+   ```bash
+   git remote add origin https://github.com/YOUR_USERNAME/glyph_odyssey.git
+   git branch -M main
+   git push -u origin main
+   ```
+3. Go to the **Actions** tab on your GitHub repository.
+4. Once the build finishes (takes ~1-2 mins), download the `OdysseyGlyph-debug-apk` artifact.
+5. Transfer the `.apk` file to your Nothing Phone (3) and tap to install!
+
+### Option B: Local Build via Android Studio
+
 1. Open the `android/` directory in **Android Studio**.
-2. Let Gradle sync automatically (all dependencies and SDK `.aar` are already in place).
-3. Connect your **Nothing Phone (3)** via USB (make sure Developer Options & USB Debugging are enabled).
-4. Click **Run** in Android Studio to install `Odyssey Glyph`.
+2. Connect your **Nothing Phone (3)** via USB (enable Developer Options & USB Debugging).
+3. Click **Run** in Android Studio to install `Odyssey Glyph`.
 
 ## 3. Activate the Toy on the Phone
 
