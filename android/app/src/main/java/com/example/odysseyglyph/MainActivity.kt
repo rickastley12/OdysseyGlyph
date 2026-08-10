@@ -601,8 +601,8 @@ class MainActivity : ComponentActivity() {
 
             val fps = etFps.text.toString().toIntOrNull() ?: 12
             val invert = cbInvert.isChecked
-            val startMs = rangeSlider.values[0].toLong()
-            val endMs = rangeSlider.values[1].toLong()
+            val startMs = if (rangeSlider.values.isNotEmpty()) rangeSlider.values[0].toLong() else 0L
+            val endMs = if (rangeSlider.values.size > 1) rangeSlider.values[1].toLong() else 0L
             val playbackMode = if (this::modeSpinner.isInitialized) modeSpinner.selectedItemPosition else 1
             
             val contrastMulti = if (this::contrastSlider.isInitialized) contrastSlider.value else 1.0f
