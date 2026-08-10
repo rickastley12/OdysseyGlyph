@@ -277,14 +277,14 @@ class MainActivity : ComponentActivity() {
         trimmerCard.addView(trimmerLayout)
         settingsPanel.addView(trimmerCard)
 
-        // Settings row
-        val settingsRow = LinearLayout(this).apply {
+        // Settings row 1 (FPS, Mode, Invert)
+        val settingsRow1 = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 48, 0, 16)
+            setPadding(0, 48, 0, 8)
             gravity = Gravity.CENTER_VERTICAL
         }
         
-        settingsRow.addView(TextView(this).apply {
+        settingsRow1.addView(TextView(this).apply {
             text = "FPS:"
             setTextColor(Color.WHITE)
             setPadding(0, 0, 16, 0)
@@ -297,7 +297,7 @@ class MainActivity : ComponentActivity() {
             background = null
             layoutParams = LinearLayout.LayoutParams(100, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
-        settingsRow.addView(etFps)
+        settingsRow1.addView(etFps)
         
         modeSpinner = Spinner(this).apply {
             val modes = arrayOf("Once", "Loop", "Ping-Pong")
@@ -307,8 +307,30 @@ class MainActivity : ComponentActivity() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
-        settingsRow.addView(modeSpinner)
+        settingsRow1.addView(modeSpinner)
         
+        cbInvert = MaterialSwitch(this).apply {
+            text = "Invert"
+            setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            setPadding(16, 0, 0, 0)
+        }
+        settingsRow1.addView(cbInvert)
+        settingsPanel.addView(settingsRow1)
+
+        // Settings row 2 (Slot Picker)
+        val settingsRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 8, 0, 16)
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        
+        settingsRow2.addView(TextView(this).apply {
+            text = "Save to:"
+            setTextColor(Color.WHITE)
+            setPadding(0, 0, 16, 0)
+        })
+
         slotSpinner = Spinner(this).apply {
             val slots = arrayOf("Slot 1", "Slot 2", "Slot 3")
             val adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, slots)
@@ -317,16 +339,8 @@ class MainActivity : ComponentActivity() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
-        settingsRow.addView(slotSpinner)
-        
-        cbInvert = MaterialSwitch(this).apply {
-            text = "Invert"
-            setTextColor(Color.WHITE)
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            setPadding(16, 0, 0, 0)
-        }
-        settingsRow.addView(cbInvert)
-        settingsPanel.addView(settingsRow)
+        settingsRow2.addView(slotSpinner)
+        settingsPanel.addView(settingsRow2)
 
         // --- Advanced Panel ---
         val advancedToggle = TextView(this).apply {
