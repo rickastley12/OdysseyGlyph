@@ -23,7 +23,16 @@ class CenteredImageView @JvmOverloads constructor(
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
                 val source = ImageDecoder.createSource(context.contentResolver, uri)
-                val drawable = ImageDecoder.decodeDrawable(source)
+                val drawable = ImageDecoder.decodeDrawable(source) { decoder, info, _ ->
+                    // Prevent GPU texture size limit crashes or OutOfMemoryErrors on 50MP images
+                    var sampleSize = 1
+                    while (info.size.width / sampleSize > 2000 || info.size.height / sampleSize > 2000) {
+                        sampleSize *= 2
+                    }
+                    if (sampleSize > 1) {
+                        decoder.setTargetSampleSize(sampleSize)
+                    }
+                }
                 setImageDrawable(drawable)
                 if (drawable is AnimatedImageDrawable) {
                     drawable.start()
@@ -31,9 +40,14 @@ class CenteredImageView @JvmOverloads constructor(
             } else {
                 setImageURI(uri)
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             e.printStackTrace()
-            setImageURI(uri)
+            // Fallback
+            try {
+                setImageURI(uri)
+            } catch (fallbackEx: Throwable) {
+                fallbackEx.printStackTrace()
+            }
         }
     }
 

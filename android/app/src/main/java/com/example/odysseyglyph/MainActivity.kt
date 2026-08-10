@@ -618,6 +618,18 @@ class MainActivity : ComponentActivity() {
             videoView.pause()
         } else {
             imageView.engine.matrix.invert(inverseMatrix)
+            // The preview image might be downsampled to prevent GPU texture crashes.
+            // We must map the coordinates back up to the original unscaled media size.
+            val drawableW = imageView.drawable?.intrinsicWidth ?: videoRawWidth
+            val drawableH = imageView.drawable?.intrinsicHeight ?: videoRawHeight
+            
+            if (drawableW > 0 && videoRawWidth > 0) {
+                val upscaleX = videoRawWidth.toFloat() / drawableW.toFloat()
+                val upscaleY = videoRawHeight.toFloat() / drawableH.toFloat()
+                val scaleMatrix = android.graphics.Matrix()
+                scaleMatrix.setScale(upscaleX, upscaleY)
+                inverseMatrix.postConcat(scaleMatrix)
+            }
         }
         settingsPanel.visibility = View.GONE
         btnSelectVideo.visibility = View.GONE // Hide during processing to prevent overlapping jobs
