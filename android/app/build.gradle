@@ -35,7 +35,7 @@ dependencies {
     // Download from:
     // https://github.com/Nothing-Developer-Programme/GlyphMatrix-Developer-Kit
     // and place the .aar file in app/libs/ before building.
-    implementation files('libs/glyph-matrix-sdk-2.0.aar')
+    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'])
 
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
