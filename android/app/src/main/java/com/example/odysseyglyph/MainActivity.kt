@@ -663,7 +663,12 @@ class MainActivity : ComponentActivity() {
                     progressBar.visibility = View.GONE
                     
                     if (success) {
-                        tvStatus.text = "Success! Your animation is ready."
+                        val mediaName = when (currentMediaType) {
+                            2 -> "image"
+                            1 -> "GIF"
+                            else -> "animation"
+                        }
+                        tvStatus.text = "Success! Your $mediaName is ready."
                         btnOpenManager.visibility = View.VISIBLE
                         sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
                     } else {
