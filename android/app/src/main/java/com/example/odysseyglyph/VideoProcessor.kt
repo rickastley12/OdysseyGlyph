@@ -132,54 +132,54 @@ object VideoProcessor {
                     bitmap.recycle()
                 } else {
                     // --- STATIC IMAGE ---
-                    // Use BitmapRegionDecoder to prevent OutOfMemoryError on 50MP photos
-                    val stream = context.contentResolver.openInputStream(mediaUri)
-                    val decoder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                        BitmapRegionDecoder.newInstance(stream!!, false)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        BitmapRegionDecoder.newInstance(stream!!, false)
+                    // Safely get bounds first without loading the image to prevent OOM
+                    var stream = context.contentResolver.openInputStream(mediaUri)
+                    val boundsOptions = BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
                     }
-                    stream.close()
+                    BitmapFactory.decodeStream(stream, null, boundsOptions)
+                    stream?.close()
                     
-                    if (decoder == null) {
-                        mainHandler.post { onComplete(false, "Could not create image decoder.") }
+                    val fullWidth = boundsOptions.outWidth
+                    val fullHeight = boundsOptions.outHeight
+                    
+                    if (fullWidth <= 0 || fullHeight <= 0) {
+                        mainHandler.post { onComplete(false, "Could not determine image dimensions.") }
                         return@thread
                     }
                     
-                    val cropSide = (videoRadius * 2).toInt()
-                    val left = (videoCx - videoRadius).toInt().coerceIn(0, decoder.width - 1)
-                    val top = (videoCy - videoRadius).toInt().coerceIn(0, decoder.height - 1)
-                    val width = cropSide.coerceAtMost(decoder.width - left)
-                    val height = cropSide.coerceAtMost(decoder.height - top)
-                    
-                    if (width <= 0 || height <= 0) {
-                        decoder.recycle()
-                        mainHandler.post { onComplete(false, "Invalid crop region.") }
-                        return@thread
-                    }
-                    
-                    val rect = Rect(left, top, left + width, top + height)
-                    
+                    // Calculate a safe sample size so the bitmap is around 1000px max (uses <4MB RAM)
                     var sampleSize = 1
-                    while (width / sampleSize > 200 && height / sampleSize > 200) {
+                    while (fullWidth / sampleSize > 1500 || fullHeight / sampleSize > 1500) {
                         sampleSize *= 2
                     }
                     
+                    stream = context.contentResolver.openInputStream(mediaUri)
                     val options = BitmapFactory.Options().apply {
                         inSampleSize = sampleSize
                         inPreferredConfig = Bitmap.Config.ARGB_8888
                         inMutable = true
                     }
+                    val fullBitmap = BitmapFactory.decodeStream(stream, null, options)
+                    stream?.close()
                     
-                    val square = decoder.decodeRegion(rect, options)
-                    decoder.recycle()
-                    
-                    if (square != null) {
-                        val frame = downsampleSquareFrame(square)
-                        if (frame != null) rawFrames.add(frame)
-                        square.recycle()
+                    if (fullBitmap == null) {
+                        mainHandler.post { onComplete(false, "Could not decode image.") }
+                        return@thread
                     }
+                    
+                    // The coordinate mapping (inverseTransform) assumes the FULL ORIGINAL width/height.
+                    // Because we downsampled the bitmap to save RAM, we must scale our crop circle coordinates to match the new size!
+                    val scaleX = fullBitmap.width.toFloat() / fullWidth.toFloat()
+                    val scaleY = fullBitmap.height.toFloat() / fullHeight.toFloat()
+                    
+                    val scaledCx = videoCx * scaleX
+                    val scaledCy = videoCy * scaleY
+                    val scaledRadius = videoRadius * Math.max(scaleX, scaleY)
+                    
+                    val frame = extractAndDownsampleFrame(fullBitmap, scaledCx, scaledCy, scaledRadius)
+                    if (frame != null) rawFrames.add(frame)
+                    fullBitmap.recycle()
                     
                     mainHandler.post { onProgress(50) }
                 }
