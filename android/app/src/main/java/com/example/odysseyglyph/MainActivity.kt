@@ -45,6 +45,13 @@ class MainActivity : ComponentActivity() {
     private lateinit var tvStatus: TextView
     private lateinit var btnOpenManager: MaterialButton
 
+    private lateinit var trimmerCard: MaterialCardView
+    private lateinit var brightnessSlider: com.google.android.material.slider.Slider
+    private lateinit var durationSlider: com.google.android.material.slider.Slider
+    private lateinit var durationLabel: TextView
+    private lateinit var btnExport: MaterialButton
+    private lateinit var btnImport: MaterialButton
+
     private var selectedVideoUri: Uri? = null
     private var videoDurationMs = 0L
     private var videoRawWidth = 0
@@ -69,6 +76,44 @@ class MainActivity : ComponentActivity() {
         if (uri != null) {
             selectedVideoUri = uri
             showSettingsForMedia(uri)
+        }
+    }
+
+    private val exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+        if (uri != null) {
+            try {
+                val slot = if (this::slotSpinner.isInitialized) slotSpinner.selectedItemPosition + 1 else 1
+                val src = java.io.File(filesDir, "frames_slot$slot.bin")
+                if (!src.exists()) {
+                    Toast.makeText(this, "No preset found in Slot $slot to export!", Toast.LENGTH_SHORT).show()
+                    return@registerForActivityResult
+                }
+                contentResolver.openOutputStream(uri)?.use { out ->
+                    src.inputStream().use { it.copyTo(out) }
+                }
+                Toast.makeText(this, "Preset Exported Successfully!", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private val importLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            try {
+                val slot = if (this::slotSpinner.isInitialized) slotSpinner.selectedItemPosition + 1 else 1
+                val dest = java.io.File(filesDir, "frames_slot$slot.bin")
+                contentResolver.openInputStream(uri)?.use { input ->
+                    dest.outputStream().use { input.copyTo(it) }
+                }
+                Toast.makeText(this, "Preset Imported to Slot $slot!", Toast.LENGTH_SHORT).show()
+                btnOpenManager.visibility = View.VISIBLE
+                sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Import failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -220,7 +265,7 @@ class MainActivity : ComponentActivity() {
         })
         
         // Custom Trimmer UI
-        val trimmerCard = MaterialCardView(this).apply {
+        trimmerCard = MaterialCardView(this).apply {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             setCardBackgroundColor(Color.parseColor("#1E1E1E"))
             radius = 24f
@@ -381,6 +426,44 @@ class MainActivity : ComponentActivity() {
         }
         advancedContainer.addView(contrastSlider)
         
+        val brightnessLabel = TextView(this).apply {
+            text = "LED Brightness: 100%"
+            setTextColor(Color.WHITE)
+            setPadding(0, 16, 0, 0)
+        }
+        advancedContainer.addView(brightnessLabel)
+        
+        brightnessSlider = com.google.android.material.slider.Slider(this).apply {
+            valueFrom = 10f
+            valueTo = 100f
+            value = 100f
+            stepSize = 1f
+            addOnChangeListener { _, value, _ ->
+                brightnessLabel.text = "LED Brightness: ${value.toInt()}%"
+            }
+        }
+        advancedContainer.addView(brightnessSlider)
+        
+        durationLabel = TextView(this).apply {
+            text = "Image Duration: 5s"
+            setTextColor(Color.WHITE)
+            setPadding(0, 16, 0, 0)
+            visibility = View.GONE
+        }
+        advancedContainer.addView(durationLabel)
+        
+        durationSlider = com.google.android.material.slider.Slider(this).apply {
+            valueFrom = 1f
+            valueTo = 60f
+            value = 5f
+            stepSize = 1f
+            visibility = View.GONE
+            addOnChangeListener { _, value, _ ->
+                durationLabel.text = "Image Duration: ${value.toInt()}s"
+            }
+        }
+        advancedContainer.addView(durationSlider)
+        
         sharpenSwitch = MaterialSwitch(this).apply {
             text = "Sharpen Image (Enhances faces/edges)"
             setTextColor(Color.WHITE)
@@ -399,6 +482,34 @@ class MainActivity : ComponentActivity() {
             setOnClickListener { startProcessing() }
         }
         settingsPanel.addView(btnProcess)
+
+        val presetLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 16, 0, 0)
+        }
+        
+        btnExport = MaterialButton(this).apply {
+            text = "Export Preset"
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            setOnClickListener {
+                val slot = if (this@MainActivity::slotSpinner.isInitialized) slotSpinner.selectedItemPosition + 1 else 1
+                exportLauncher.launch("slot${slot}_preset.odyssey")
+            }
+        }
+        presetLayout.addView(btnExport)
+        
+        btnImport = MaterialButton(this).apply {
+            text = "Import Preset"
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                setMargins(16, 0, 0, 0)
+            }
+            setOnClickListener {
+                importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
+            }
+        }
+        presetLayout.addView(btnImport)
+        
+        settingsPanel.addView(presetLayout)
 
         layout.addView(settingsPanel)
         // ----------------------
@@ -505,8 +616,14 @@ class MainActivity : ComponentActivity() {
             if (currentMediaType == 2 || videoDurationMs <= 0) {
                 rangeSlider.isEnabled = false
                 tvTrimTimes.text = "Trim: N/A (Static Image)"
+                if (this::trimmerCard.isInitialized) trimmerCard.visibility = View.GONE
+                if (this::durationLabel.isInitialized) durationLabel.visibility = View.VISIBLE
+                if (this::durationSlider.isInitialized) durationSlider.visibility = View.VISIBLE
             } else {
                 rangeSlider.isEnabled = true
+                if (this::trimmerCard.isInitialized) trimmerCard.visibility = View.VISIBLE
+                if (this::durationLabel.isInitialized) durationLabel.visibility = View.GONE
+                if (this::durationSlider.isInitialized) durationSlider.visibility = View.GONE
                 val maxDur = videoDurationMs.toFloat()
                 rangeSlider.valueFrom = 0f
                 if (maxDur < rangeSlider.valueTo) {
@@ -609,6 +726,8 @@ class MainActivity : ComponentActivity() {
             val playbackMode = if (this::modeSpinner.isInitialized) modeSpinner.selectedItemPosition else 1
             
             val contrastMulti = if (this::contrastSlider.isInitialized) contrastSlider.value else 1.0f
+            val brightnessMulti = if (this::brightnessSlider.isInitialized) brightnessSlider.value / 100f else 1.0f
+            val imageDurSec = if (this::durationSlider.isInitialized) durationSlider.value.toInt() else 5
             val sharpen = if (this::sharpenSwitch.isInitialized) sharpenSwitch.isChecked else true
             val slotIndex = if (this::slotSpinner.isInitialized) slotSpinner.selectedItemPosition + 1 else 1
             
@@ -651,6 +770,8 @@ class MainActivity : ComponentActivity() {
                 playbackMode = playbackMode,
                 invertColors = invert,
                 contrastMulti = contrastMulti,
+                brightnessMulti = brightnessMulti,
+                imageDurationSec = imageDurSec,
                 sharpen = sharpen,
                 cropCx = cropOverlay.circleX,
                 cropCy = cropOverlay.circleY,

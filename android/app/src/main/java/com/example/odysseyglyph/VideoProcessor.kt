@@ -30,6 +30,8 @@ object VideoProcessor {
         playbackMode: Int,
         invertColors: Boolean,
         contrastMulti: Float = 1.0f,
+        brightnessMulti: Float = 1.0f,
+        imageDurationSec: Int = 5,
         sharpen: Boolean = true,
         cropCx: Float,
         cropCy: Float,
@@ -178,7 +180,12 @@ object VideoProcessor {
                     val scaledRadius = videoRadius * Math.max(scaleX, scaleY)
                     
                     val frame = extractAndDownsampleFrame(fullBitmap, scaledCx, scaledCy, scaledRadius)
-                    if (frame != null) rawFrames.add(frame)
+                    if (frame != null) {
+                        val totalFrames = imageDurationSec * targetFps
+                        for (i in 0 until totalFrames) {
+                            rawFrames.add(frame)
+                        }
+                    }
                     fullBitmap.recycle()
                     
                     mainHandler.post { onProgress(50) }
@@ -242,7 +249,7 @@ object VideoProcessor {
                                 val adjustedStretched = ((stretched - 0.5f) * contrastMulti + 0.5f).coerceIn(0f, 1f)
                                 
                                 var contrasted = adjustedStretched * adjustedStretched * (3f - 2f * adjustedStretched)
-                                var finalValue = (contrasted * 255f).toInt()
+                                var finalValue = (contrasted * 255f * brightnessMulti).toInt()
                                 
                                 if (invertColors) {
                                     finalValue = 255 - finalValue
