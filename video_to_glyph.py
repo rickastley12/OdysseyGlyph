@@ -52,14 +52,28 @@ def floyd_steinberg_dither(img: np.ndarray, levels: int = 16) -> np.ndarray:
     return np.clip(img, 0, 255).astype(np.uint8)
 
 
-def frame_to_matrix(frame_bgr: np.ndarray, gamma: float, dither: bool, invert: bool) -> np.ndarray:
+def frame_to_matrix(frame_bgr: np.ndarray, bbox: tuple, gamma: float, dither: bool, invert: bool) -> np.ndarray:
+    x, y, w_box, h_box = bbox
+    frame_bgr = frame_bgr[y:y+h_box, x:x+w_box]
+    
     h, w = frame_bgr.shape[:2]
     side = min(h, w)
     y0, x0 = (h - side) // 2, (w - side) // 2
     cropped = frame_bgr[y0:y0 + side, x0:x0 + side]
 
     gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
+    
+    # Improve legibility by aggressively stretching contrast
+    # (Values below 40 become pitch black, values above 200 become max brightness)
+    gray = np.clip((gray.astype(np.float32) - 40) * (255.0 / (200 - 40)), 0, 255).astype(np.uint8)
+    
     small = cv2.resize(gray, (MATRIX_SIZE, MATRIX_SIZE), interpolation=cv2.INTER_AREA)
+    
+    # Apply a circular mask so it explicitly acts like a circular cutout
+    y, x = np.ogrid[:MATRIX_SIZE, :MATRIX_SIZE]
+    center = (MATRIX_SIZE - 1) / 2.0
+    mask = (x - center)**2 + (y - center)**2 <= (MATRIX_SIZE / 2.0)**2
+    small = small * mask
 
     # gamma correction — LEDs read as "on" much more of the frame than
     # the eye expects unless midtones are pulled down a bit
@@ -102,6 +116,19 @@ def main():
     src_fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     src_duration = total_frames / src_fps if src_fps else 0
+    
+    # Auto-detect letterbox cropping from the first frame
+    ok, first_frame = cap.read()
+    if ok:
+        gray_first = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray_first, 10, 255, cv2.THRESH_BINARY)
+        coords = cv2.findNonZero(thresh)
+        if coords is not None:
+            bbox = cv2.boundingRect(coords)
+        else:
+            bbox = (0, 0, first_frame.shape[1], first_frame.shape[0])
+    else:
+        bbox = (0, 0, int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
     start = max(0.0, args.start)
     duration = args.duration if args.duration is not None else max(0.0, src_duration - start)
@@ -119,6 +146,7 @@ def main():
             break
         matrix = frame_to_matrix(
             frame,
+            bbox=bbox,
             gamma=args.gamma,
             dither=not args.no_dither,
             invert=args.invert,

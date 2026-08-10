@@ -30,13 +30,22 @@ class OdysseyToyService : Service() {
     private var frameIntervalMs: Long = 83L // ~12fps default, overwritten once frames.bin is read
     private var frameIndex = 0
     private var isPaused = false
+    private var currentPlaybackMode = 1 // 0=ONCE, 1=LOOP, 2=PING_PONG
 
     private val playbackRunnable = object : Runnable {
         override fun run() {
             if (frames.isEmpty()) return
             if (!isPaused) {
                 glyphManager?.setMatrixFrame(frames[frameIndex])
-                frameIndex = (frameIndex + 1) % frames.size
+                frameIndex++
+                if (frameIndex >= frames.size) {
+                    if (currentPlaybackMode == 0) { // ONCE
+                        glyphManager?.turnOff()
+                        return // Do not post next frame
+                    } else {
+                        frameIndex = 0
+                    }
+                }
             }
             mainHandler.postDelayed(this, frameIntervalMs)
         }
@@ -86,34 +95,68 @@ class OdysseyToyService : Service() {
         glyphManager?.init(glyphCallback)
     }
 
-    /** Reads app/src/main/assets/frames.bin, written by video_to_glyph.py */
+    private var broadcastReceiver: android.content.BroadcastReceiver? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        broadcastReceiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+                if (intent?.action == "com.example.odysseyglyph.RELOAD_FRAMES") {
+                    loadFramesAndStart()
+                }
+            }
+        }
+        val filter = android.content.IntentFilter("com.example.odysseyglyph.RELOAD_FRAMES")
+        // Exported = false for security
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(broadcastReceiver, filter, RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(broadcastReceiver, filter)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        broadcastReceiver?.let { unregisterReceiver(it) }
+    }
+
+    /** Reads frames.bin written by VideoProcessor */
     private fun loadFramesAndStart() {
         Thread {
             try {
-                val (loadedFrames, fps) = readFramesAsset(assets.open("frames.bin"))
-                frames = loadedFrames
-                frameIntervalMs = (1000L / fps).coerceAtLeast(1L)
+                val file = java.io.File(filesDir, "frames.bin")
+                if (!file.exists()) {
+                    // Fallback to assets if they installed the older hardcoded version
+                    val fallback = assets.open("frames.bin")
+                    val (loadedFrames, fps) = readFramesAsset(fallback)
+                    frames = loadedFrames
+                    frameIntervalMs = (1000L / fps).coerceAtLeast(1L)
+                } else {
+                    val input = java.io.FileInputStream(file)
+                    val (loadedFrames, fps) = readFramesAsset(input)
+                    frames = loadedFrames
+                    frameIntervalMs = (1000L / fps).coerceAtLeast(1L)
+                }
+                
                 frameIndex = 0
                 mainHandler.post {
                     mainHandler.removeCallbacks(playbackRunnable)
                     mainHandler.post(playbackRunnable)
                 }
             } catch (e: Exception) {
-                // Asset missing or malformed — nothing to play. Check that
-                // frames.bin was copied into app/src/main/assets/.
                 e.printStackTrace()
             }
         }.start()
     }
 
     /**
-     * Binary format written by video_to_glyph.py:
-     *   uint32 frameCount (little-endian)
-     *   uint32 fps         (little-endian)
-     *   frameCount * 625 bytes, one brightness value (0-255) per matrix cell,
-     *   row-major 25x25.
+     * Binary format written by VideoProcessor:
+     *   uint32 frameCount   (little-endian)
+     *   uint32 fps          (little-endian)
+     *   uint32 playbackMode (little-endian) 0=ONCE, 1=LOOP, 2=PING_PONG
+     *   frameCount * 625 bytes, one brightness value (0-255) per matrix cell
      *
-     * setMatrixFrame(int[]) expects a 625-length int array (0-255 per cell),
+     * setMatrixFrame(int[]) expects a 625-length int array (0-4095 per cell),
      * so each byte is expanded to an int here.
      */
     private fun readFramesAsset(input: InputStream): Pair<List<IntArray>, Int> {
@@ -126,20 +169,43 @@ class OdysseyToyService : Service() {
                 ((data[offset + 3].toInt() and 0xFF) shl 24)
         }
 
-        val frameCount = readU32(0)
-        val fps = readU32(4)
+        // Check if old 8-byte header or new 12-byte header
+        // Since we changed the format, assume new format if data size > 12.
+        // Actually, safer to check the file size vs frameCount * 625 + 12
+        val frameCountOld = readU32(0)
+        val isNewFormat = (data.size - 12) == frameCountOld * 625
+        
+        var frameCount = frameCountOld
+        var fps = readU32(4)
+        var playbackMode = 1 // Default to LOOP
+
+        var offset = 8
+        if (isNewFormat) {
+            playbackMode = readU32(8)
+            offset = 12
+        } else {
+            // Fallback for old format
+            frameCount = readU32(0)
+            fps = readU32(4)
+            offset = 8
+        }
+
         val cellsPerFrame = 25 * 25
 
         val result = ArrayList<IntArray>(frameCount)
-        var offset = 8
         repeat(frameCount) {
             val arr = IntArray(cellsPerFrame)
             for (i in 0 until cellsPerFrame) {
-                arr[i] = data[offset + i].toInt() and 0xFF
+                // Scale 8-bit (0-255) to 12-bit (0-4095) for the Glyph SDK
+                arr[i] = (data[offset + i].toInt() and 0xFF) * 16
             }
             result.add(arr)
             offset += cellsPerFrame
         }
+        
+        // We'll store playbackMode in a global variable for the Runnable to use
+        currentPlaybackMode = playbackMode
+        
         return Pair(result, if (fps <= 0) 12 else fps)
     }
 }
