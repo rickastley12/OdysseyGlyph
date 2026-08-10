@@ -26,9 +26,11 @@ jobs:
           sed -i 's/\r$//' android/gradlew
           chmod +x android/gradlew
 
-      - name: Configure Android SDK Path
+      - name: Configure Android SDK & Accept Licenses
         run: |
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
       - name: Build Debug APK
         run: |
