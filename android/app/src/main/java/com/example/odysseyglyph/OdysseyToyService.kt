@@ -12,7 +12,6 @@ import android.os.Messenger
 import com.nothing.ketchum.Glyph
 import com.nothing.ketchum.GlyphMatrixManager
 import com.nothing.ketchum.GlyphToy
-import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
 /**
@@ -58,11 +57,9 @@ class OdysseyToyService : Service() {
     private val serviceHandler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
             if (msg.what == GlyphToy.MSG_GLYPH_TOY) {
-                val bundle: Bundle = msg.data
-                when (bundle.getString(GlyphToy.MSG_GLYPH_TOY_DATA)) {
-                    GlyphToy.EVENT_CHANGE -> {
-                        isPaused = !isPaused
-                    }
+                val bundle = msg.data
+                if (bundle?.getString(GlyphToy.MSG_GLYPH_TOY_DATA) == GlyphToy.EVENT_CHANGE) {
+                    isPaused = !isPaused
                 }
             } else {
                 super.handleMessage(msg)
@@ -120,9 +117,7 @@ class OdysseyToyService : Service() {
      * so each byte is expanded to an int here.
      */
     private fun readFramesAsset(input: InputStream): Pair<List<IntArray>, Int> {
-        val buffer = ByteArrayOutputStream()
-        input.use { it.copyTo(buffer) }
-        val data = buffer.toByteArray()
+        val data = input.use { it.readBytes() }
 
         fun readU32(offset: Int): Int {
             return (data[offset].toInt() and 0xFF) or
