@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var videoCard: MaterialCardView
     private lateinit var videoContainer: FrameLayout
     private lateinit var videoView: CenteredVideoView
+    private lateinit var imageView: CenteredImageView
     private lateinit var cropOverlay: CropOverlayView
     
     private lateinit var rangeSlider: RangeSlider
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
     
     private lateinit var etFps: EditText
     private lateinit var modeSpinner: Spinner
+    private lateinit var slotSpinner: Spinner
     private lateinit var cbInvert: MaterialSwitch
     private lateinit var contrastSlider: com.google.android.material.slider.Slider
     private lateinit var sharpenSwitch: MaterialSwitch
@@ -47,6 +49,7 @@ class MainActivity : ComponentActivity() {
     private var videoDurationMs = 0L
     private var videoRawWidth = 0
     private var videoRawHeight = 0
+    private var currentMediaType = 0 // 0=video, 1=gif, 2=static
 
     private val loopHandler = Handler(Looper.getMainLooper())
     private val loopRunnable = object : Runnable {
@@ -62,10 +65,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private val selectVideoLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+    private val selectMediaLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) {
             selectedVideoUri = uri
-            showSettingsForVideo(uri)
+            showSettingsForMedia(uri)
         }
     }
 
@@ -79,7 +82,7 @@ class MainActivity : ComponentActivity() {
         val prefs = getSharedPreferences("OdysseyGlyphPrefs", MODE_PRIVATE)
         val devBypass = prefs.getBoolean("dev_bypass", false)
         val model = android.os.Build.MODEL ?: ""
-        val isSupportedDevice = model.contains("Phone (3)") || model.contains("Phone (4a) Pro")
+        val isSupportedDevice = model.contains("Phone (3)") || model.contains("Phone (4a) Pro") || model.contains("A024")
         
         if (!isSupportedDevice && !devBypass) {
             val errorLayout = LinearLayout(this).apply {
@@ -150,8 +153,8 @@ class MainActivity : ComponentActivity() {
         layout.addView(tvStatus)
 
         btnSelectVideo = MaterialButton(this).apply {
-            text = "Choose Video"
-            setOnClickListener { selectVideoLauncher.launch("video/*") }
+            text = "Choose Media"
+            setOnClickListener { selectMediaLauncher.launch(arrayOf("video/*", "image/*")) }
         }
         layout.addView(btnSelectVideo)
 
@@ -187,6 +190,15 @@ class MainActivity : ComponentActivity() {
             )
         }
         videoContainer.addView(videoView)
+        
+        imageView = CenteredImageView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            visibility = View.GONE
+        }
+        videoContainer.addView(imageView)
         
         cropOverlay = CropOverlayView(this).apply {
             layoutParams = FrameLayout.LayoutParams(
@@ -292,11 +304,20 @@ class MainActivity : ComponentActivity() {
             val adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, modes)
             this.adapter = adapter
             setSelection(1) // Default to Loop
-            // Make text white
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
         settingsRow.addView(modeSpinner)
+        
+        slotSpinner = Spinner(this).apply {
+            val slots = arrayOf("Slot 1", "Slot 2", "Slot 3")
+            val adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, slots)
+            this.adapter = adapter
+            setSelection(0)
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        settingsRow.addView(slotSpinner)
         
         cbInvert = MaterialSwitch(this).apply {
             text = "Invert"
@@ -396,36 +417,80 @@ class MainActivity : ComponentActivity() {
         setContentView(scrollView)
     }
     
-    private fun showSettingsForVideo(uri: Uri) {
+    private fun showSettingsForMedia(uri: Uri) {
         try {
-            val retriever = MediaMetadataRetriever()
-            var videoWidth = 1
-            var videoHeight = 1
-        try {
-            retriever.setDataSource(this, uri)
-            videoDurationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
-            val w = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
-            val h = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
-            val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
-            
-            if (rotation == 90 || rotation == 270) {
-                videoWidth = h
-                videoHeight = w
-            } else {
-                videoWidth = w
-                videoHeight = h
+            val mimeType = contentResolver.getType(uri) ?: ""
+            currentMediaType = when {
+                mimeType == "image/gif" -> 1
+                mimeType.startsWith("image/") -> 2
+                else -> 0
             }
-            videoRawWidth = videoWidth
-            videoRawHeight = videoHeight
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            retriever.release()
-        }
+            
+            var mediaWidth = 1
+            var mediaHeight = 1
+            
+            if (currentMediaType == 0) {
+                // Video
+                val retriever = MediaMetadataRetriever()
+                try {
+                    retriever.setDataSource(this, uri)
+                    videoDurationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+                    val w = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
+                    val h = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
+                    val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+                    
+                    if (rotation == 90 || rotation == 270) {
+                        mediaWidth = h
+                        mediaHeight = w
+                    } else {
+                        mediaWidth = w
+                        mediaHeight = h
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    retriever.release()
+                }
+            } else if (currentMediaType == 1) {
+                // GIF
+                try {
+                    val stream = contentResolver.openInputStream(uri)
+                    val movie = android.graphics.Movie.decodeStream(stream)
+                    if (movie != null) {
+                        videoDurationMs = movie.duration().toLong()
+                        mediaWidth = movie.width()
+                        mediaHeight = movie.height()
+                    }
+                    stream?.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                // Static Image
+                try {
+                    val stream = contentResolver.openInputStream(uri)
+                    val options = android.graphics.BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                    }
+                    android.graphics.BitmapFactory.decodeStream(stream, null, options)
+                    mediaWidth = options.outWidth
+                    mediaHeight = options.outHeight
+                    videoDurationMs = 0
+                    stream?.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            
+            videoRawWidth = mediaWidth
+            videoRawHeight = mediaHeight
 
-            if (videoDurationMs > 0) {
+            if (currentMediaType == 2 || videoDurationMs <= 0) {
+                rangeSlider.isEnabled = false
+                tvTrimTimes.text = "Trim: N/A (Static Image)"
+            } else {
+                rangeSlider.isEnabled = true
                 val maxDur = videoDurationMs.toFloat()
-                // Safely update RangeSlider to avoid overlapping bound crashes
                 rangeSlider.valueFrom = 0f
                 if (maxDur < rangeSlider.valueTo) {
                     rangeSlider.values = listOf(0f, maxDur)
@@ -437,9 +502,9 @@ class MainActivity : ComponentActivity() {
                 tvTrimTimes.text = String.format("Trim: 0.0s - %.1fs", videoDurationMs / 1000f)
             }
 
-        if (videoWidth > 0 && videoHeight > 0) {
+        if (mediaWidth > 0 && mediaHeight > 0) {
             val availableWidth = resources.displayMetrics.widthPixels - 96
-            var targetHeight = (availableWidth.toFloat() * videoHeight / videoWidth).toInt()
+            var targetHeight = (availableWidth.toFloat() * mediaHeight / mediaWidth).toInt()
             val maxHeight = (resources.displayMetrics.heightPixels * 0.65f).toInt()
             if (targetHeight > maxHeight) targetHeight = maxHeight
             
@@ -452,25 +517,38 @@ class MainActivity : ComponentActivity() {
         btnSelectVideo.visibility = View.GONE
         btnOpenManager.visibility = View.GONE
         settingsPanel.visibility = View.VISIBLE
-        tvStatus.text = "Pinch to zoom and align the video inside the circle."
+        tvStatus.text = "Pinch to zoom and align the media inside the circle."
         
+        if (currentMediaType == 0) {
+            imageView.visibility = View.GONE
+            videoView.visibility = View.VISIBLE
             videoView.setVideoURI(uri)
             videoView.setOnPreparedListener { mp ->
                 mp.isLooping = true
                 videoView.start()
                 loopHandler.post(loopRunnable)
                 
-                // First-run tutorial
-                val prefs = getSharedPreferences("OdysseyGlyphPrefs", MODE_PRIVATE)
-                if (prefs.getBoolean("first_run", true)) {
-                    Toast.makeText(this, "Tutorial: Pinch to zoom. Drag to pan. Use sliders to trim.", Toast.LENGTH_LONG).show()
-                    prefs.edit().putBoolean("first_run", false).apply()
-                }
+                showFirstRunTutorial()
             }
+        } else {
+            videoView.visibility = View.GONE
+            imageView.visibility = View.VISIBLE
+            imageView.setImageURIWithAnim(uri)
+            showFirstRunTutorial()
+        }
+        
         } catch (e: Throwable) {
             e.printStackTrace()
             Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             tvStatus.text = "Crash prevented. Error: ${e.javaClass.simpleName}: ${e.message}"
+        }
+    }
+    
+    private fun showFirstRunTutorial() {
+        val prefs = getSharedPreferences("OdysseyGlyphPrefs", MODE_PRIVATE)
+        if (prefs.getBoolean("first_run", true)) {
+            Toast.makeText(this, "Tutorial: Pinch to zoom. Drag to pan. Use sliders to trim.", Toast.LENGTH_LONG).show()
+            prefs.edit().putBoolean("first_run", false).apply()
         }
     }
 
@@ -511,23 +589,28 @@ class MainActivity : ComponentActivity() {
         
         val contrastMulti = if (this::contrastSlider.isInitialized) contrastSlider.value else 1.0f
         val sharpen = if (this::sharpenSwitch.isInitialized) sharpenSwitch.isChecked else true
+        val slotIndex = if (this::slotSpinner.isInitialized) slotSpinner.selectedItemPosition + 1 else 1
         
-        // Use the ZoomSurfaceView engine matrix
+        // Use the ZoomSurfaceView/ZoomImageView engine matrix
         // Since we call setContentSize with the raw video dimensions,
         // the engine matrix already maps directly from screen layout coordinates
-        // back to the original 1080x1920 (or whatever) video pixels!
+        // back to the original media pixels!
         val inverseMatrix = android.graphics.Matrix()
-        videoView.engine.matrix.invert(inverseMatrix)
-
-        videoView.pause()
+        if (currentMediaType == 0) {
+            videoView.engine.matrix.invert(inverseMatrix)
+            videoView.pause()
+        } else {
+            imageView.engine.matrix.invert(inverseMatrix)
+        }
         settingsPanel.visibility = View.GONE
         progressBar.visibility = View.VISIBLE
         progressBar.progress = 0
         tvStatus.text = "Rendering matrix frames... Please wait."
 
-        VideoProcessor.processVideo(
+        VideoProcessor.processMedia(
             context = this, 
-            videoUri = uri,
+            mediaUri = uri,
+            mediaType = currentMediaType,
             startTimeMs = startMs,
             endTimeMs = endMs,
             targetFps = fps,
@@ -539,6 +622,7 @@ class MainActivity : ComponentActivity() {
             cropCy = cropOverlay.circleY,
             cropRadius = cropOverlay.circleRadius,
             inverseTransform = inverseMatrix, // New parameter for VideoProcessor
+            slotIndex = slotIndex,
             onProgress = { progress ->
                 progressBar.progress = progress
             },

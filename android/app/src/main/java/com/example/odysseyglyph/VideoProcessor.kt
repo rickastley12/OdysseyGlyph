@@ -2,6 +2,7 @@ package com.example.odysseyglyph
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Matrix
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -16,23 +17,10 @@ import kotlin.concurrent.thread
 object VideoProcessor {
     const val MATRIX_SIZE = 25
 
-    fun getVideoDuration(context: Context, videoUri: Uri): Long {
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(context, videoUri)
-            val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-            durationStr?.toLongOrNull() ?: 0L
-        } catch (e: Exception) {
-            e.printStackTrace()
-            0L
-        } finally {
-            retriever.release()
-        }
-    }
-
-    fun processVideo(
+    fun processMedia(
         context: Context, 
-        videoUri: Uri, 
+        mediaUri: Uri, 
+        mediaType: Int, // 0=video, 1=gif, 2=static
         startTimeMs: Long,
         endTimeMs: Long,
         targetFps: Int,
@@ -44,38 +32,14 @@ object VideoProcessor {
         cropCy: Float,
         cropRadius: Float,
         inverseTransform: Matrix,
+        slotIndex: Int = 1,
         onProgress: (Int) -> Unit, 
         onComplete: (Boolean, String?) -> Unit
     ) {
         val mainHandler = Handler(Looper.getMainLooper())
         
         thread {
-            val retriever = MediaMetadataRetriever()
             try {
-                retriever.setDataSource(context, videoUri)
-                
-                val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                val durationMs = durationStr?.toLongOrNull() ?: run {
-                    mainHandler.post { onComplete(false, "Could not determine video duration. The file may be corrupt.") }
-                    return@thread
-                }
-                
-                val validEndMs = if (endTimeMs <= 0 || endTimeMs > durationMs) durationMs else endTimeMs
-                val validStartMs = if (startTimeMs < 0 || startTimeMs >= validEndMs) 0L else startTimeMs
-                
-                val processDurationMs = validEndMs - validStartMs
-                if (processDurationMs <= 0) {
-                    mainHandler.post { onComplete(false, "Trimmed duration is zero.") }
-                    return@thread
-                }
-                
-                val intervalMs = 1000L / targetFps
-                val totalFrames = (processDurationMs / intervalMs).toInt()
-                if (totalFrames == 0) {
-                    mainHandler.post { onComplete(false, "Video is too short for the selected FPS.") }
-                    return@thread
-                }
-
                 // Map screen coordinates to raw video coordinates using the inverse transform matrix
                 val pts = floatArrayOf(cropCx, cropCy, cropCx + cropRadius, cropCy)
                 inverseTransform.mapPoints(pts)
@@ -83,87 +47,102 @@ object VideoProcessor {
                 val videoCy = pts[1]
                 val videoRadius = Math.hypot((pts[2] - pts[0]).toDouble(), (pts[3] - pts[1]).toDouble()).toFloat()
 
-                val cropSide = (videoRadius * 2).toInt()
-                if (cropSide <= 0) {
-                    mainHandler.post { onComplete(false, "Invalid crop radius.") }
-                    return@thread
-                }
-
                 val rawFrames = mutableListOf<ByteArray>()
 
-                for (i in 0 until totalFrames) {
-                    val timeUs = (validStartMs + i * intervalMs) * 1000
-                    val bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST)
-                    if (bitmap == null) continue
-                    
-                    val left = (videoCx - videoRadius).toInt().coerceIn(0, bitmap.width - 1)
-                    val top = (videoCy - videoRadius).toInt().coerceIn(0, bitmap.height - 1)
-                    val width = cropSide.coerceAtMost(bitmap.width - left)
-                    val height = cropSide.coerceAtMost(bitmap.height - top)
-                    
-                    if (width <= 0 || height <= 0) {
-                        bitmap.recycle()
-                        continue
-                    }
-
-                    // Crop user selection
-                    val square = Bitmap.createBitmap(bitmap, left, top, width, height)
-                    
-                    // Box Filter Downsampling to prevent bilinear aliasing when scaling down massive factors
-                    val small = Bitmap.createBitmap(MATRIX_SIZE, MATRIX_SIZE, Bitmap.Config.ARGB_8888)
-                    val scaleX = square.width.toFloat() / MATRIX_SIZE
-                    val scaleY = square.height.toFloat() / MATRIX_SIZE
-                    
-                    val pixels = IntArray(square.width * square.height)
-                    square.getPixels(pixels, 0, square.width, 0, 0, square.width, square.height)
-                    
-                    val outPixels = IntArray(MATRIX_SIZE * MATRIX_SIZE)
-                    for (y in 0 until MATRIX_SIZE) {
-                        for (x in 0 until MATRIX_SIZE) {
-                            var rSum = 0L
-                            var gSum = 0L
-                            var bSum = 0L
-                            var count = 0
-                            
-                            val startX = (x * scaleX).toInt()
-                            val endX = ((x + 1) * scaleX).toInt().coerceAtMost(square.width)
-                            val startY = (y * scaleY).toInt()
-                            val endY = ((y + 1) * scaleY).toInt().coerceAtMost(square.height)
-                            
-                            for (sy in startY until endY) {
-                                val offset = sy * square.width
-                                for (sx in startX until endX) {
-                                    val px = pixels[offset + sx]
-                                    rSum += android.graphics.Color.red(px)
-                                    gSum += android.graphics.Color.green(px)
-                                    bSum += android.graphics.Color.blue(px)
-                                    count++
-                                }
-                            }
-                            
-                            if (count > 0) {
-                                outPixels[y * MATRIX_SIZE + x] = android.graphics.Color.rgb(
-                                    (rSum / count).toInt(),
-                                    (gSum / count).toInt(),
-                                    (bSum / count).toInt()
-                                )
-                            }
+                if (mediaType == 0) {
+                    // --- VIDEO ---
+                    val retriever = MediaMetadataRetriever()
+                    try {
+                        retriever.setDataSource(context, mediaUri)
+                        
+                        val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        val durationMs = durationStr?.toLongOrNull() ?: run {
+                            mainHandler.post { onComplete(false, "Could not determine video duration.") }
+                            return@thread
                         }
-                    }
-                    small.setPixels(outPixels, 0, MATRIX_SIZE, 0, 0, MATRIX_SIZE, MATRIX_SIZE)
-                    
-                    // Convert to grayscale byte array
-                    val grayFrame = convertToGrayscaleByteArray(small)
-                    rawFrames.add(grayFrame)
-                    
-                    // Cleanup
-                    bitmap.recycle()
-                    if (square != bitmap) square.recycle()
-                    if (small != square) small.recycle()
+                        
+                        val validEndMs = if (endTimeMs <= 0 || endTimeMs > durationMs) durationMs else endTimeMs
+                        val validStartMs = if (startTimeMs < 0 || startTimeMs >= validEndMs) 0L else startTimeMs
+                        
+                        val processDurationMs = validEndMs - validStartMs
+                        if (processDurationMs <= 0) {
+                            mainHandler.post { onComplete(false, "Trimmed duration is zero.") }
+                            return@thread
+                        }
+                        
+                        val intervalMs = 1000L / targetFps
+                        val totalFrames = (processDurationMs / intervalMs).toInt()
+                        if (totalFrames == 0) {
+                            mainHandler.post { onComplete(false, "Video is too short for the selected FPS.") }
+                            return@thread
+                        }
 
-                    // Update progress (up to 50%)
-                    val prog = (i.toFloat() / totalFrames * 50).toInt()
-                    mainHandler.post { onProgress(prog) }
+                        for (i in 0 until totalFrames) {
+                            val timeUs = (validStartMs + i * intervalMs) * 1000
+                            val bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST)
+                            if (bitmap != null) {
+                                val frame = extractAndDownsampleFrame(bitmap, videoCx, videoCy, videoRadius)
+                                if (frame != null) rawFrames.add(frame)
+                                bitmap.recycle()
+                            }
+                            val prog = (i.toFloat() / totalFrames * 50).toInt()
+                            mainHandler.post { onProgress(prog) }
+                        }
+                    } finally {
+                        retriever.release()
+                    }
+                } else if (mediaType == 1) {
+                    // --- GIF ---
+                    val stream = context.contentResolver.openInputStream(mediaUri)
+                    val movie = android.graphics.Movie.decodeStream(stream)
+                    stream?.close()
+                    
+                    if (movie == null) {
+                        mainHandler.post { onComplete(false, "Could not decode GIF.") }
+                        return@thread
+                    }
+                    
+                    val durationMs = movie.duration().toLong().coerceAtLeast(1L)
+                    val validEndMs = if (endTimeMs <= 0 || endTimeMs > durationMs) durationMs else endTimeMs
+                    val validStartMs = if (startTimeMs < 0 || startTimeMs >= validEndMs) 0L else startTimeMs
+                    val processDurationMs = validEndMs - validStartMs
+                    
+                    val intervalMs = 1000L / targetFps
+                    val totalFrames = (processDurationMs / intervalMs).toInt().coerceAtLeast(1)
+                    
+                    val bitmap = Bitmap.createBitmap(movie.width().coerceAtLeast(1), movie.height().coerceAtLeast(1), Bitmap.Config.ARGB_8888)
+                    val canvas = Canvas(bitmap)
+                    
+                    for (i in 0 until totalFrames) {
+                        val timeMs = validStartMs + i * intervalMs
+                        movie.setTime(timeMs.toInt())
+                        
+                        canvas.drawColor(android.graphics.Color.TRANSPARENT, android.graphics.PorterDuff.Mode.CLEAR)
+                        movie.draw(canvas, 0f, 0f)
+                        
+                        val frame = extractAndDownsampleFrame(bitmap, videoCx, videoCy, videoRadius)
+                        if (frame != null) rawFrames.add(frame)
+                        
+                        val prog = (i.toFloat() / totalFrames * 50).toInt()
+                        mainHandler.post { onProgress(prog) }
+                    }
+                    bitmap.recycle()
+                } else {
+                    // --- STATIC IMAGE ---
+                    val stream = context.contentResolver.openInputStream(mediaUri)
+                    val bitmap = android.graphics.BitmapFactory.decodeStream(stream)
+                    stream?.close()
+                    
+                    if (bitmap == null) {
+                        mainHandler.post { onComplete(false, "Could not decode image.") }
+                        return@thread
+                    }
+                    
+                    val frame = extractAndDownsampleFrame(bitmap, videoCx, videoCy, videoRadius)
+                    if (frame != null) rawFrames.add(frame)
+                    bitmap.recycle()
+                    
+                    mainHandler.post { onProgress(50) }
                 }
 
                 if (rawFrames.isEmpty()) {
@@ -241,14 +220,14 @@ object VideoProcessor {
                     mainHandler.post { onProgress(prog) }
                 }
 
-                // Handle Ping-Pong mode (PlaybackMode == 2)
+                // Handle Ping-Pong mode (PlaybackMode == 2) for multi-frame media
                 if (playbackMode == 2 && finalFrames.size > 2) {
                     val reverseFrames = finalFrames.subList(1, finalFrames.size - 1).reversed()
                     finalFrames.addAll(reverseFrames)
                 }
 
-                // Write to frames.bin
-                val outFile = File(context.filesDir, "frames.bin")
+                // Write to frames_slotX.bin
+                val outFile = File(context.filesDir, "frames_slot$slotIndex.bin")
                 FileOutputStream(outFile).use { fos ->
                     val header = ByteBuffer.allocate(12).order(ByteOrder.LITTLE_ENDIAN)
                     header.putInt(finalFrames.size)
@@ -262,15 +241,72 @@ object VideoProcessor {
                 }
                 
                 mainHandler.post { onProgress(100) }
-                
                 mainHandler.post { onComplete(true, null) }
             } catch (e: Exception) {
                 e.printStackTrace()
                 mainHandler.post { onComplete(false, e.message ?: "Unknown error occurred.") }
-            } finally {
-                retriever.release()
             }
         }
+    }
+
+    private fun extractAndDownsampleFrame(bitmap: Bitmap, videoCx: Float, videoCy: Float, videoRadius: Float): ByteArray? {
+        val cropSide = (videoRadius * 2).toInt()
+        val left = (videoCx - videoRadius).toInt().coerceIn(0, bitmap.width - 1)
+        val top = (videoCy - videoRadius).toInt().coerceIn(0, bitmap.height - 1)
+        val width = cropSide.coerceAtMost(bitmap.width - left)
+        val height = cropSide.coerceAtMost(bitmap.height - top)
+        
+        if (width <= 0 || height <= 0) return null
+
+        val square = Bitmap.createBitmap(bitmap, left, top, width, height)
+        val small = Bitmap.createBitmap(MATRIX_SIZE, MATRIX_SIZE, Bitmap.Config.ARGB_8888)
+        val scaleX = square.width.toFloat() / MATRIX_SIZE
+        val scaleY = square.height.toFloat() / MATRIX_SIZE
+        
+        val pixels = IntArray(square.width * square.height)
+        square.getPixels(pixels, 0, square.width, 0, 0, square.width, square.height)
+        
+        val outPixels = IntArray(MATRIX_SIZE * MATRIX_SIZE)
+        for (y in 0 until MATRIX_SIZE) {
+            for (x in 0 until MATRIX_SIZE) {
+                var rSum = 0L
+                var gSum = 0L
+                var bSum = 0L
+                var count = 0
+                
+                val startX = (x * scaleX).toInt()
+                val endX = ((x + 1) * scaleX).toInt().coerceAtMost(square.width)
+                val startY = (y * scaleY).toInt()
+                val endY = ((y + 1) * scaleY).toInt().coerceAtMost(square.height)
+                
+                for (sy in startY until endY) {
+                    val offset = sy * square.width
+                    for (sx in startX until endX) {
+                        val px = pixels[offset + sx]
+                        rSum += android.graphics.Color.red(px)
+                        gSum += android.graphics.Color.green(px)
+                        bSum += android.graphics.Color.blue(px)
+                        count++
+                    }
+                }
+                
+                if (count > 0) {
+                    outPixels[y * MATRIX_SIZE + x] = android.graphics.Color.rgb(
+                        (rSum / count).toInt(),
+                        (gSum / count).toInt(),
+                        (bSum / count).toInt()
+                    )
+                }
+            }
+        }
+        small.setPixels(outPixels, 0, MATRIX_SIZE, 0, 0, MATRIX_SIZE, MATRIX_SIZE)
+        
+        val grayFrame = convertToGrayscaleByteArray(small)
+        
+        if (square != bitmap) square.recycle()
+        small.recycle()
+        
+        return grayFrame
     }
 
     private fun convertToGrayscaleByteArray(bitmap: Bitmap): ByteArray {

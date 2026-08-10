@@ -23,32 +23,43 @@
             </intent-filter>
         </activity>
 
+        <!-- Slot 1 -->
         <service
-            android:name=".OdysseyToyService"
+            android:name=".OdysseyToyServiceSlot1"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.nothing.glyph.TOY" />
             </intent-filter>
+            <meta-data android:name="com.nothing.glyph.toy.name" android:resource="@string/toy_name_1" />
+            <meta-data android:name="com.nothing.glyph.toy.image" android:resource="@drawable/img_toy_preview" />
+            <meta-data android:name="com.nothing.glyph.toy.summary" android:resource="@string/toy_summary" />
+            <meta-data android:name="com.nothing.glyph.toy.longpress" android:value="1" />
+        </service>
 
-            <!-- Required: name shown in the Glyph Toys manager list -->
-            <meta-data
-                android:name="com.nothing.glyph.toy.name"
-                android:resource="@string/toy_name" />
+        <!-- Slot 2 -->
+        <service
+            android:name=".OdysseyToyServiceSlot2"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.nothing.glyph.TOY" />
+            </intent-filter>
+            <meta-data android:name="com.nothing.glyph.toy.name" android:resource="@string/toy_name_2" />
+            <meta-data android:name="com.nothing.glyph.toy.image" android:resource="@drawable/img_toy_preview" />
+            <meta-data android:name="com.nothing.glyph.toy.summary" android:resource="@string/toy_summary" />
+            <meta-data android:name="com.nothing.glyph.toy.longpress" android:value="1" />
+        </service>
 
-            <!-- Required: preview image shown in settings -->
-            <meta-data
-                android:name="com.nothing.glyph.toy.image"
-                android:resource="@drawable/img_toy_preview" />
-
-            <!-- Optional: short description -->
-            <meta-data
-                android:name="com.nothing.glyph.toy.summary"
-                android:resource="@string/toy_summary" />
-
-            <!-- Long-press toggles pause/resume, see OdysseyToyService -->
-            <meta-data
-                android:name="com.nothing.glyph.toy.longpress"
-                android:value="1" />
+        <!-- Slot 3 -->
+        <service
+            android:name=".OdysseyToyServiceSlot3"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.nothing.glyph.TOY" />
+            </intent-filter>
+            <meta-data android:name="com.nothing.glyph.toy.name" android:resource="@string/toy_name_3" />
+            <meta-data android:name="com.nothing.glyph.toy.image" android:resource="@drawable/img_toy_preview" />
+            <meta-data android:name="com.nothing.glyph.toy.summary" android:resource="@string/toy_summary" />
+            <meta-data android:name="com.nothing.glyph.toy.longpress" android:value="1" />
         </service>
 
     </application>

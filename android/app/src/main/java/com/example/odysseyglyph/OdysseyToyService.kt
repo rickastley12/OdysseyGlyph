@@ -21,7 +21,9 @@ import java.io.InputStream
  *
  * Long-pressing the Glyph Button pauses/resumes playback.
  */
-class OdysseyToyService : Service() {
+abstract class BaseToyService : Service() {
+    
+    abstract fun getFramesFileName(): String
 
     private var glyphManager: GlyphMatrixManager? = null
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -124,10 +126,10 @@ class OdysseyToyService : Service() {
     private fun loadFramesAndStart() {
         Thread {
             try {
-                val file = java.io.File(filesDir, "frames.bin")
+                val file = java.io.File(filesDir, getFramesFileName())
                 if (!file.exists()) {
                     // Fallback to assets if they installed the older hardcoded version
-                    val fallback = assets.open("frames.bin")
+                    val fallback = assets.open(getFramesFileName())
                     val (loadedFrames, fps) = readFramesAsset(fallback)
                     frames = loadedFrames
                     frameIntervalMs = (1000L / fps).coerceAtLeast(1L)
@@ -208,4 +210,16 @@ class OdysseyToyService : Service() {
         
         return Pair(result, if (fps <= 0) 12 else fps)
     }
+}
+
+class OdysseyToyServiceSlot1 : BaseToyService() {
+    override fun getFramesFileName() = "frames_slot1.bin"
+}
+
+class OdysseyToyServiceSlot2 : BaseToyService() {
+    override fun getFramesFileName() = "frames_slot2.bin"
+}
+
+class OdysseyToyServiceSlot3 : BaseToyService() {
+    override fun getFramesFileName() = "frames_slot3.bin"
 }

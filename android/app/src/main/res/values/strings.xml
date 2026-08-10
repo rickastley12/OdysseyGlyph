@@ -2,5 +2,8 @@
 <resources>
     <string name="app_name">Odyssey Glyph</string>
     <string name="toy_name">Odyssey</string>
-    <string name="toy_summary">Watching Odyssey as Nolan intended.</string>
+    <string name="toy_name_1">Odyssey Slot 1</string>
+    <string name="toy_name_2">Odyssey Slot 2</string>
+    <string name="toy_name_3">Odyssey Slot 3</string>
+    <string name="toy_summary">Custom Glyph Animation</string>
 </resources>
