@@ -528,7 +528,10 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        btnSelectVideo.visibility = View.GONE
+        // UX Improvement: Allow user to change media if they selected the wrong one
+        btnSelectVideo.text = "Change Media"
+        btnSelectVideo.visibility = View.VISIBLE
+        
         btnOpenManager.visibility = View.GONE
         settingsPanel.visibility = View.VISIBLE
         tvStatus.text = "Pinch to zoom and align the media inside the circle."
@@ -617,6 +620,7 @@ class MainActivity : ComponentActivity() {
             imageView.engine.matrix.invert(inverseMatrix)
         }
         settingsPanel.visibility = View.GONE
+        btnSelectVideo.visibility = View.GONE // Hide during processing to prevent overlapping jobs
         progressBar.visibility = View.VISIBLE
         progressBar.progress = 0
         tvStatus.text = "Rendering matrix frames... Please wait."
