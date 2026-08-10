@@ -36,4 +36,9 @@ class CenteredImageView @JvmOverloads constructor(
             setImageURI(uri)
         }
     }
+
+    override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
+        parent?.requestDisallowInterceptTouchEvent(true)
+        return super.onTouchEvent(event)
+    }
 }
