@@ -596,80 +596,93 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startProcessing() {
-        val uri = selectedVideoUri ?: return
+        try {
+            val uri = selectedVideoUri ?: return
 
-        val fps = etFps.text.toString().toIntOrNull() ?: 12
-        val invert = cbInvert.isChecked
-        val startMs = rangeSlider.values[0].toLong()
-        val endMs = rangeSlider.values[1].toLong()
-        val playbackMode = if (this::modeSpinner.isInitialized) modeSpinner.selectedItemPosition else 1
-        
-        val contrastMulti = if (this::contrastSlider.isInitialized) contrastSlider.value else 1.0f
-        val sharpen = if (this::sharpenSwitch.isInitialized) sharpenSwitch.isChecked else true
-        val slotIndex = if (this::slotSpinner.isInitialized) slotSpinner.selectedItemPosition + 1 else 1
-        
-        // Use the ZoomSurfaceView/ZoomImageView engine matrix
-        // Since we call setContentSize with the raw video dimensions,
-        // the engine matrix already maps directly from screen layout coordinates
-        // back to the original media pixels!
-        val inverseMatrix = android.graphics.Matrix()
-        if (currentMediaType == 0) {
-            videoView.engine.matrix.invert(inverseMatrix)
-            videoView.pause()
-        } else {
-            imageView.engine.matrix.invert(inverseMatrix)
-            // The preview image might be downsampled to prevent GPU texture crashes.
-            // We must map the coordinates back up to the original unscaled media size.
-            val drawableW = imageView.drawable?.intrinsicWidth ?: videoRawWidth
-            val drawableH = imageView.drawable?.intrinsicHeight ?: videoRawHeight
+            val fps = etFps.text.toString().toIntOrNull() ?: 12
+            val invert = cbInvert.isChecked
+            val startMs = rangeSlider.values[0].toLong()
+            val endMs = rangeSlider.values[1].toLong()
+            val playbackMode = if (this::modeSpinner.isInitialized) modeSpinner.selectedItemPosition else 1
             
-            if (drawableW > 0 && videoRawWidth > 0) {
-                val upscaleX = videoRawWidth.toFloat() / drawableW.toFloat()
-                val upscaleY = videoRawHeight.toFloat() / drawableH.toFloat()
-                val scaleMatrix = android.graphics.Matrix()
-                scaleMatrix.setScale(upscaleX, upscaleY)
-                inverseMatrix.postConcat(scaleMatrix)
-            }
-        }
-        settingsPanel.visibility = View.GONE
-        btnSelectVideo.visibility = View.GONE // Hide during processing to prevent overlapping jobs
-        progressBar.visibility = View.VISIBLE
-        progressBar.progress = 0
-        tvStatus.text = "Rendering matrix frames... Please wait."
-
-        VideoProcessor.processMedia(
-            context = this, 
-            mediaUri = uri,
-            mediaType = currentMediaType,
-            startTimeMs = startMs,
-            endTimeMs = endMs,
-            targetFps = fps,
-            playbackMode = playbackMode,
-            invertColors = invert,
-            contrastMulti = contrastMulti,
-            sharpen = sharpen,
-            cropCx = cropOverlay.circleX,
-            cropCy = cropOverlay.circleY,
-            cropRadius = cropOverlay.circleRadius,
-            inverseTransform = inverseMatrix, // New parameter for VideoProcessor
-            slotIndex = slotIndex,
-            onProgress = { progress ->
-                progressBar.progress = progress
-            },
-            onComplete = { success, errorMsg ->
-                btnSelectVideo.visibility = View.VISIBLE
-                btnSelectVideo.text = "Create Another"
-                progressBar.visibility = View.GONE
+            val contrastMulti = if (this::contrastSlider.isInitialized) contrastSlider.value else 1.0f
+            val sharpen = if (this::sharpenSwitch.isInitialized) sharpenSwitch.isChecked else true
+            val slotIndex = if (this::slotSpinner.isInitialized) slotSpinner.selectedItemPosition + 1 else 1
+            
+            // Use the ZoomSurfaceView/ZoomImageView engine matrix
+            // Since we call setContentSize with the raw video dimensions,
+            // the engine matrix already maps directly from screen layout coordinates
+            // back to the original media pixels!
+            val inverseMatrix = android.graphics.Matrix()
+            if (currentMediaType == 0) {
+                videoView.engine.matrix.invert(inverseMatrix)
+                videoView.pause()
+            } else {
+                imageView.engine.matrix.invert(inverseMatrix)
+                // The preview image might be downsampled to prevent GPU texture crashes.
+                // We must map the coordinates back up to the original unscaled media size.
+                val drawableW = imageView.drawable?.intrinsicWidth ?: videoRawWidth
+                val drawableH = imageView.drawable?.intrinsicHeight ?: videoRawHeight
                 
-                if (success) {
-                    tvStatus.text = "Success! Your animation is ready."
-                    btnOpenManager.visibility = View.VISIBLE
-                    sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
-                } else {
-                    tvStatus.text = "Failed: ${errorMsg ?: "Unknown error"}"
-                    Toast.makeText(this, "Processing failed: ${errorMsg ?: "Unknown error"}", Toast.LENGTH_LONG).show()
+                if (drawableW > 0 && videoRawWidth > 0) {
+                    val upscaleX = videoRawWidth.toFloat() / drawableW.toFloat()
+                    val upscaleY = videoRawHeight.toFloat() / drawableH.toFloat()
+                    val scaleMatrix = android.graphics.Matrix()
+                    scaleMatrix.setScale(upscaleX, upscaleY)
+                    inverseMatrix.postConcat(scaleMatrix)
                 }
             }
-        )
+            settingsPanel.visibility = View.GONE
+            btnSelectVideo.visibility = View.GONE // Hide during processing to prevent overlapping jobs
+            progressBar.visibility = View.VISIBLE
+            progressBar.progress = 0
+            tvStatus.text = "Rendering matrix frames... Please wait."
+
+            VideoProcessor.processMedia(
+                context = this, 
+                mediaUri = uri,
+                mediaType = currentMediaType,
+                startTimeMs = startMs,
+                endTimeMs = endMs,
+                targetFps = fps,
+                playbackMode = playbackMode,
+                invertColors = invert,
+                contrastMulti = contrastMulti,
+                sharpen = sharpen,
+                cropCx = cropOverlay.circleX,
+                cropCy = cropOverlay.circleY,
+                cropRadius = cropOverlay.circleRadius,
+                inverseTransform = inverseMatrix, // New parameter for VideoProcessor
+                slotIndex = slotIndex,
+                onProgress = { progress ->
+                    progressBar.progress = progress
+                },
+                onComplete = { success, errorMsg ->
+                    btnSelectVideo.visibility = View.VISIBLE
+                    btnSelectVideo.text = "Create Another"
+                    progressBar.visibility = View.GONE
+                    
+                    if (success) {
+                        tvStatus.text = "Success! Your animation is ready."
+                        btnOpenManager.visibility = View.VISIBLE
+                        sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
+                    } else {
+                        tvStatus.text = "Failed: ${errorMsg ?: "Unknown error"}"
+                        Toast.makeText(this, "Processing failed: ${errorMsg ?: "Unknown error"}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            )
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            // Surface the exact crash stack trace to the user on screen since we don't have ADB access
+            val errorMsg = "${e.javaClass.simpleName}: ${e.message}"
+            Toast.makeText(this, "FATAL CRASH PREVENTED: $errorMsg", Toast.LENGTH_LONG).show()
+            tvStatus.text = "Crash Intercepted: $errorMsg\nPlease report this exact error."
+            
+            // Reset UI so they can try again or read the error
+            settingsPanel.visibility = View.VISIBLE
+            btnSelectVideo.visibility = View.VISIBLE
+            progressBar.visibility = View.GONE
+        }
     }
 }
