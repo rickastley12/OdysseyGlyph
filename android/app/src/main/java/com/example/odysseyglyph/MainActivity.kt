@@ -424,7 +424,10 @@ class MainActivity : ComponentActivity() {
         }
         layout.addView(btnOpenManager)
 
-        if (java.io.File(filesDir, "frames.bin").exists()) {
+        if (java.io.File(filesDir, "frames_slot1.bin").exists() || 
+            java.io.File(filesDir, "frames_slot2.bin").exists() || 
+            java.io.File(filesDir, "frames_slot3.bin").exists() || 
+            java.io.File(filesDir, "frames.bin").exists()) {
             btnOpenManager.visibility = View.VISIBLE
         }
 
