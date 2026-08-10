@@ -2,8 +2,11 @@ package com.example.odysseyglyph
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.BitmapRegionDecoder
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.graphics.Rect
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Handler
@@ -129,18 +132,54 @@ object VideoProcessor {
                     bitmap.recycle()
                 } else {
                     // --- STATIC IMAGE ---
+                    // Use BitmapRegionDecoder to prevent OutOfMemoryError on 50MP photos
                     val stream = context.contentResolver.openInputStream(mediaUri)
-                    val bitmap = android.graphics.BitmapFactory.decodeStream(stream)
-                    stream?.close()
+                    val decoder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        BitmapRegionDecoder.newInstance(stream!!, false)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        BitmapRegionDecoder.newInstance(stream!!, false)
+                    }
+                    stream.close()
                     
-                    if (bitmap == null) {
-                        mainHandler.post { onComplete(false, "Could not decode image.") }
+                    if (decoder == null) {
+                        mainHandler.post { onComplete(false, "Could not create image decoder.") }
                         return@thread
                     }
                     
-                    val frame = extractAndDownsampleFrame(bitmap, videoCx, videoCy, videoRadius)
-                    if (frame != null) rawFrames.add(frame)
-                    bitmap.recycle()
+                    val cropSide = (videoRadius * 2).toInt()
+                    val left = (videoCx - videoRadius).toInt().coerceIn(0, decoder.width - 1)
+                    val top = (videoCy - videoRadius).toInt().coerceIn(0, decoder.height - 1)
+                    val width = cropSide.coerceAtMost(decoder.width - left)
+                    val height = cropSide.coerceAtMost(decoder.height - top)
+                    
+                    if (width <= 0 || height <= 0) {
+                        decoder.recycle()
+                        mainHandler.post { onComplete(false, "Invalid crop region.") }
+                        return@thread
+                    }
+                    
+                    val rect = Rect(left, top, left + width, top + height)
+                    
+                    var sampleSize = 1
+                    while (width / sampleSize > 200 && height / sampleSize > 200) {
+                        sampleSize *= 2
+                    }
+                    
+                    val options = BitmapFactory.Options().apply {
+                        inSampleSize = sampleSize
+                        inPreferredConfig = Bitmap.Config.ARGB_8888
+                        inMutable = true
+                    }
+                    
+                    val square = decoder.decodeRegion(rect, options)
+                    decoder.recycle()
+                    
+                    if (square != null) {
+                        val frame = downsampleSquareFrame(square)
+                        if (frame != null) rawFrames.add(frame)
+                        square.recycle()
+                    }
                     
                     mainHandler.post { onProgress(50) }
                 }
@@ -242,7 +281,7 @@ object VideoProcessor {
                 
                 mainHandler.post { onProgress(100) }
                 mainHandler.post { onComplete(true, null) }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.printStackTrace()
                 mainHandler.post { onComplete(false, e.message ?: "Unknown error occurred.") }
             }
@@ -259,6 +298,12 @@ object VideoProcessor {
         if (width <= 0 || height <= 0) return null
 
         val square = Bitmap.createBitmap(bitmap, left, top, width, height)
+        val result = downsampleSquareFrame(square)
+        if (square != bitmap) square.recycle()
+        return result
+    }
+
+    private fun downsampleSquareFrame(square: Bitmap): ByteArray? {
         val small = Bitmap.createBitmap(MATRIX_SIZE, MATRIX_SIZE, Bitmap.Config.ARGB_8888)
         val scaleX = square.width.toFloat() / MATRIX_SIZE
         val scaleY = square.height.toFloat() / MATRIX_SIZE
@@ -302,10 +347,7 @@ object VideoProcessor {
         small.setPixels(outPixels, 0, MATRIX_SIZE, 0, 0, MATRIX_SIZE, MATRIX_SIZE)
         
         val grayFrame = convertToGrayscaleByteArray(small)
-        
-        if (square != bitmap) square.recycle()
         small.recycle()
-        
         return grayFrame
     }
 
