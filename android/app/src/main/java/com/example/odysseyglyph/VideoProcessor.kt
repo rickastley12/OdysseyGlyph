@@ -517,84 +517,54 @@ object VideoProcessor {
                             val progress = timeSinceStart.toFloat() / lineDuration
                             offsetX = 25f - (progress * (textWidth + 25f))
                         } else {
-                            // Flash mode with Adaptive Phrase Grouping (WPS-based)
-                            val rawWords = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
-                            if (rawWords.isNotEmpty()) {
+                            // Flash Word-by-Word with Punctuation-Aware Character Proportional Timing
+                            val words = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
+                            if (words.isNotEmpty()) {
                                 val lineDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L).toFloat()
-                                val lineDurationSec = lineDuration / 1000f
-                                val wps = rawWords.size / lineDurationSec
                                 
-                                val displayItems: List<String> = when {
-                                    wps <= 1.5f || rawWords.size <= 2 -> {
-                                        rawWords
-                                    }
-                                    wps <= 3.0f -> {
-                                        // Medium pace: Group into phrases of 2 words
-                                        rawWords.chunked(2).map { it.joinToString(" ") }
-                                    }
-                                    else -> {
-                                        // Fast pace (rap/fast singing): Split line into 2 halves
-                                        val mid = (rawWords.size + 1) / 2
-                                        val part1 = rawWords.subList(0, mid).joinToString(" ")
-                                        val part2 = rawWords.subList(mid, rawWords.size).joinToString(" ")
-                                        listOf(part1, part2).filter { it.isNotEmpty() }
-                                    }
-                                }
-                                
-                                val itemWeights = displayItems.map { item ->
-                                    var weight = item.length.toFloat()
-                                    if (item.endsWith("...")) {
+                                val wordWeights = words.map { word ->
+                                    var weight = word.length.toFloat()
+                                    if (word.endsWith("...")) {
                                         weight += 12f
-                                    } else if (item.endsWith(".") || item.endsWith("!") || item.endsWith("?")) {
+                                    } else if (word.endsWith(".") || word.endsWith("!") || word.endsWith("?")) {
                                         weight += 8f
-                                    } else if (item.endsWith(",")) {
+                                    } else if (word.endsWith(",")) {
                                         weight += 5f
                                     }
                                     weight
                                 }
-                                val totalWeight = itemWeights.sum()
+                                val totalWeight = wordWeights.sum()
                                 
                                 var accumulatedWeight = 0f
-                                var targetItemIndex = displayItems.size - 1
+                                var targetWordIndex = words.size - 1
                                 
-                                for ((idx, item) in displayItems.withIndex()) {
-                                    val itemWeight = itemWeights[idx]
-                                    val itemStartWeight = accumulatedWeight
-                                    val itemEndWeight = accumulatedWeight + itemWeight
+                                for ((wIdx, word) in words.withIndex()) {
+                                    val wordWeight = wordWeights[wIdx]
+                                    val wordStartWeight = accumulatedWeight
+                                    val wordEndWeight = accumulatedWeight + wordWeight
                                     
-                                    val itemStartTime = (itemStartWeight / totalWeight) * lineDuration
-                                    val itemEndTime = (itemEndWeight / totalWeight) * lineDuration
+                                    val wordStartTime = (wordStartWeight / totalWeight) * lineDuration
+                                    val wordEndTime = (wordEndWeight / totalWeight) * lineDuration
                                     
-                                    if (timeSinceStart >= itemStartTime && timeSinceStart < itemEndTime) {
-                                        targetItemIndex = idx
-                                        
-                                        // Formatting for display item
-                                        if (item.contains(" ")) {
-                                            // Multi-word phrase: stack words on separate lines if > 6 chars total
-                                            if (item.length > 6) {
-                                                frameText = item.replace(" ", "\n")
-                                            } else {
-                                                frameText = item
-                                            }
+                                    if (timeSinceStart >= wordStartTime && timeSinceStart < wordEndTime) {
+                                        targetWordIndex = wIdx
+                                        // 3-Tier Adaptive Pipeline Logic
+                                        if (word.length <= 6) {
+                                            frameText = word
+                                        } else if (word.length <= 12) {
+                                            val mid = word.length / 2
+                                            frameText = word.substring(0, mid) + "-\n" + word.substring(mid)
                                         } else {
-                                            // Single word: use 3-tier adaptive pipeline
-                                            if (item.length <= 6) {
-                                                frameText = item
-                                            } else if (item.length <= 12) {
-                                                val midChar = item.length / 2
-                                                frameText = item.substring(0, midChar) + "-\n" + item.substring(midChar)
-                                            } else {
-                                                val chunks = item.chunked(6)
-                                                val itemDuration = itemEndTime - itemStartTime
-                                                val timeInItem = timeSinceStart - itemStartTime
-                                                val chunkProgress = timeInItem / itemDuration
-                                                val chunkIndex = (chunkProgress * chunks.size).toInt().coerceIn(0, chunks.size - 1)
-                                                frameText = chunks[chunkIndex] + "-"
-                                            }
+                                            val chunks = word.chunked(6)
+                                            val wordDuration = wordEndTime - wordStartTime
+                                            val timeInWord = timeSinceStart - wordStartTime
+                                            val chunkProgress = timeInWord / wordDuration
+                                            val chunkIndex = (chunkProgress * chunks.size).toInt().coerceIn(0, chunks.size - 1)
+                                            frameText = chunks[chunkIndex] + "-"
                                         }
                                         break
                                     }
-                                    accumulatedWeight += itemWeight
+                                    accumulatedWeight += wordWeight
                                 }
                             }
                             val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle)
