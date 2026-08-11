@@ -30,20 +30,30 @@ export default function Home() {
         <h1 className={styles.title}>
           {titleText.split(" ").map((word, wordIndex) => (
             <span key={wordIndex} className={styles.word}>
-              {word.split("").map((letter, letterIndex) => (
-                <motion.span
-                  key={letterIndex}
-                  className={styles.letter}
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  transition={{
-                    ...springDefault,
-                    delay: wordIndex * 0.1 + letterIndex * 0.05,
-                  }}
-                >
-                  {letter}
-                </motion.span>
-              ))}
+              {word.split("").map((letter, letterIndex) => {
+                const baseDelay = wordIndex * 0.2 + letterIndex * 0.05;
+                return (
+                  <motion.span
+                    key={letterIndex}
+                    className={styles.letter}
+                    initial={{ opacity: 0, x: -5, skewX: 20 }}
+                    animate={{
+                      opacity: [0, 1, 0, 1, 0.5, 1, 1],
+                      x: [-5, 5, -2, 2, 0, 0],
+                      skewX: [20, -10, 10, -5, 0, 0],
+                      color: ["var(--foreground)", "var(--accent)", "var(--foreground)", "var(--foreground)"]
+                    }}
+                    transition={{
+                      duration: 0.6,
+                      times: [0, 0.15, 0.2, 0.35, 0.5, 0.7, 1],
+                      delay: baseDelay,
+                      ease: "linear"
+                    }}
+                  >
+                    {letter}
+                  </motion.span>
+                );
+              })}
               &nbsp;
             </span>
           ))}
