@@ -58,6 +58,8 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
         }
     }
     
+    private var lastFrameHash = 0
+
     private val playbackRunnable = object : Runnable {
         override fun run() {
             if (!isRegistered) return
@@ -68,7 +70,10 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
             val lyricsToUse = SpotifyPlaybackState.manualOverrideLyrics ?: currentParsedLyrics
             
             if (!isEnabled || !SpotifyPlaybackState.hasActiveSession || lyricsToUse.isEmpty()) {
-                glyphManager?.turnOff()
+                if (lastFrameHash != -1) {
+                    glyphManager?.turnOff()
+                    lastFrameHash = -1
+                }
                 mainHandler.postDelayed(this, 100L) // Slow poll when inactive/unmatched
                 return
             }
@@ -83,15 +88,23 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
             val frameData = LrcUtils.getFrameTextAtTime(lyricsToUse, estimatedPositionMs, fontStyle, animStyle)
             
             if (frameData == null) {
-                glyphManager?.turnOff()
+                if (lastFrameHash != -1) {
+                    glyphManager?.turnOff()
+                    lastFrameHash = -1
+                }
             } else {
                 val frameText = frameData.first
                 val offsetX = frameData.second
                 val frameBytes = GlyphFontEngine.renderTextFrame(frameText, fontStyle, offsetX, autoScale = false)
-                glyphManager?.setMatrixFrame(toIntArray(frameBytes))
+                
+                val currentHash = frameBytes.contentHashCode()
+                if (currentHash != lastFrameHash) {
+                    lastFrameHash = currentHash
+                    glyphManager?.setMatrixFrame(toIntArray(frameBytes))
+                }
             }
             
-            mainHandler.postDelayed(this, 30L)
+            mainHandler.postDelayed(this, 33L) // ~30fps poll
         }
     }
     
@@ -115,6 +128,8 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
         SpotifyPlaybackState.removeListener(this)
         mainHandler.removeCallbacks(playbackRunnable)
         glyphManager?.turnOff()
+        glyphManager?.unInit()
+        glyphManager = null
         super.onDestroy()
     }
 
