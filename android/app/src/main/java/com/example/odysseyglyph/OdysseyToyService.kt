@@ -34,6 +34,7 @@ abstract class BaseToyService : Service() {
     private var frameIndex = 0
     private var isPaused = false
     private var currentPlaybackMode = 1 // 0=ONCE, 1=LOOP, 2=PING_PONG
+    private var currentAudioOffsetMs = 0
 
     private val playbackRunnable = object : Runnable {
         override fun run() {
@@ -172,7 +173,7 @@ abstract class BaseToyService : Service() {
                     mainHandler.removeCallbacks(playbackRunnable)
                     mainHandler.post(playbackRunnable)
                     if (!isPaused) {
-                        mediaPlayer?.seekTo(0)
+                        mediaPlayer?.seekTo(currentAudioOffsetMs)
                         mediaPlayer?.start()
                     }
                 }
@@ -202,18 +203,22 @@ abstract class BaseToyService : Service() {
                 ((data[offset + 3].toInt() and 0xFF) shl 24)
         }
 
-        // Check if old 8-byte header or new 12-byte header
-        // Since we changed the format, assume new format if data size > 12.
-        // Actually, safer to check the file size vs frameCount * 625 + 12
+        // Check if old 8-byte header, 12-byte header, or new 16-byte header
         val frameCountOld = readU32(0)
         val isNewFormat = (data.size - 12) == frameCountOld * 625
+        val isFormatV3 = (data.size - 16) == frameCountOld * 625
         
         var frameCount = frameCountOld
         var fps = readU32(4)
         var playbackMode = 1 // Default to LOOP
+        var audioOffsetMs = 0
 
         var offset = 8
-        if (isNewFormat) {
+        if (isFormatV3) {
+            playbackMode = readU32(8)
+            audioOffsetMs = readU32(12)
+            offset = 16
+        } else if (isNewFormat) {
             playbackMode = readU32(8)
             offset = 12
         } else {
@@ -236,10 +241,11 @@ abstract class BaseToyService : Service() {
             offset += cellsPerFrame
         }
         
-        // We'll store playbackMode in a global variable for the Runnable to use
+        // We'll store playbackMode and offset in global variables for the Runnable to use
         currentPlaybackMode = playbackMode
+        currentAudioOffsetMs = audioOffsetMs
         
-        android.util.Log.d("OdysseyLyrics", "BaseToyService readFramesAsset: frameCount=${result.size} fps=$fps playbackMode=$playbackMode")
+        android.util.Log.d("OdysseyLyrics", "BaseToyService readFramesAsset: frameCount=${result.size} fps=$fps playbackMode=$playbackMode audioOffset=$audioOffsetMs")
         
         return Pair(result, if (fps <= 0) 12 else fps)
     }

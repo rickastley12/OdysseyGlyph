@@ -541,10 +541,11 @@ object VideoProcessor {
                 // Write to frames_slotX.bin
                 val outFile = File(context.filesDir, "frames_slot$slotIndex.bin")
                 FileOutputStream(outFile).use { fos ->
-                    val header = ByteBuffer.allocate(12).order(ByteOrder.LITTLE_ENDIAN)
+                    val header = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN)
                     header.putInt(finalFrames.size)
                     header.putInt(targetFps)
                     header.putInt(0) // PlaybackMode: 0 = ONCE (since it's a full song)
+                    header.putInt(startTimeMs.toInt()) // audioOffsetMs
                     fos.write(header.array())
 
                     for (frame in finalFrames) {

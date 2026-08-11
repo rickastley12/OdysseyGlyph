@@ -58,6 +58,7 @@ class LyricStudioActivity : AppCompatActivity() {
     
     private lateinit var audioCard: LinearLayout
     private lateinit var tvAudioStatus: TextView
+    private lateinit var switchAudio: com.google.android.material.materialswitch.MaterialSwitch
     private lateinit var btnAttachAudio: MaterialButton
     private lateinit var btnDrmInfo: ImageButton
     
@@ -159,6 +160,7 @@ class LyricStudioActivity : AppCompatActivity() {
         
         audioCard = findViewById(R.id.audioCard)
         tvAudioStatus = findViewById(R.id.tvAudioStatus)
+        switchAudio = findViewById(R.id.switchAudio)
         btnAttachAudio = findViewById(R.id.btnAttachAudio)
         
         btnRender = findViewById(R.id.btnRender)
@@ -246,9 +248,11 @@ class LyricStudioActivity : AppCompatActivity() {
         if (attached) {
             tvAudioStatus.setTextColor(ContextCompat.getColor(this, R.color.colorSuccess))
             btnAttachAudio.text = "CHANGE AUDIO"
+            switchAudio.visibility = View.VISIBLE
         } else {
             tvAudioStatus.setTextColor(ContextCompat.getColor(this, R.color.colorOnSurface))
             btnAttachAudio.text = "SELECT LOCAL AUDIO"
+            switchAudio.visibility = View.GONE
         }
     }
 
@@ -508,7 +512,7 @@ class LyricStudioActivity : AppCompatActivity() {
         VideoProcessor.processLyrics(
             context = this,
             syncedLyrics = lyrics,
-            audioUri = selectedAudioUri,
+            audioUri = if (switchAudio.visibility == View.VISIBLE && switchAudio.isChecked) selectedAudioUri else null,
             fontStyle = currentFontStyle,
             animationStyle = currentAnimStyle,
             startTimeMs = startTimeMs,
