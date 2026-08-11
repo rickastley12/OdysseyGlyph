@@ -121,11 +121,16 @@ class LyricStudioActivity : AppCompatActivity() {
         setContentView(R.layout.activity_lyric_studio)
         
         val scrollView = findViewById<ScrollView>(R.id.scrollView)
-        scrollView.clipToPadding = false
+        val innerLayout = scrollView.getChildAt(0)
         ViewCompat.setOnApplyWindowInsetsListener(scrollView) { v, insets ->
             val insetsTypes = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
             val extraPadding = (32 * resources.displayMetrics.density).toInt()
-            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, insetsTypes.bottom + extraPadding)
+            innerLayout.setPadding(
+                innerLayout.paddingLeft,
+                innerLayout.paddingTop,
+                innerLayout.paddingRight,
+                insetsTypes.bottom + extraPadding
+            )
             insets
         }
         
@@ -523,6 +528,11 @@ class LyricStudioActivity : AppCompatActivity() {
                     Snackbar.make(findViewById(android.R.id.content), "Success! Saved to Slot $slot.", Snackbar.LENGTH_LONG).show()
                     btnOpenManager.visibility = View.VISIBLE
                     sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
+                    
+                    val sv = findViewById<ScrollView>(R.id.scrollView)
+                    sv.postDelayed({
+                        sv.smoothScrollTo(0, sv.getChildAt(0).bottom)
+                    }, 100)
                 } else {
                     if (error != "Cancelled by user.") {
                         Snackbar.make(findViewById(android.R.id.content), "Error: $error", Snackbar.LENGTH_LONG).show()
