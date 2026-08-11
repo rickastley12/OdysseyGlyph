@@ -31,7 +31,6 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
     private lateinit var tvStatus: TextView
     private lateinit var tvTrackInfo: TextView
     private lateinit var ivAlbumArt: ImageView
-    private lateinit var previewImage: ImageView
     
     private lateinit var permissionCard: LinearLayout
     private lateinit var btnGrantPermission: MaterialButton
@@ -78,7 +77,6 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         tvStatus = findViewById(R.id.tvStatus)
         tvTrackInfo = findViewById(R.id.tvTrackInfo)
         ivAlbumArt = findViewById(R.id.ivAlbumArt)
-        previewImage = findViewById(R.id.previewImage)
         
         permissionCard = findViewById(R.id.permissionCard)
         btnGrantPermission = findViewById(R.id.btnGrantPermission)
@@ -189,13 +187,12 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
             onMetadataChanged(MusicPlaybackState.trackTitle, MusicPlaybackState.artist)
         }
         
-        mainHandler.post(previewUpdater)
     }
 
     override fun onPause() {
         super.onPause()
         MusicPlaybackState.removeListener(this)
-        mainHandler.removeCallbacks(previewUpdater)
+
     }
 
     private fun checkNotificationPermission() {
@@ -279,56 +276,6 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
 
     override fun onPlaybackStateChanged(isPlaying: Boolean) {
         mainHandler.post { updateUIState() }
-    }
-
-    private val previewUpdater = object : Runnable {
-        var sleepTick = 0f
-        
-        override fun run() {
-            if (!switchMaster.isChecked || !MusicPlaybackState.hasActiveSession) {
-                mainHandler.postDelayed(this, 100L)
-                return
-            }
-
-            var textToRender = ""
-            var scrollOffset = 0f
-            
-            if (MusicPlaybackState.isPlaying && MusicPlaybackState.manualOverrideLyrics != null) {
-                val syncOffset = prefs.getInt("live_sync_offset", 0).toLong()
-                val currentPos = MusicPlaybackState.position + 
-                    (System.currentTimeMillis() - MusicPlaybackState.lastUpdateTime) * MusicPlaybackState.playbackSpeed.toLong() +
-                    syncOffset
-                
-                val lyrics = MusicPlaybackState.manualOverrideLyrics!!
-                val currentLine = lyrics.lastOrNull { it.first <= currentPos }
-                if (currentLine != null) {
-                    textToRender = currentLine.second
-                }
-            } else if (!MusicPlaybackState.isPlaying) {
-                sleepTick += 0.2f
-                val zCount = (sleepTick.toInt() % 4)
-                textToRender = "Z".repeat(zCount)
-            } else if (MusicPlaybackState.isPlaying && MusicPlaybackState.manualOverrideLyrics == null) {
-                textToRender = "-"
-            }
-            
-            if (textToRender.isNotEmpty()) {
-                val rawMatrix = GlyphFontEngine.renderTextFrame(textToRender, currentFontStyle, scrollOffset, autoScale = true)
-                val bitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
-                val pixels = IntArray(625)
-                for (i in 0 until 625) {
-                    val bright = rawMatrix[i].toInt() and 0xFF
-                    pixels[i] = Color.argb(255, bright, bright, bright)
-                }
-                bitmap.setPixels(pixels, 0, 25, 0, 0, 25, 25)
-                previewImage.setImageBitmap(bitmap)
-                (previewImage.drawable as? android.graphics.drawable.BitmapDrawable)?.paint?.isFilterBitmap = false
-            } else {
-                previewImage.setImageDrawable(null)
-            }
-            
-            mainHandler.postDelayed(this, 100L)
-        }
     }
 
     private fun showOnboardingDialog() {
