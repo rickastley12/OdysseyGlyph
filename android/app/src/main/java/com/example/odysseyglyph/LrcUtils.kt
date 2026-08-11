@@ -7,6 +7,14 @@ object LrcUtils {
         val lines = lrcContent.split("\n")
         val regex = Regex("\\[(\\d+):(\\d+)\\.(\\d+)\\](.*)")
         
+        // Use ICU Transliterator to convert Hindi (Devanagari) and other scripts to Latin-ASCII.
+        // Falls back safely if transliteration fails.
+        val transliterator = try {
+            android.icu.text.Transliterator.getInstance("Any-Latin; Latin-ASCII")
+        } catch (e: Exception) {
+            null
+        }
+        
         for (line in lines) {
             val match = regex.find(line.trim())
             if (match != null) {
@@ -16,7 +24,12 @@ object LrcUtils {
                 val ms = if (msStr.length == 2) msStr.toLong() * 10 else msStr.toLong()
                 
                 val totalMs = min * 60 * 1000 + sec * 1000 + ms
-                val text = match.groupValues[4].trim()
+                var text = match.groupValues[4].trim()
+                
+                if (transliterator != null && text.isNotEmpty()) {
+                    text = transliterator.transliterate(text)
+                }
+                
                 if (text.isNotEmpty()) {
                     parsedLines.add(Pair(totalMs, text))
                 }
