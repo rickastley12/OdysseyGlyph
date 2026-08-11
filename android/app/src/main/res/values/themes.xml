@@ -28,4 +28,12 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">2dp</item>
     </style>
+    
+    <style name="TextAppearance.Odyssey.CollapsedTitle" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">@font/dotgothic16</item>
+    </style>
+
+    <style name="TextAppearance.Odyssey.ExpandedTitle" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:fontFamily">@font/dotgothic16</item>
+    </style>
 </resources>

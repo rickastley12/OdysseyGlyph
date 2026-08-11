@@ -17,13 +17,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:collapsedTitleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
-            app:expandedTitleTextAppearance="@style/TextAppearance.Material3.DisplaySmall"
+            app:collapsedTitleTextAppearance="@style/TextAppearance.Odyssey.CollapsedTitle"
+            app:expandedTitleTextAppearance="@style/TextAppearance.Odyssey.ExpandedTitle"
             app:collapsedTitleTextColor="?attr/colorOnSurface"
             app:expandedTitleTextColor="?attr/colorOnSurface"
-            app:title="LYRIC STUDIO"
-            app:collapsedTitleFontFamily="@font/dotgothic16"
-            app:expandedTitleFontFamily="@font/dotgothic16">
+            app:title="LYRIC STUDIO">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
@@ -183,7 +181,7 @@
                         android:text="⟵ SCROLL" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorDivider" android:layout_marginBottom="@dimen/spacing_medium"/>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginBottom="@dimen/spacing_medium"/>
 
                 <!-- Lyric Range Trim -->
                 <LinearLayout
@@ -219,7 +217,7 @@
                         app:tickVisible="false" />
                 </LinearLayout>
                 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorDivider" android:layout_marginBottom="@dimen/spacing_medium"/>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginBottom="@dimen/spacing_medium"/>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
@@ -274,7 +272,7 @@
                         android:layout_marginTop="@dimen/spacing_small" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorDivider" android:layout_marginBottom="@dimen/spacing_medium"/>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginBottom="@dimen/spacing_medium"/>
 
                 <!-- Actions -->
                 <com.google.android.material.button.MaterialButton
