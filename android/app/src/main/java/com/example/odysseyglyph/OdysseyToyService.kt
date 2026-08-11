@@ -26,6 +26,7 @@ abstract class BaseToyService : Service() {
     abstract fun getFramesFileName(): String
 
     private var glyphManager: GlyphMatrixManager? = null
+    private var mediaPlayer: android.media.MediaPlayer? = null
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private var frames: List<IntArray> = emptyList()
@@ -71,6 +72,11 @@ abstract class BaseToyService : Service() {
                 val bundle = msg.data
                 if (bundle?.getString(GlyphToy.MSG_GLYPH_TOY_DATA) == GlyphToy.EVENT_CHANGE) {
                     isPaused = !isPaused
+                    if (isPaused) {
+                        mediaPlayer?.pause()
+                    } else {
+                        mediaPlayer?.start()
+                    }
                 }
             } else {
                 super.handleMessage(msg)
@@ -89,6 +95,8 @@ abstract class BaseToyService : Service() {
         glyphManager?.turnOff()
         glyphManager?.unInit()
         glyphManager = null
+        mediaPlayer?.release()
+        mediaPlayer = null
         return false
     }
 
@@ -140,10 +148,33 @@ abstract class BaseToyService : Service() {
                     frameIntervalMs = (1000L / fps).coerceAtLeast(1L)
                 }
                 
+                // Initialize MediaPlayer if audio exists
+                val audioFile = java.io.File(filesDir, getFramesFileName().replace("frames_", "audio_").replace(".bin", ".mp3"))
+                mainHandler.post {
+                    mediaPlayer?.release()
+                    mediaPlayer = null
+                    if (audioFile.exists()) {
+                        try {
+                            mediaPlayer = android.media.MediaPlayer().apply {
+                                setDataSource(audioFile.absolutePath)
+                                isLooping = (currentPlaybackMode == 1 || currentPlaybackMode == 2)
+                                prepare()
+                                setVolume(1.0f, 1.0f)
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+                
                 frameIndex = 0
                 mainHandler.post {
                     mainHandler.removeCallbacks(playbackRunnable)
                     mainHandler.post(playbackRunnable)
+                    if (!isPaused) {
+                        mediaPlayer?.seekTo(0)
+                        mediaPlayer?.start()
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

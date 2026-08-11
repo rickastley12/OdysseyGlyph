@@ -52,6 +52,9 @@ class MainActivity : ComponentActivity() {
     private lateinit var btnExport: MaterialButton
     private lateinit var btnImport: MaterialButton
 
+    private lateinit var audioSwitch: MaterialSwitch
+    private var selectedAudioUri: Uri? = null
+
     private var selectedVideoUri: Uri? = null
     private var videoDurationMs = 0L
     private var videoRawWidth = 0
@@ -76,6 +79,34 @@ class MainActivity : ComponentActivity() {
         if (uri != null) {
             selectedVideoUri = uri
             showSettingsForMedia(uri)
+        }
+    }
+
+    private val selectAudioLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) {
+            selectedAudioUri = uri
+            if (this::audioSwitch.isInitialized) {
+                audioSwitch.isChecked = true
+                
+                // Try to get filename
+                var filename = "Selected"
+                try {
+                    contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                        if (cursor.moveToFirst()) {
+                            val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                            if (nameIndex >= 0) filename = cursor.getString(nameIndex)
+                        }
+                    }
+                } catch (e: Exception) {}
+                
+                audioSwitch.text = "Audio: $filename"
+            }
+        } else {
+            selectedAudioUri = null
+            if (this::audioSwitch.isInitialized) {
+                audioSwitch.isChecked = false
+                audioSwitch.text = "Attach Audio Track (Optional)"
+            }
         }
     }
 
@@ -193,9 +224,28 @@ class MainActivity : ComponentActivity() {
             text = "Select a video to map to the Nothing Phone Glyph Matrix."
             setTextColor(Color.parseColor("#AAAAAA"))
             textSize = 14f
-            setPadding(0, 0, 0, 48)
+            setPadding(0, 0, 0, 32)
         }
         layout.addView(tvStatus)
+
+        // Launch Lyric Studio Button
+        val btnLaunchLyricStudio = MaterialButton(this).apply {
+            text = "✨ OPEN LYRIC STUDIO"
+            setBackgroundColor(Color.parseColor("#E91E63")) // Vibrant pink
+            setPadding(0, 24, 0, 24)
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, LyricStudioActivity::class.java))
+            }
+        }
+        layout.addView(btnLaunchLyricStudio)
+
+        val tvOr = TextView(this).apply {
+            text = "— OR —"
+            setTextColor(Color.parseColor("#555555"))
+            gravity = Gravity.CENTER
+            setPadding(0, 16, 0, 16)
+        }
+        layout.addView(tvOr)
 
         btnSelectVideo = MaterialButton(this).apply {
             text = "Choose Media"
@@ -463,6 +513,21 @@ class MainActivity : ComponentActivity() {
             }
         }
         advancedContainer.addView(durationSlider)
+        
+        audioSwitch = MaterialSwitch(this).apply {
+            text = "Attach Audio Track (Optional)"
+            setTextColor(Color.WHITE)
+            isChecked = false
+            setOnClickListener {
+                if (isChecked) {
+                    selectAudioLauncher.launch(arrayOf("audio/*"))
+                } else {
+                    selectedAudioUri = null
+                    text = "Attach Audio Track (Optional)"
+                }
+            }
+        }
+        advancedContainer.addView(audioSwitch)
         
         sharpenSwitch = MaterialSwitch(this).apply {
             text = "Sharpen Image (Enhances faces/edges)"
@@ -763,6 +828,7 @@ class MainActivity : ComponentActivity() {
             VideoProcessor.processMedia(
                 context = this, 
                 mediaUri = uri,
+                audioUri = selectedAudioUri,
                 mediaType = currentMediaType,
                 startTimeMs = startMs,
                 endTimeMs = endMs,

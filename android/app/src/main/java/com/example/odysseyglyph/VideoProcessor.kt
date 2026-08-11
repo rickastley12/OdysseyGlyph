@@ -23,6 +23,7 @@ object VideoProcessor {
     fun processMedia(
         context: Context, 
         mediaUri: Uri, 
+        audioUri: Uri?,
         mediaType: Int, // 0=video, 1=gif, 2=static
         startTimeMs: Long,
         endTimeMs: Long,
@@ -286,6 +287,24 @@ object VideoProcessor {
                     }
                 }
                 
+                // Handle Audio Attachment
+                val audioFile = File(context.filesDir, "audio_slot$slotIndex.mp3")
+                if (audioUri != null) {
+                    try {
+                        context.contentResolver.openInputStream(audioUri)?.use { input ->
+                            FileOutputStream(audioFile).use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                } else {
+                    if (audioFile.exists()) {
+                        audioFile.delete()
+                    }
+                }
+
                 mainHandler.post { onProgress(100) }
                 mainHandler.post { onComplete(true, null) }
             } catch (e: Throwable) {
@@ -374,5 +393,136 @@ object VideoProcessor {
             grayBytes[i] = gray.toByte()
         }
         return grayBytes
+    }
+
+    fun processLyrics(
+        context: Context,
+        syncedLyrics: String,
+        audioUri: Uri?,
+        fontStyle: GlyphFontEngine.FontStyle,
+        animationStyle: Int, // 0 = Flash, 1 = Scroll Left
+        targetFps: Int = 12,
+        slotIndex: Int = 1,
+        onProgress: (Int) -> Unit,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val mainHandler = Handler(Looper.getMainLooper())
+        
+        thread {
+            try {
+                // 1. Parse LRC
+                // Format: [mm:ss.xx] text
+                val lines = syncedLyrics.split("\n")
+                val parsedLines = mutableListOf<Pair<Long, String>>() // Pair of Timestamp(ms), Text
+                
+                val regex = Regex("\\[(\\d+):(\\d+)\\.(\\d+)\\](.*)")
+                for (line in lines) {
+                    val match = regex.find(line.trim())
+                    if (match != null) {
+                        val min = match.groupValues[1].toLong()
+                        val sec = match.groupValues[2].toLong()
+                        val msStr = match.groupValues[3]
+                        val ms = if (msStr.length == 2) msStr.toLong() * 10 else msStr.toLong()
+                        
+                        val totalMs = min * 60 * 1000 + sec * 1000 + ms
+                        val text = match.groupValues[4].trim()
+                        if (text.isNotEmpty()) {
+                            parsedLines.add(Pair(totalMs, text))
+                        }
+                    }
+                }
+                
+                if (parsedLines.isEmpty()) {
+                    mainHandler.post { onComplete(false, "No valid synced lyrics found.") }
+                    return@thread
+                }
+                
+                // Calculate total duration (add 5 seconds to last lyric)
+                val durationMs = parsedLines.last().first + 5000L
+                val totalFrames = (durationMs * targetFps / 1000L).toInt()
+                
+                val finalFrames = mutableListOf<ByteArray>()
+                
+                var lyricIndex = 0
+                for (i in 0 until totalFrames) {
+                    val currentMs = i * 1000L / targetFps
+                    
+                    // Advance lyric index if current time is past the NEXT lyric
+                    if (lyricIndex < parsedLines.size - 1 && currentMs >= parsedLines[lyricIndex + 1].first) {
+                        lyricIndex++
+                    }
+                    
+                    val currentLyric = parsedLines[lyricIndex]
+                    
+                    // Only show lyric if we are within 5 seconds of its start time (to avoid holding text forever)
+                    if (currentMs < currentLyric.first || currentMs > currentLyric.first + 5000L) {
+                        finalFrames.add(ByteArray(625)) // Blank frame
+                    } else {
+                        val text = currentLyric.second
+                        val timeSinceStart = currentMs - currentLyric.first
+                        
+                        var offsetX = 0f
+                        if (animationStyle == 1) {
+                            // Scroll Left
+                            val textWidth = GlyphFontEngine.measureTextWidth(text, fontStyle)
+                            // Start slightly off-screen right, scroll left past screen
+                            val progress = timeSinceStart.toFloat() / 5000f // 5 sec scroll duration
+                            offsetX = 25f - (progress * (textWidth + 25f))
+                        } else {
+                            // Flash (Center)
+                            val textWidth = GlyphFontEngine.measureTextWidth(text, fontStyle)
+                            offsetX = (25f - textWidth) / 2f
+                        }
+                        
+                        val frame = GlyphFontEngine.renderTextFrame(text, fontStyle, offsetX)
+                        finalFrames.add(frame)
+                    }
+                    
+                    if (i % 100 == 0) {
+                        val prog = (i.toFloat() / totalFrames * 90).toInt()
+                        mainHandler.post { onProgress(prog) }
+                    }
+                }
+                
+                // Write to frames_slotX.bin
+                val outFile = File(context.filesDir, "frames_slot$slotIndex.bin")
+                FileOutputStream(outFile).use { fos ->
+                    val header = ByteBuffer.allocate(12).order(ByteOrder.LITTLE_ENDIAN)
+                    header.putInt(finalFrames.size)
+                    header.putInt(targetFps)
+                    header.putInt(0) // PlaybackMode: 0 = ONCE (since it's a full song)
+                    fos.write(header.array())
+
+                    for (frame in finalFrames) {
+                        fos.write(frame)
+                    }
+                }
+                
+                // Handle Audio Attachment
+                val audioFile = File(context.filesDir, "audio_slot$slotIndex.mp3")
+                if (audioUri != null) {
+                    try {
+                        context.contentResolver.openInputStream(audioUri)?.use { input ->
+                            FileOutputStream(audioFile).use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                } else {
+                    if (audioFile.exists()) {
+                        audioFile.delete()
+                    }
+                }
+
+                mainHandler.post { onProgress(100) }
+                mainHandler.post { onComplete(true, null) }
+                
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                mainHandler.post { onComplete(false, e.message ?: "Unknown error.") }
+            }
+        }
     }
 }
