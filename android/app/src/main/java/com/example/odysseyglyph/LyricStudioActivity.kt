@@ -396,19 +396,26 @@ class LyricStudioActivity : AppCompatActivity() {
         
         val displayText = if (currentAnimStyle == 0) {
             val firstWord = textToPreview.split("\\s+".toRegex()).firstOrNull { it.isNotEmpty() } ?: textToPreview
-            GlyphFontEngine.formatWordForDisplay(firstWord, currentFontStyle, 0f)
+            if (firstWord.length <= 6) {
+                firstWord
+            } else if (firstWord.length <= 12) {
+                val mid = firstWord.length / 2
+                firstWord.substring(0, mid) + "-\n" + firstWord.substring(mid)
+            } else {
+                firstWord.chunked(6)[0] + "-"
+            }
         } else {
             textToPreview
         }
         
         val offsetX = if (currentAnimStyle == 0) {
-            val textWidth = GlyphFontEngine.measureTextWidth(displayText, currentFontStyle, autoScale = true)
+            val textWidth = GlyphFontEngine.measureTextWidth(displayText, currentFontStyle)
             (25f - textWidth) / 2f
         } else {
             0f
         }
         
-        val rawBytes = GlyphFontEngine.renderTextFrame(displayText, currentFontStyle, offsetX, autoScale = true)
+        val rawBytes = GlyphFontEngine.renderTextFrame(displayText, currentFontStyle, offsetX)
         
         val bitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
         val pixels = IntArray(625)

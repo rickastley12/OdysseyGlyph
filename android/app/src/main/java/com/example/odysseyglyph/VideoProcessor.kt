@@ -548,22 +548,30 @@ object VideoProcessor {
                                     
                                     if (timeSinceStart >= wordStartTime && timeSinceStart < wordEndTime) {
                                         targetWordIndex = wIdx
-                                        
-                                        val wordDuration = wordEndTime - wordStartTime
-                                        val timeInWord = timeSinceStart - wordStartTime
-                                        val chunkProgress = timeInWord / wordDuration
-                                        
-                                        frameText = GlyphFontEngine.formatWordForDisplay(word, fontStyle, chunkProgress)
+                                        // 3-Tier Adaptive Pipeline Logic
+                                        if (word.length <= 6) {
+                                            frameText = word
+                                        } else if (word.length <= 12) {
+                                            val mid = word.length / 2
+                                            frameText = word.substring(0, mid) + "-\n" + word.substring(mid)
+                                        } else {
+                                            val chunks = word.chunked(6)
+                                            val wordDuration = wordEndTime - wordStartTime
+                                            val timeInWord = timeSinceStart - wordStartTime
+                                            val chunkProgress = timeInWord / wordDuration
+                                            val chunkIndex = (chunkProgress * chunks.size).toInt().coerceIn(0, chunks.size - 1)
+                                            frameText = chunks[chunkIndex] + "-"
+                                        }
                                         break
                                     }
                                     accumulatedWeight += wordWeight
                                 }
                             }
-                            val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle, autoScale = true)
+                            val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle)
                             offsetX = (25f - textWidth) / 2f
                         }
                         
-                        val frame = GlyphFontEngine.renderTextFrame(frameText, fontStyle, offsetX, autoScale = true)
+                        val frame = GlyphFontEngine.renderTextFrame(frameText, fontStyle, offsetX)
                         finalFrames.add(frame)
                     }
                     
