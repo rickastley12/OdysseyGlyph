@@ -107,6 +107,42 @@
                     android:scaleType="fitCenter" />
             </FrameLayout>
 
+            <!-- Animation Toggle -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ANIMATION STYLE"
+                android:fontFamily="@font/jetbrains_mono"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:layout_marginBottom="@dimen/spacing_small" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleAnimation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                android:layout_marginBottom="@dimen/spacing_large">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAnimFlash"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="FLASH"
+                    android:fontFamily="@font/jetbrains_mono" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAnimScroll"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="SCROLL LEFT"
+                    android:fontFamily="@font/jetbrains_mono" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
             <!-- Typography Toggle -->
             <TextView
                 android:layout_width="wrap_content"

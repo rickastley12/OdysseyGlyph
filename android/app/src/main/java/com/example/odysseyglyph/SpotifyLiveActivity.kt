@@ -34,6 +34,7 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
     private lateinit var permissionCard: LinearLayout
     private lateinit var btnGrantPermission: MaterialButton
     
+    private lateinit var toggleAnimation: MaterialButtonToggleGroup
     private lateinit var toggleTypography: MaterialButtonToggleGroup
     private lateinit var btnOpenManager: MaterialButton
     
@@ -64,6 +65,7 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
         permissionCard = findViewById(R.id.permissionCard)
         btnGrantPermission = findViewById(R.id.btnGrantPermission)
         
+        toggleAnimation = findViewById(R.id.toggleAnimation)
         toggleTypography = findViewById(R.id.toggleTypography)
         btnOpenManager = findViewById(R.id.btnOpenManager)
         
@@ -75,6 +77,20 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
         switchMaster.isChecked = prefs.getBoolean("live_lyrics_enabled", false)
         switchMaster.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("live_lyrics_enabled", isChecked).apply()
+        }
+        
+        val savedAnimStyle = prefs.getInt("live_anim_style", 0)
+        if (savedAnimStyle == 1) {
+            toggleAnimation.check(R.id.btnAnimScroll)
+        } else {
+            toggleAnimation.check(R.id.btnAnimFlash)
+        }
+        
+        toggleAnimation.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                val style = if (checkedId == R.id.btnAnimScroll) 1 else 0
+                prefs.edit().putInt("live_anim_style", style).apply()
+            }
         }
         
         val savedFontStyle = prefs.getInt("live_font_style", 0)

@@ -67,12 +67,14 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
                 return
             }
             
+            val animStyle = prefs.getInt("live_anim_style", 0)
+            
             var estimatedPositionMs = SpotifyPlaybackState.position
             if (SpotifyPlaybackState.isPlaying) {
                 estimatedPositionMs += ((SystemClock.elapsedRealtime() - SpotifyPlaybackState.lastUpdateTime) * SpotifyPlaybackState.playbackSpeed).toLong()
             }
             
-            val frameData = LrcUtils.getFrameTextAtTime(currentParsedLyrics, estimatedPositionMs, fontStyle, 0)
+            val frameData = LrcUtils.getFrameTextAtTime(currentParsedLyrics, estimatedPositionMs, fontStyle, animStyle)
             
             if (frameData == null) {
                 glyphManager?.turnOff()
@@ -90,7 +92,8 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
     private fun toIntArray(bytes: ByteArray): IntArray {
         val ints = IntArray(bytes.size)
         for (i in bytes.indices) {
-            ints[i] = bytes[i].toInt() and 0xFF
+            // Scale 8-bit (0-255) to 12-bit (0-4095) for the Glyph SDK
+            ints[i] = (bytes[i].toInt() and 0xFF) * 16
         }
         return ints
     }
