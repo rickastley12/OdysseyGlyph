@@ -81,6 +81,29 @@ class LyricStudioActivity : AppCompatActivity() {
         if (uri != null) {
             selectedAudioUri = uri
             updateAudioStatus("Attached: Manual Selection", true)
+            
+            // Try to extract filename to auto-search
+            try {
+                contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                        if (nameIndex != -1) {
+                            var name = cursor.getString(nameIndex)
+                            // Remove extension
+                            val dotIndex = name.lastIndexOf('.')
+                            if (dotIndex > 0) name = name.substring(0, dotIndex)
+                            // Remove track numbers and clean up
+                            name = name.replace(Regex("^\\d+\\s*-?\\s*"), "")
+                            name = name.replace("_", " ")
+                            
+                            etSearch.setText(name)
+                            Snackbar.make(findViewById(android.R.id.content), "Searching for lyrics: $name", Snackbar.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

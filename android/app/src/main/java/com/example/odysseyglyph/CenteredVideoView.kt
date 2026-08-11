@@ -87,7 +87,11 @@ class CenteredVideoView @JvmOverloads constructor(
         get() = if (isVideoPrepared) mediaPlayer.isPlaying else false
 
     override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
-        parent?.requestDisallowInterceptTouchEvent(true)
+        if (engine.isPanning || engine.isZooming) {
+            parent?.requestDisallowInterceptTouchEvent(true)
+        } else {
+            parent?.requestDisallowInterceptTouchEvent(false)
+        }
         return super.onTouchEvent(event)
     }
 
