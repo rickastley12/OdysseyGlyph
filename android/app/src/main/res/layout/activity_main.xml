@@ -32,6 +32,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -246,51 +247,7 @@
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
 
-                <!-- Actions -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnProcess"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="RENDER TO GLYPH"
-                    android:fontFamily="@font/jetbrains_mono"
-                    android:letterSpacing="0.1"
-                    app:cornerRadius="0dp"
-                    app:backgroundTint="?attr/colorPrimary"
-                    android:textColor="#FFFFFF"
-                    android:paddingVertical="16dp" />
-                    
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCancel"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="CANCEL"
-                    android:fontFamily="@font/jetbrains_mono"
-                    app:cornerRadius="0dp"
-                    android:textColor="?attr/colorError"
-                    app:strokeColor="?attr/colorError"
-                    android:visibility="gone"
-                    android:layout_marginTop="@dimen/spacing_small"
-                    android:paddingVertical="16dp" />
-
-                <!-- Custom Progress Bar -->
-                <com.example.odysseyglyph.GlyphProgressView
-                    android:id="@+id/progressBar"
-                    android:layout_width="match_parent"
-                    android:layout_height="24dp"
-                    android:layout_marginVertical="@dimen/spacing_medium"
-                    android:visibility="gone" />
-                    
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnOpenManager"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="OPEN TOYS MANAGER"
-                    android:fontFamily="@font/jetbrains_mono"
-                    app:cornerRadius="0dp"
-                    android:visibility="gone"
-                    android:layout_marginTop="@dimen/spacing_medium" />
+                <!-- Actions moved to bottomActionBar -->
                     
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -316,17 +273,63 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="@dimen/spacing_large"/>
-                
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLaunchLyricStudio"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="OPEN LYRIC STUDIO"
-                android:fontFamily="@font/jetbrains_mono"
-                app:cornerRadius="0dp"
-                android:paddingVertical="16dp" />
         </LinearLayout>
     </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomActionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_medium"
+        android:background="?attr/colorSurface"
+        android:layout_gravity="bottom"
+        app:layout_insetEdge="bottom"
+        android:visibility="gone"
+        android:elevation="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnProcess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="RENDER TO GLYPH"
+            android:fontFamily="@font/jetbrains_mono"
+            android:letterSpacing="0.1"
+            app:cornerRadius="0dp"
+            app:backgroundTint="?attr/colorPrimary"
+            android:textColor="#FFFFFF"
+            android:paddingVertical="16dp" />
+            
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="CANCEL"
+            android:fontFamily="@font/jetbrains_mono"
+            app:cornerRadius="0dp"
+            android:textColor="?attr/colorError"
+            app:strokeColor="?attr/colorError"
+            android:visibility="gone"
+            android:layout_marginTop="@dimen/spacing_small"
+            android:paddingVertical="16dp" />
+
+        <com.example.odysseyglyph.GlyphProgressView
+            android:id="@+id/progressBar"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_marginVertical="@dimen/spacing_medium"
+            android:visibility="gone" />
+            
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenManager"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="OPEN TOYS MANAGER"
+            android:fontFamily="@font/jetbrains_mono"
+            app:cornerRadius="0dp"
+            android:visibility="gone"
+            android:layout_marginTop="@dimen/spacing_medium" />
+    </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

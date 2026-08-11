@@ -13,7 +13,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.materialswitch.MaterialSwitch
@@ -45,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var audioCard: LinearLayout
     private lateinit var tvAudioStatus: TextView
     private lateinit var btnAttachAudio: MaterialButton
+    private lateinit var toolbar: MaterialToolbar
     
     private lateinit var btnAdvancedToggle: LinearLayout
     
@@ -54,7 +58,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnOpenManager: MaterialButton
     private lateinit var btnExport: MaterialButton
     private lateinit var btnImport: MaterialButton
-    private lateinit var btnLaunchLyricStudio: MaterialButton
+    private lateinit var bottomActionBar: LinearLayout
 
     private var selectedMediaUri: Uri? = null
     private var currentMediaType = 0 // 0=video, 1=gif, 2=static
@@ -90,6 +94,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             settingsPanel.visibility = View.VISIBLE
+            bottomActionBar.visibility = View.VISIBLE
             showCoachmarks()
         }
     }
@@ -141,6 +146,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
+        
+        val scrollView = findViewById<ScrollView>(R.id.scrollView)
+        ViewCompat.setOnApplyWindowInsetsListener(scrollView) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, systemBars.bottom)
+            insets
+        }
+        
         prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
 
         loadAdvancedSettings()
@@ -177,6 +190,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun bindViews() {
         btnSelectVideo = findViewById(R.id.btnSelectVideo)
+        toolbar = findViewById(R.id.toolbar)
         videoContainer = findViewById(R.id.videoContainer)
         videoView = findViewById(R.id.videoView)
         imageView = findViewById(R.id.imageView)
@@ -202,16 +216,23 @@ class MainActivity : AppCompatActivity() {
         btnOpenManager = findViewById(R.id.btnOpenManager)
         btnExport = findViewById(R.id.btnExport)
         btnImport = findViewById(R.id.btnImport)
-        btnLaunchLyricStudio = findViewById(R.id.btnLaunchLyricStudio)
+        bottomActionBar = findViewById(R.id.bottomActionBar)
+        
+        toolbar.inflateMenu(R.menu.main_menu)
+        toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_lyric_studio -> {
+                    startActivity(Intent(this, LyricStudioActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun setupListeners() {
         btnSelectVideo.setOnClickListener {
             selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
-        }
-
-        btnLaunchLyricStudio.setOnClickListener {
-            startActivity(Intent(this, LyricStudioActivity::class.java))
         }
 
         btnAdvancedToggle.setOnClickListener {
