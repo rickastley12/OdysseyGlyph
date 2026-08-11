@@ -14,39 +14,49 @@ object GlyphFontEngine {
         SMOOTH        // Anti-aliased smooth font
     }
     
+    private fun getConfiguredPaint(text: String, style: FontStyle, autoScale: Boolean): Paint {
+        val paint = Paint()
+        paint.color = Color.WHITE
+        when (style) {
+            FontStyle.PIXEL_TINY -> {
+                paint.typeface = Typeface.MONOSPACE
+                paint.textSize = 9f
+                paint.isAntiAlias = false
+            }
+            FontStyle.BLOCK_BOLD -> {
+                paint.typeface = Typeface.DEFAULT_BOLD
+                paint.textSize = 12f
+                paint.isAntiAlias = false
+            }
+            FontStyle.SMOOTH -> {
+                paint.typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+                paint.textSize = 12f
+                paint.isAntiAlias = true
+            }
+        }
+        
+        if (autoScale) {
+            while (paint.measureText(text) > 23f && paint.textSize > 6f) {
+                paint.textSize -= 0.5f
+            }
+        }
+        return paint
+    }
+
     /**
      * Renders a single frame of text onto the 25x25 matrix.
      * @param text The string to render.
      * @param style The typography style.
      * @param scrollOffsetX Horizontal pixel offset (for scrolling text).
+     * @param autoScale Whether to shrink text to fit the 25px width.
      * @return 625-byte array of brightness values (0-255).
      */
-    fun renderTextFrame(text: String, style: FontStyle, scrollOffsetX: Float): ByteArray {
+    fun renderTextFrame(text: String, style: FontStyle, scrollOffsetX: Float, autoScale: Boolean = false): ByteArray {
         val bitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.BLACK)
         
-        val paint = Paint()
-        when (style) {
-            FontStyle.PIXEL_TINY -> {
-                paint.typeface = Typeface.MONOSPACE
-                paint.textSize = 8f
-                paint.isAntiAlias = false
-                paint.color = Color.WHITE
-            }
-            FontStyle.BLOCK_BOLD -> {
-                paint.typeface = Typeface.DEFAULT_BOLD
-                paint.textSize = 10f
-                paint.isAntiAlias = false
-                paint.color = Color.WHITE
-            }
-            FontStyle.SMOOTH -> {
-                paint.typeface = Typeface.DEFAULT
-                paint.textSize = 9f
-                paint.isAntiAlias = true
-                paint.color = Color.WHITE
-            }
-        }
+        val paint = getConfiguredPaint(text, style, autoScale)
         
         // Calculate vertical centering
         val fontMetrics = paint.fontMetrics
@@ -89,22 +99,8 @@ object GlyphFontEngine {
     /**
      * Helper to measure text width for scrolling calculations.
      */
-    fun measureTextWidth(text: String, style: FontStyle): Float {
-        val paint = Paint()
-        when (style) {
-            FontStyle.PIXEL_TINY -> {
-                paint.typeface = Typeface.MONOSPACE
-                paint.textSize = 8f
-            }
-            FontStyle.BLOCK_BOLD -> {
-                paint.typeface = Typeface.DEFAULT_BOLD
-                paint.textSize = 10f
-            }
-            FontStyle.SMOOTH -> {
-                paint.typeface = Typeface.DEFAULT
-                paint.textSize = 9f
-            }
-        }
+    fun measureTextWidth(text: String, style: FontStyle, autoScale: Boolean = false): Float {
+        val paint = getConfiguredPaint(text, style, autoScale)
         return paint.measureText(text)
     }
 }
