@@ -43,16 +43,25 @@ object LrcUtils {
         }
         
         val currentLyric = parsedLines[lyricIndex]
-        val nextTimeMs = if (lyricIndex < parsedLines.size - 1) parsedLines[lyricIndex + 1].first else currentLyric.first + 5000L
-        
-        if (currentMs < currentLyric.first || currentMs > nextTimeMs) {
-            return null // Blank frame
+        val nextTimeMs = if (lyricIndex < parsedLines.size - 1) {
+            parsedLines[lyricIndex + 1].first
+        } else {
+            currentLyric.first + 4000L // default 4 seconds for last line
         }
 
         val text = currentLyric.second
         val timeSinceStart = currentMs - currentLyric.first
-        val lineDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L).toFloat()
         
+        // Cap the line duration so long instrumental gaps don't cause slow-motion text.
+        // Assume a very slow maximum reading speed of ~400ms per character.
+        val maxDurationMs = text.length * 400L
+        val gapDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L)
+        val lineDuration = Math.min(gapDuration, maxDurationMs).toFloat()
+
+        if (timeSinceStart < 0 || timeSinceStart > lineDuration) {
+            return null // Blank frame
+        }
+
         var frameText = text
         var offsetX = 0f
 
@@ -66,13 +75,12 @@ object LrcUtils {
             val words = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
             if (words.isNotEmpty()) {
                 val wordWeights = words.map { word ->
-                    var weight = word.length.toFloat()
-                    if (word.endsWith("...")) {
-                        weight += 12f
-                    } else if (word.endsWith(".") || word.endsWith("!") || word.endsWith("?")) {
-                        weight += 8f
-                    } else if (word.endsWith(",")) {
-                        weight += 5f
+                    // Base weight on word length to approximate syllables, with a minimum weight
+                    // so short words like "I" don't flash too fast.
+                    var weight = Math.max(3f, word.length.toFloat())
+                    // Small bump for punctuation pauses, but NOT massive multipliers
+                    if (word.endsWith(",") || word.endsWith(".") || word.endsWith("?") || word.endsWith("!")) {
+                        weight += 2f
                     }
                     weight
                 }
