@@ -513,13 +513,42 @@ object VideoProcessor {
                             val progress = timeSinceStart.toFloat() / lineDuration
                             offsetX = 25f - (progress * (textWidth + 25f))
                         } else {
-                            // Flash Word-by-Word
+                            // Flash Word-by-Word with Character-Proportional Timing
                             val words = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
                             if (words.isNotEmpty()) {
                                 val lineDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L).toFloat()
-                                val progress = timeSinceStart.toFloat() / lineDuration
-                                val wordIndex = (progress * words.size).toInt().coerceIn(0, words.size - 1)
-                                frameText = words[wordIndex]
+                                val totalChars = words.sumOf { it.length }.toFloat()
+                                
+                                var accumulatedChars = 0f
+                                var targetWordIndex = words.size - 1
+                                
+                                for ((wIdx, word) in words.withIndex()) {
+                                    val wordStartChar = accumulatedChars
+                                    val wordEndChar = accumulatedChars + word.length
+                                    
+                                    val wordStartTime = (wordStartChar / totalChars) * lineDuration
+                                    val wordEndTime = (wordEndChar / totalChars) * lineDuration
+                                    
+                                    if (timeSinceStart >= wordStartTime && timeSinceStart < wordEndTime) {
+                                        targetWordIndex = wIdx
+                                        // 3-Tier Adaptive Pipeline Logic
+                                        if (word.length <= 6) {
+                                            frameText = word
+                                        } else if (word.length <= 12) {
+                                            val mid = word.length / 2
+                                            frameText = word.substring(0, mid) + "-\n" + word.substring(mid)
+                                        } else {
+                                            val chunks = word.chunked(6)
+                                            val wordDuration = wordEndTime - wordStartTime
+                                            val timeInWord = timeSinceStart - wordStartTime
+                                            val chunkProgress = timeInWord / wordDuration
+                                            val chunkIndex = (chunkProgress * chunks.size).toInt().coerceIn(0, chunks.size - 1)
+                                            frameText = chunks[chunkIndex] + "-"
+                                        }
+                                        break
+                                    }
+                                    accumulatedChars += word.length
+                                }
                             }
                             val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle)
                             offsetX = (25f - textWidth) / 2f
