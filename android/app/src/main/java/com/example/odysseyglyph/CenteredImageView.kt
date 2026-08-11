@@ -52,7 +52,7 @@ class CenteredImageView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
-        if (engine.isPanning || engine.isZooming) {
+        if (event.pointerCount > 1 || engine.realZoom > engine.minZoom + 0.01f) {
             parent?.requestDisallowInterceptTouchEvent(true)
         } else {
             parent?.requestDisallowInterceptTouchEvent(false)
