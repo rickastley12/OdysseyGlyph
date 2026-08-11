@@ -48,6 +48,12 @@ object GlyphFontEngine {
             while (lines.any { paint.measureText(it) > maxWidth } && paint.textSize > 5f) {
                 paint.textSize -= 0.5f
             }
+            
+            // Force anti-aliasing if the font scaled down below normal pixel size, 
+            // otherwise Canvas will drop pixels and render random noise (like '****')
+            if (paint.textSize < 9f) {
+                paint.isAntiAlias = true
+            }
         }
         return paint
     }
@@ -74,7 +80,16 @@ object GlyphFontEngine {
         if (lines.size == 1) {
             val textOffset = textHeight / 2 - fontMetrics.bottom
             val y = 25f / 2f + textOffset
-            canvas.drawText(lines[0], scrollOffsetX, y, paint)
+            
+            // If auto-scaling is enabled, we are in Flash mode and should perfectly center the text.
+            // Otherwise, we respect the scroll offset.
+            val x = if (autoScale) {
+                (25f - paint.measureText(lines[0])) / 2f
+            } else {
+                scrollOffsetX
+            }
+            
+            canvas.drawText(lines[0], x, y, paint)
         } else {
             // Compress line spacing so words don't hit the narrow top/bottom edges of the circular matrix
             val lineHeight = textHeight * 0.8f
