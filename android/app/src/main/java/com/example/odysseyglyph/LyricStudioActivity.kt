@@ -175,7 +175,11 @@ class LyricStudioActivity : AppCompatActivity() {
         etSearch.addTextChangedListener(object : TextWatcher {
             private val searchRunnable = Runnable {
                 val query = etSearch.text.toString()
-                if (query.length > 2) performSearch(query)
+                if (query.length > 2) {
+                    performSearch(query)
+                } else {
+                    resultsContainer.removeAllViews()
+                }
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -458,7 +462,7 @@ class LyricStudioActivity : AppCompatActivity() {
         
         if (foundUri != null) {
             selectedAudioUri = foundUri
-            updateAudioStatus("Found Local: $foundName", true)
+            updateAudioStatus("Possible match: $foundName — tap to change", true)
         } else {
             updateAudioStatus("Audio: Unattached", false)
         }

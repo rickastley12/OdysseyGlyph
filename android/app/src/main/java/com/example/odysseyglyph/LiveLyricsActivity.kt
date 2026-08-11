@@ -198,7 +198,7 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
     private fun updateUIState() {
         if (!isNotificationAccessGranted) {
             tvStatus.text = "Missing Permission"
-            tvTrackInfo.text = "Enable Notification Access to read Spotify playback."
+            tvTrackInfo.text = "Enable Notification Access to read media playback."
             return
         }
         
@@ -241,10 +241,14 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
                     val parsed = LrcUtils.parseLrc(syncedResult.syncedLyrics!!)
                     MusicPlaybackState.manualOverrideLyrics = parsed
                     MusicPlaybackState.manualOverrideTrackName = syncedResult.trackName
-                    mainHandler.post { updateUIState() }
+                    mainHandler.post {
+                        if (isFinishing || isDestroyed) return@post
+                        updateUIState()
+                    }
                 } else {
                     MusicPlaybackState.manualOverrideLyrics = null
                     mainHandler.post { 
+                        if (isFinishing || isDestroyed) return@post
                         if (MusicPlaybackState.trackTitle == title) {
                             tvTrackInfo.text = "$title — $artist\n(No synced lyrics found)"
                         }
@@ -308,5 +312,20 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
             
             mainHandler.postDelayed(this, 100L)
         }
+    }
+
+    private fun showOnboardingDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "LIVE LYRICS"
+        dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "This mode analyzes your system's current playing media to generate a real-time visualizer on your Glyph matrix.\n\nYou must grant Notification Access so the app can detect when music starts/stops across any app."
+        dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).text = "GOT IT"
+        dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).setOnClickListener {
+            prefs.edit().putBoolean("first_run_live_v2", false).apply()
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 }
