@@ -458,6 +458,8 @@ object VideoProcessor {
                     return@thread
                 }
                 
+                android.util.Log.d("OdysseyLyrics", "parsed ${parsedLines.size} lines, first=${parsedLines.firstOrNull()}, last=${parsedLines.lastOrNull()}")
+                
                 // Calculate total duration
                 val maxDurationMs = parsedLines.last().first + 5000L
                 val validEndMs = if (endTimeMs <= 0 || endTimeMs > maxDurationMs) maxDurationMs else endTimeMs
@@ -470,6 +472,8 @@ object VideoProcessor {
                 }
                 
                 val totalFrames = (processDurationMs * targetFps / 1000L).toInt()
+                android.util.Log.d("OdysseyLyrics", "startTimeMs=$startTimeMs endTimeMs=$endTimeMs validStartMs=$validStartMs validEndMs=$validEndMs processDurationMs=$processDurationMs totalFrames=$totalFrames")
+                
                 if (totalFrames == 0) {
                     mainHandler.post { onComplete(false, "Selected range is too short.") }
                     return@thread
@@ -492,9 +496,9 @@ object VideoProcessor {
                     }
                     
                     val currentLyric = parsedLines[lyricIndex]
+                    val nextTimeMs = if (lyricIndex < parsedLines.size - 1) parsedLines[lyricIndex + 1].first else maxDurationMs
                     
-                    // Only show lyric if we are within 5 seconds of its start time (to avoid holding text forever)
-                    if (currentMs < currentLyric.first || currentMs > currentLyric.first + 5000L) {
+                    if (currentMs < currentLyric.first || currentMs > nextTimeMs) {
                         finalFrames.add(ByteArray(625)) // Blank frame
                     } else {
                         val text = currentLyric.second
@@ -504,8 +508,8 @@ object VideoProcessor {
                         if (animationStyle == 1) {
                             // Scroll Left
                             val textWidth = GlyphFontEngine.measureTextWidth(text, fontStyle)
-                            // Start slightly off-screen right, scroll left past screen
-                            val progress = timeSinceStart.toFloat() / 5000f // 5 sec scroll duration
+                            val lineDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L).toFloat()
+                            val progress = timeSinceStart.toFloat() / lineDuration
                             offsetX = 25f - (progress * (textWidth + 25f))
                         } else {
                             // Flash (Center)
@@ -522,6 +526,9 @@ object VideoProcessor {
                         mainHandler.post { onProgress(prog) }
                     }
                 }
+                
+                val blankCount = finalFrames.count { frame -> frame.all { it == 0.toByte() } }
+                android.util.Log.d("OdysseyLyrics", "totalFrames=${finalFrames.size} blankFrames=$blankCount")
                 
                 // Write to frames_slotX.bin
                 val outFile = File(context.filesDir, "frames_slot$slotIndex.bin")

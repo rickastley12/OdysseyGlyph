@@ -239,6 +239,8 @@ abstract class BaseToyService : Service() {
         // We'll store playbackMode in a global variable for the Runnable to use
         currentPlaybackMode = playbackMode
         
+        android.util.Log.d("OdysseyLyrics", "BaseToyService readFramesAsset: frameCount=${result.size} fps=$fps playbackMode=$playbackMode")
+        
         return Pair(result, if (fps <= 0) 12 else fps)
     }
 }
