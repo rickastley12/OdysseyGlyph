@@ -106,7 +106,6 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
         SpotifyPlaybackState.removeListener(this)
         mainHandler.removeCallbacks(playbackRunnable)
         glyphManager?.turnOff()
-        glyphManager?.unregister()
         super.onDestroy()
     }
 
