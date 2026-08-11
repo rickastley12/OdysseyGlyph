@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnOpenManager: MaterialButton
     private lateinit var btnExport: MaterialButton
     private lateinit var btnImport: MaterialButton
+    private lateinit var btnLaunchLyricStudio: MaterialButton
     private lateinit var bottomActionBar: LinearLayout
 
     private var selectedMediaUri: Uri? = null
@@ -200,6 +201,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun bindViews() {
         btnSelectVideo = findViewById(R.id.btnSelectVideo)
+        btnLaunchLyricStudio = findViewById(R.id.btnLaunchLyricStudio)
         toolbar = findViewById(R.id.toolbar)
         videoContainer = findViewById(R.id.videoContainer)
         videoView = findViewById(R.id.videoView)
@@ -227,16 +229,15 @@ class MainActivity : AppCompatActivity() {
         btnExport = findViewById(R.id.btnExport)
         btnImport = findViewById(R.id.btnImport)
         bottomActionBar = findViewById(R.id.bottomActionBar)
-        
-        val btnLaunchLyricStudioTop = findViewById<MaterialButton>(R.id.btnLaunchLyricStudioTop)
-        btnLaunchLyricStudioTop.setOnClickListener {
-            startActivity(Intent(this, LyricStudioActivity::class.java))
-        }
     }
 
     private fun setupListeners() {
         btnSelectVideo.setOnClickListener {
             selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
+        }
+
+        btnLaunchLyricStudio.setOnClickListener {
+            startActivity(Intent(this, LyricStudioActivity::class.java))
         }
 
         btnAdvancedToggle.setOnClickListener {
