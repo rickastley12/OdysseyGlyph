@@ -1,25 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Space_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceMono = Space_Mono({
+  variable: "--font-mono",
+  weight: ["400", "700"],
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Odyssey Glyph - Nothing Phone Animation Engine",
-  description: "A custom firmware-level animation engine for the Nothing Phone Glyph Interface.",
+  title: "Glyph Odyssey",
+  description: "Unleash the Glyph. True audio-visual synergy.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${spaceMono.variable}`}>
       <body>{children}</body>
     </html>
   );

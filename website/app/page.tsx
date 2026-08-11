@@ -1,167 +1,206 @@
 "use client";
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
-import { ArrowDown, Github, Smartphone, Code, PlaySquare, Music } from 'lucide-react';
-import styles from './page.module.css';
+import { motion } from "framer-motion";
+import styles from "./page.module.css";
+import { useEffect, useState } from "react";
+
+// Apple-style spring configs
+const springDefault = { type: "spring" as const, bounce: 0, duration: 0.8 };
+const springBouncy = { type: "spring" as const, bounce: 0.2, duration: 0.6 };
+
+const titleText = "GLYPH ODYSSEY";
 
 export default function Home() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
+  const [mounted, setMounted] = useState(false);
 
-  // Parallax for Hero
-  const heroY = useTransform(scrollYProgress, [0, 0.2], [0, 150]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
-    <main className={styles.main} ref={containerRef}>
-      
-      {/* 1. Hero Section */}
+    <main className={styles.main}>
+      <nav className={styles.nav}>
+        <div className={styles.navLogo}>GLYPH ODYSSEY</div>
+        <div>v1.0</div>
+      </nav>
+
       <section className={styles.hero}>
-        <motion.div 
-          className={styles.heroContent}
-          style={{ y: heroY, opacity: heroOpacity }}
+        <h1 className={styles.title}>
+          {titleText.split(" ").map((word, wordIndex) => (
+            <span key={wordIndex} className={styles.word}>
+              {word.split("").map((letter, letterIndex) => (
+                <motion.span
+                  key={letterIndex}
+                  className={styles.letter}
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  transition={{
+                    ...springDefault,
+                    delay: wordIndex * 0.1 + letterIndex * 0.05,
+                  }}
+                >
+                  {letter}
+                </motion.span>
+              ))}
+              &nbsp;
+            </span>
+          ))}
+        </h1>
+
+        <motion.p
+          className={styles.subtitle}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...springDefault, delay: 1 }}
         >
-          <motion.h1 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className={styles.glitchText}
-            data-text="ODYSSEY GLYPH"
-          >
-            ODYSSEY GLYPH
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className={styles.heroSub}
-          >
-            A CUSTOM FIRMWARE-LEVEL ANIMATION ENGINE FOR THE <span className="text-accent">NOTHING PHONE</span> GLYPH INTERFACE.
-          </motion.p>
+          Unleash the Glyph. True audio-visual synergy powered by a custom animation engine.
+        </motion.p>
 
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className={styles.heroActions}
-          >
-            <a href="https://github.com/rickastley12/OdysseyGlyph" target="_blank" rel="noreferrer" className="brutalist-btn primary">
-              <Github size={24} /> VIEW ON GITHUB
-            </a>
-            <a href="#vision" className="brutalist-btn">
-              EXPLORE
-            </a>
-          </motion.div>
-        </motion.div>
-
-        <motion.div 
-          animate={{ y: [0, 10, 0] }} 
-          transition={{ repeat: Infinity, duration: 2 }}
-          className={styles.scrollIndicator}
+        <motion.button
+          className={styles.downloadBtn}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ ...springDefault, delay: 1.2 }}
+          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.05 }}
         >
-          <ArrowDown size={32} />
-        </motion.div>
+          Download APK
+        </motion.button>
       </section>
 
-      {/* 2. The Vision */}
-      <section id="vision" className={styles.section}>
-        <div className={styles.container}>
-          <div className={styles.grid2}>
-            <div>
-              <h2 className={styles.sectionTitle}>THE VISION.</h2>
-              <p className={styles.sectionBody}>
-                Most apps utilize the Nothing Phone's Glyph interface as a glorified notification light. 
-                Odyssey changes the paradigm. By reverse-engineering the native <code>Toy Service</code>, 
-                we've unlocked the ability to render 25x25 custom frame matrices at 12fps directly to the back of your device.
-              </p>
-              <br/>
-              <p className={styles.sectionBody}>
-                It's not just lights. It's a low-res, brutalist canvas.
-              </p>
-            </div>
-            <div className={styles.visionCardWrapper}>
-              <div className={`glass-panel ${styles.visionCard}`}>
-                <Smartphone size={48} className="text-accent mb-4" />
-                <h3>DIRECT MEMORY MAPPING</h3>
-                <p>We bypass standard APIs, reading and writing to the firmware buffer to achieve zero-latency strobe syncing.</p>
-              </div>
-            </div>
+      <section className={styles.features}>
+        {/* Feature 1 */}
+        <div className={styles.featureCard}>
+          <div className={styles.featureContent}>
+            <motion.h2
+              className={styles.featureTitle}
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={springDefault}
+            >
+              LYRIC STUDIO
+            </motion.h2>
+            <motion.p
+              className={styles.featureDesc}
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ ...springDefault, delay: 0.1 }}
+            >
+              Author precise, frame-by-frame glyph animations synced perfectly to your favorite .lrc files. Export standalone .ogg toys directly to the Nothing ecosystem.
+            </motion.p>
           </div>
-        </div>
-      </section>
-
-      {/* 3. Feature Showcases */}
-      <section className={styles.featuresSection}>
-        <div className={styles.container}>
-          
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+          <motion.div
+            className={styles.visualPlaceholder}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
-            className={styles.featureRow}
+            transition={springBouncy}
           >
-            <div className={styles.featureIcon}><PlaySquare size={48} /></div>
-            <div className={styles.featureText}>
-              <h2>MEDIA TO MATRIX</h2>
-              <p>Pan, crop, and threshold any video or image into a 1-bit dot matrix animation. Save directly to your native Nothing Settings.</p>
+            <div className={styles.glyphGrid}>
+              {Array.from({ length: 25 }).map((_, i) => (
+                <motion.div
+                  key={i}
+                  className={`${styles.glyphDot} ${i % 3 === 0 ? styles.active : ""}`}
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.1,
+                  }}
+                />
+              ))}
             </div>
           </motion.div>
+        </div>
 
-          <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+        {/* Feature 2 */}
+        <div className={`${styles.featureCard} ${styles.reverse}`}>
+          <div className={styles.featureContent}>
+            <motion.h2
+              className={styles.featureTitle}
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={springDefault}
+            >
+              LIVE LYRICS
+            </motion.h2>
+            <motion.p
+              className={styles.featureDesc}
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ ...springDefault, delay: 0.1 }}
+            >
+              An intelligent background service that intercepts playing media and renders real-time scrolling typography across the Glyph Matrix on your phone's back glass.
+            </motion.p>
+          </div>
+          <motion.div
+            className={styles.visualPlaceholder}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
-            className={`${styles.featureRow} ${styles.featureRowReverse}`}
+            transition={springBouncy}
           >
-            <div className={styles.featureIcon}><Music size={48} /></div>
-            <div className={styles.featureText}>
-              <h2>LIVE LYRICS</h2>
-              <p>Intercepts your local Spotify/YouTube Music playback, downloads synchronized LRC files, and streams the words across your phone's back instantly.</p>
+            {/* Visual mock for live lyrics */}
+            <motion.div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "4rem",
+                color: "var(--foreground)",
+                whiteSpace: "nowrap",
+              }}
+              animate={{ x: ["100%", "-100%"] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+            >
+              NEVER GONNA GIVE YOU UP
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Feature 3 */}
+        <div className={styles.featureCard}>
+          <div className={styles.featureContent}>
+            <motion.h2
+              className={styles.featureTitle}
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={springDefault}
+            >
+              TOY MANAGER
+            </motion.h2>
+            <motion.p
+              className={styles.featureDesc}
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ ...springDefault, delay: 0.1 }}
+            >
+              Seamless integration with the Nothing OS third-party ecosystem. Manage, preview, and apply your custom glyph compositions natively.
+            </motion.p>
+          </div>
+          <motion.div
+            className={styles.visualPlaceholder}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={springBouncy}
+            whileHover={{ scale: 1.05, rotate: 2 }}
+          >
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "2rem" }}>
+              {"{ OGG }"}
             </div>
           </motion.div>
-
-        </div>
-      </section>
-
-      {/* 4. Under the Hood */}
-      <section className={styles.technicalSection}>
-        <div className={styles.container}>
-          <div className="text-center mb-12">
-            <h2 className={styles.sectionTitle}>UNDER THE HOOD.</h2>
-            <p className={styles.sectionBody}>Open source. No fluff. Just raw byte manipulation.</p>
-          </div>
-          
-          <div className={`glass-panel ${styles.codeBlock}`}>
-            <div className={styles.codeHeader}>
-              <Code size={18} /> <span>LiveLyricsToyService.kt</span>
-            </div>
-            <pre>
-              <code>
-{`override fun onProcessFrame(frameMap: IntArray) {
-    if (!MusicPlaybackState.isPlaying) {
-        renderSleepState(frameMap)
-        return
-    }
-    
-    val currentPosition = MusicPlaybackState.position + syncOffset
-    val currentLine = activeLyrics.find { it.timeMs <= currentPosition }
-    
-    // Map text to 25x25 matrix
-    GlyphFontEngine.renderToBuffer(currentLine.text, frameMap)
-}`}
-              </code>
-            </pre>
-          </div>
         </div>
       </section>
 
       <footer className={styles.footer}>
-        <p>BUILT FOR THE NOTHING COMMUNITY.</p>
-        <p className={styles.muted}>Odyssey Glyph is an open-source project and is not affiliated with Nothing Technology Limited.</p>
+        <p>Built for the Nothing ecosystem. Not affiliated with Nothing Technology Limited.</p>
       </footer>
     </main>
   );
