@@ -22,7 +22,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import kotlin.concurrent.thread
 
-class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChangeListener {
+class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeListener {
 
     private lateinit var prefs: SharedPreferences
     
@@ -50,7 +50,7 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_spotify_live)
+        setContentView(R.layout.activity_live_lyrics)
         
         prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
         
@@ -161,14 +161,14 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
     override fun onResume() {
         super.onResume()
         checkNotificationPermission()
-        SpotifyPlaybackState.addListener(this)
+        MusicPlaybackState.addListener(this)
         updateUIState()
         mainHandler.post(previewUpdater)
     }
 
     override fun onPause() {
         super.onPause()
-        SpotifyPlaybackState.removeListener(this)
+        MusicPlaybackState.removeListener(this)
         mainHandler.removeCallbacks(previewUpdater)
     }
 
@@ -191,15 +191,19 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
             return
         }
         
-        if (!SpotifyPlaybackState.hasActiveSession) {
-            tvStatus.text = "Waiting for Spotify..."
-            tvTrackInfo.text = "Play a track on Spotify to begin."
+        if (!MusicPlaybackState.hasActiveSession) {
+            tvStatus.text = "Waiting for Music..."
+            tvTrackInfo.text = "Play a track to begin."
             searchContainer.visibility = View.GONE
         } else {
-            val title = SpotifyPlaybackState.trackTitle
-            val artist = SpotifyPlaybackState.artist
+            val title = MusicPlaybackState.trackTitle
+            val artist = MusicPlaybackState.artist
             
-            if (title.isNotEmpty()) {
+            if (MusicPlaybackState.manualOverrideLyrics != null) {
+                tvStatus.text = "Active Session"
+                tvTrackInfo.text = "OVERRIDE: ${MusicPlaybackState.manualOverrideTrackName}"
+                searchContainer.visibility = View.VISIBLE
+            } else if (title.isNotEmpty()) {
                 tvStatus.text = "Active Session"
                 tvTrackInfo.text = "$title — $artist"
                 
@@ -234,7 +238,7 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
                 if (results.isEmpty()) {
                     resultsContainer.addView(TextView(this).apply {
                         text = "No matches found."
-                        setTextColor(ContextCompat.getColor(this@SpotifyLiveActivity, R.color.colorError))
+                        setTextColor(ContextCompat.getColor(this@LiveLyricsActivity, R.color.colorError))
                         gravity = android.view.Gravity.CENTER
                     })
                     return@post
@@ -266,10 +270,12 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
                         isFocusable = true
                         setOnClickListener {
                             val parsed = LrcUtils.parseLrc(track.syncedLyrics!!)
-                            SpotifyPlaybackState.manualOverrideLyrics = parsed
+                            MusicPlaybackState.manualOverrideLyrics = parsed
+                            MusicPlaybackState.manualOverrideTrackName = track.trackName
                             
-                            val rootView = this@SpotifyLiveActivity.findViewById<View>(android.R.id.content)
+                            val rootView = this@LiveLyricsActivity.findViewById<View>(android.R.id.content)
                             Snackbar.make(rootView, "Override applied: ${track.trackName}", Snackbar.LENGTH_SHORT).show()
+                            updateUIState()
                         }
                     }
                     
@@ -304,7 +310,7 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
         override fun run() {
             // Very rudimentary live preview. The Toy Service handles real rendering,
             // this just gives a visual indicator in the activity.
-            if (switchMaster.isChecked && SpotifyPlaybackState.hasActiveSession) {
+            if (switchMaster.isChecked && MusicPlaybackState.hasActiveSession) {
                 // Here we would ideally duplicate the Toy Service parsing logic to show a live preview.
                 // But for the sake of simplicity, we just leave the previewImage blank unless we implement
                 // shared memory parsing.

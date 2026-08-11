@@ -2,7 +2,7 @@ package com.example.odysseyglyph
 
 import android.media.session.PlaybackState
 
-object SpotifyPlaybackState {
+object MusicPlaybackState {
     var trackTitle: String = ""
     var artist: String = ""
     
@@ -13,6 +13,8 @@ object SpotifyPlaybackState {
     
     var hasActiveSession: Boolean = false
     var manualOverrideLyrics: List<Pair<Long, String>>? = null
+    var manualOverrideTrackName: String = ""
+    var activeSource: String = "" // "Spotify" or "YT Music"
     
     interface StateChangeListener {
         fun onMetadataChanged(title: String, artist: String)
@@ -31,10 +33,11 @@ object SpotifyPlaybackState {
         listeners.remove(listener)
     }
     
-    fun updateMetadata(newTitle: String, newArtist: String) {
+    fun updateMetadata(newTitle: String, newArtist: String, source: String) {
         if (trackTitle != newTitle || artist != newArtist) {
             trackTitle = newTitle
             artist = newArtist
+            activeSource = source
             manualOverrideLyrics = null
             listeners.forEach { it.onMetadataChanged(trackTitle, artist) }
         }

@@ -79,13 +79,14 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLaunchLiveLyrics"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="LIVE LYRICS (BETA)"
-                android:fontFamily="@font/jetbrains_mono"
+                android:text="LIVE LYRICS"
+                android:fontFamily="@font/ndot57"
                 app:cornerRadius="0dp"
-                android:paddingVertical="12dp" />
+                android:paddingVertical="12dp"
+                app:backgroundTint="#FF0000"
+                android:textColor="#FFFFFF" />
 
             <!-- Settings Panel -->
             <LinearLayout

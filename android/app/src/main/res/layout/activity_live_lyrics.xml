@@ -17,8 +17,15 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Live Lyrics (Beta)"
-            app:navigationIcon="?attr/homeAsUpIndicator" />
+            app:navigationIcon="?attr/homeAsUpIndicator">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Live Lyrics"
+                android:fontFamily="@font/ndot57"
+                android:textAppearance="?attr/textAppearanceTitleLarge" />
+        </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
@@ -245,7 +252,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MANUAL OVERRIDE (DEBUG)"
+                    android:text="MANUAL OVERRIDE"
                     android:fontFamily="@font/jetbrains_mono"
                     android:textAppearance="?attr/textAppearanceLabelLarge"
                     android:layout_marginBottom="@dimen/spacing_small" />

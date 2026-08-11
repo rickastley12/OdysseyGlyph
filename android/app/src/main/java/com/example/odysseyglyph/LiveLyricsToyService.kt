@@ -15,7 +15,7 @@ import com.nothing.ketchum.GlyphMatrixManager
 import com.nothing.ketchum.GlyphToy
 import kotlin.concurrent.thread
 
-class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListener {
+class LiveLyricsToyService : Service(), MusicPlaybackState.StateChangeListener {
     
     private var glyphManager: GlyphMatrixManager? = null
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -34,7 +34,7 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
         override fun onServiceConnected(componentName: ComponentName) {
             glyphManager?.register(Glyph.DEVICE_23112)
             isRegistered = true
-            SpotifyPlaybackState.addListener(this@SpotifyLiveToyService)
+            MusicPlaybackState.addListener(this@LiveLyricsToyService)
             
             val prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
             val fontStyleInt = prefs.getInt("live_font_style", 0)
@@ -45,8 +45,8 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
             }
             
             // Initial fetch if active
-            if (SpotifyPlaybackState.hasActiveSession) {
-                onMetadataChanged(SpotifyPlaybackState.trackTitle, SpotifyPlaybackState.artist)
+            if (MusicPlaybackState.hasActiveSession) {
+                onMetadataChanged(MusicPlaybackState.trackTitle, MusicPlaybackState.artist)
             }
             
             mainHandler.post(playbackRunnable)
@@ -54,7 +54,7 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
 
         override fun onServiceDisconnected(componentName: ComponentName) {
             isRegistered = false
-            SpotifyPlaybackState.removeListener(this@SpotifyLiveToyService)
+            MusicPlaybackState.removeListener(this@LiveLyricsToyService)
         }
     }
     
@@ -67,9 +67,9 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
             val prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
             val isEnabled = prefs.getBoolean("live_lyrics_enabled", false)
             
-            val lyricsToUse = SpotifyPlaybackState.manualOverrideLyrics ?: currentParsedLyrics
+            val lyricsToUse = MusicPlaybackState.manualOverrideLyrics ?: currentParsedLyrics
             
-            if (!isEnabled || !SpotifyPlaybackState.hasActiveSession || lyricsToUse.isEmpty()) {
+            if (!isEnabled || !MusicPlaybackState.hasActiveSession || lyricsToUse.isEmpty() || !MusicPlaybackState.isPlaying) {
                 if (lastFrameHash != -1) {
                     glyphManager?.turnOff()
                     lastFrameHash = -1
@@ -81,9 +81,9 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
             val animStyle = prefs.getInt("live_anim_style", 0)
             val syncOffset = prefs.getInt("live_sync_offset", 0)
             
-            var estimatedPositionMs = SpotifyPlaybackState.position
-            if (SpotifyPlaybackState.isPlaying) {
-                estimatedPositionMs += ((SystemClock.elapsedRealtime() - SpotifyPlaybackState.lastUpdateTime) * SpotifyPlaybackState.playbackSpeed).toLong()
+            var estimatedPositionMs = MusicPlaybackState.position
+            if (MusicPlaybackState.isPlaying) {
+                estimatedPositionMs += ((SystemClock.elapsedRealtime() - MusicPlaybackState.lastUpdateTime) * MusicPlaybackState.playbackSpeed).toLong()
             }
             
             // Apply user sync offset
@@ -129,7 +129,7 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
 
     override fun onDestroy() {
         isRegistered = false
-        SpotifyPlaybackState.removeListener(this)
+        MusicPlaybackState.removeListener(this)
         mainHandler.removeCallbacks(playbackRunnable)
         glyphManager?.turnOff()
         glyphManager?.unInit()

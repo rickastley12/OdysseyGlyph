@@ -269,7 +269,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnLaunchLiveLyrics.setOnClickListener {
-            startActivity(Intent(this, Class.forName("com.example.odysseyglyph.SpotifyLiveActivity")))
+            startActivity(Intent(this, Class.forName("com.example.odysseyglyph.LiveLyricsActivity")))
         }
 
         btnAdvancedToggle.setOnClickListener {

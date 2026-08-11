@@ -10,8 +10,9 @@ import android.util.Log
 
 class MediaSessionListenerService : NotificationListenerService() {
     private var mediaSessionManager: MediaSessionManager? = null
-    private var activeSpotifyController: MediaController? = null
+    private var activeController: MediaController? = null
     private var isConnected = false
+    private var activeSource = ""
     
     private val controllerCallback = object : MediaController.Callback() {
         override fun onMetadataChanged(metadata: MediaMetadata?) {
@@ -19,25 +20,23 @@ class MediaSessionListenerService : NotificationListenerService() {
             metadata?.let {
                 val title = it.getString(MediaMetadata.METADATA_KEY_TITLE) ?: ""
                 val artist = it.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: ""
-                Log.d("SpotifyListener", "Metadata changed: $title - $artist")
-                SpotifyPlaybackState.updateMetadata(title, artist)
+                Log.d("MusicListener", "Metadata changed: $title - $artist")
+                MusicPlaybackState.updateMetadata(title, artist, activeSource)
             }
         }
 
         override fun onPlaybackStateChanged(state: PlaybackState?) {
             super.onPlaybackStateChanged(state)
-            Log.d("SpotifyListener", "Playback state changed: ${state?.state}")
-            SpotifyPlaybackState.updatePlaybackState(state)
+            Log.d("MusicListener", "Playback state changed: ${state?.state}")
+            MusicPlaybackState.updatePlaybackState(state)
         }
     }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
         isConnected = true
-        Log.d("SpotifyListener", "Listener connected")
         
         mediaSessionManager = getSystemService(MEDIA_SESSION_SERVICE) as MediaSessionManager
-        
         val componentName = ComponentName(this, MediaSessionListenerService::class.java)
         
         try {
@@ -49,45 +48,49 @@ class MediaSessionListenerService : NotificationListenerService() {
             }, componentName)
             
         } catch (e: SecurityException) {
-            Log.e("SpotifyListener", "Missing Notification Access permission", e)
+            Log.e("MusicListener", "Missing Notification Access permission", e)
         }
     }
 
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         isConnected = false
-        Log.d("SpotifyListener", "Listener disconnected")
         
-        activeSpotifyController?.unregisterCallback(controllerCallback)
-        activeSpotifyController = null
-        SpotifyPlaybackState.hasActiveSession = false
+        activeController?.unregisterCallback(controllerCallback)
+        activeController = null
+        MusicPlaybackState.hasActiveSession = false
     }
 
     private fun updateActiveSessions(controllers: List<MediaController>?) {
         if (!isConnected) return
         
-        val spotifyController = controllers?.find { it.packageName == "com.spotify.music" }
+        // Prioritize Spotify or YT Music if multiple exist
+        val musicController = controllers?.find { 
+            it.packageName == "com.spotify.music" || it.packageName == "com.google.android.apps.youtube.music" 
+        }
         
-        if (spotifyController != null) {
-            if (activeSpotifyController?.sessionToken != spotifyController.sessionToken) {
-                activeSpotifyController?.unregisterCallback(controllerCallback)
+        if (musicController != null) {
+            if (activeController?.sessionToken != musicController.sessionToken) {
+                activeController?.unregisterCallback(controllerCallback)
                 
-                activeSpotifyController = spotifyController
-                activeSpotifyController?.registerCallback(controllerCallback)
+                activeController = musicController
+                activeSource = if (musicController.packageName.contains("spotify")) "Spotify" else "YouTube Music"
                 
-                SpotifyPlaybackState.hasActiveSession = true
-                Log.d("SpotifyListener", "Found active Spotify session")
+                activeController?.registerCallback(controllerCallback)
+                
+                MusicPlaybackState.hasActiveSession = true
+                Log.d("MusicListener", "Found active session: $activeSource")
                 
                 // Initial state dump
-                controllerCallback.onMetadataChanged(spotifyController.metadata)
-                controllerCallback.onPlaybackStateChanged(spotifyController.playbackState)
+                controllerCallback.onMetadataChanged(musicController.metadata)
+                controllerCallback.onPlaybackStateChanged(musicController.playbackState)
             }
         } else {
-            if (activeSpotifyController != null) {
-                activeSpotifyController?.unregisterCallback(controllerCallback)
-                activeSpotifyController = null
-                SpotifyPlaybackState.hasActiveSession = false
-                Log.d("SpotifyListener", "Spotify session ended")
+            if (activeController != null) {
+                activeController?.unregisterCallback(controllerCallback)
+                activeController = null
+                MusicPlaybackState.hasActiveSession = false
+                Log.d("MusicListener", "Music session ended")
             }
         }
     }
