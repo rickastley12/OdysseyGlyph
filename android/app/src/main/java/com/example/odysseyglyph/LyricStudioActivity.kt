@@ -19,8 +19,8 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
@@ -33,7 +33,7 @@ import com.google.android.material.textfield.TextInputEditText
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
-class LyricStudioActivity : ComponentActivity() {
+class LyricStudioActivity : AppCompatActivity() {
 
     private lateinit var prefs: SharedPreferences
     
@@ -332,12 +332,16 @@ class LyricStudioActivity : ComponentActivity() {
         
         if (parsedLyricsCache.isNotEmpty()) {
             val lastLyricMs = parsedLyricsCache.last().first
-            val maxSecs = (lastLyricMs + 5000L) / 1000f
+            val maxSecs = Math.max(0.1f, (lastLyricMs + 5000L) / 1000f)
             val defaultEnd = minOf(20f, maxSecs)
             
-            rangeSlider.valueFrom = 0f
-            rangeSlider.valueTo = maxSecs
-            rangeSlider.values = listOf(0f, defaultEnd)
+            if (maxSecs > rangeSlider.valueTo) {
+                rangeSlider.valueTo = maxSecs
+                rangeSlider.values = listOf(0f, defaultEnd)
+            } else {
+                rangeSlider.values = listOf(0f, defaultEnd)
+                rangeSlider.valueTo = maxSecs
+            }
             tvTrimTimes.text = String.format("%.1fs - %.1fs", 0f, defaultEnd)
             updateLyricPreviewLine(0f)
         }

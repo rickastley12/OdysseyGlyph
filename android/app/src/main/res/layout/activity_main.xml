@@ -135,7 +135,7 @@
                     android:hint="Playback Mode"
                     android:layout_marginBottom="@dimen/spacing_small">
                     
-                    <AutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/modeSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -150,7 +150,7 @@
                     android:hint="Save to Slot"
                     android:layout_marginBottom="@dimen/spacing_small">
                     
-                    <AutoCompleteTextView
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/slotSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

@@ -13,8 +13,8 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.*
-import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
@@ -26,7 +26,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import java.util.concurrent.atomic.AtomicBoolean
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var prefs: SharedPreferences
     
@@ -67,6 +67,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var btnCancel: MaterialButton
     private lateinit var progressBar: ProgressBar
     private lateinit var btnOpenManager: MaterialButton
+    private lateinit var btnExport: MaterialButton
+    private lateinit var btnImport: MaterialButton
     private lateinit var btnLaunchLyricStudio: MaterialButton
 
     private var selectedMediaUri: Uri? = null
@@ -109,9 +111,45 @@ class MainActivity : ComponentActivity() {
 
     private val requestAudioPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) {
-            // Permission granted, nothing automatic here since this only happens if they explicitly requested something that requires it
+            // Permission granted
         } else {
-            Snackbar.make(findViewById(android.R.id.content), "Audio permission denied. Cannot auto-match local audio.", Snackbar.LENGTH_LONG).show()
+            Snackbar.make(findViewById(android.R.id.content), "Audio permission denied.", Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    private val exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+        if (uri != null) {
+            try {
+                val slot = prefs.getInt("selected_slot", 1)
+                val src = java.io.File(filesDir, "frames_slot$slot.bin")
+                if (!src.exists()) {
+                    Snackbar.make(findViewById(android.R.id.content), "No preset found in Slot $slot to export!", Snackbar.LENGTH_SHORT).show()
+                    return@registerForActivityResult
+                }
+                contentResolver.openOutputStream(uri)?.use { out ->
+                    src.inputStream().use { it.copyTo(out) }
+                }
+                Snackbar.make(findViewById(android.R.id.content), "Preset Exported successfully!", Snackbar.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private val importLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            try {
+                val slot = prefs.getInt("selected_slot", 1)
+                val dest = java.io.File(filesDir, "frames_slot$slot.bin")
+                contentResolver.openInputStream(uri)?.use { input ->
+                    dest.outputStream().use { input.copyTo(it) }
+                }
+                Snackbar.make(findViewById(android.R.id.content), "Preset Imported to Slot $slot!", Snackbar.LENGTH_SHORT).show()
+                btnOpenManager.visibility = View.VISIBLE
+                sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -170,6 +208,8 @@ class MainActivity : ComponentActivity() {
         btnCancel = findViewById(R.id.btnCancel)
         progressBar = findViewById(R.id.progressBar)
         btnOpenManager = findViewById(R.id.btnOpenManager)
+        btnExport = findViewById(R.id.btnExport)
+        btnImport = findViewById(R.id.btnImport)
         btnLaunchLyricStudio = findViewById(R.id.btnLaunchLyricStudio)
     }
 
@@ -229,6 +269,15 @@ class MainActivity : ComponentActivity() {
             }
         }
         
+        // Preset Export / Import
+        btnExport.setOnClickListener {
+            val slot = prefs.getInt("selected_slot", 1)
+            exportLauncher.launch("slot${slot}_preset.odyssey")
+        }
+        btnImport.setOnClickListener {
+            importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
+        }
+
         // Slot selection persistence
         slotSpinner.setOnItemClickListener { _, _, position, _ ->
             prefs.edit().putInt("selected_slot", position + 1).apply()
@@ -276,13 +325,15 @@ class MainActivity : ComponentActivity() {
             videoDurationMs = mp.duration.toLong()
             mp.start()
             
-            val maxSecs = videoDurationMs / 1000f
-            if (maxSecs > 0) {
-                rangeSlider.valueFrom = 0f
+            val maxSecs = Math.max(0.1f, videoDurationMs / 1000f)
+            if (maxSecs > rangeSlider.valueTo) {
                 rangeSlider.valueTo = maxSecs
                 rangeSlider.values = listOf(0f, maxSecs)
-                tvTrimTimes.text = String.format("Trim: 0.0s - %.1fs", maxSecs)
+            } else {
+                rangeSlider.values = listOf(0f, maxSecs)
+                rangeSlider.valueTo = maxSecs
             }
+            tvTrimTimes.text = String.format("Trim: 0.0s - %.1fs", maxSecs)
         }
     }
 
