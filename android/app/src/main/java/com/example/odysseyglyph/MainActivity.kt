@@ -218,20 +218,19 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         btnSelectVideo.setOnClickListener {
             if (prefs.getBoolean("first_run_main_v2", true)) {
-                val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
-                val dialog = AlertDialog.Builder(this).setView(dialogView).create()
-                dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-                
-                dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "WELCOME TO ODYSSEY"
-                dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "Choose a Video or Image to crop, pan, and transform into a custom LED matrix animation. Pinch to zoom and drag to center your subject in the circle."
-                dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).setOnClickListener {
-                    prefs.edit().putBoolean("first_run_main_v2", false).apply()
-                    dialog.dismiss()
-                    selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
-                }
-                dialog.show()
+                showOnboardingDialog()
             } else {
                 selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
+            }
+        }
+        
+        toolbar.inflateMenu(R.menu.menu_info)
+        toolbar.setOnMenuItemClickListener { item ->
+            if (item.itemId == R.id.action_info) {
+                showOnboardingDialog()
+                true
+            } else {
+                false
             }
         }
         
@@ -340,6 +339,23 @@ class MainActivity : AppCompatActivity() {
             saveAdvancedSettings()
         }
 
+        dialog.show()
+    }
+
+    private fun showOnboardingDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "WELCOME TO ODYSSEY"
+        dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "Choose a Video or Image to crop, pan, and transform into a custom LED matrix animation. Pinch to zoom and drag to center your subject in the circle."
+        dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).setOnClickListener {
+            prefs.edit().putBoolean("first_run_main_v2", false).apply()
+            dialog.dismiss()
+            if (selectedMediaUri == null) {
+                selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
+            }
+        }
         dialog.show()
     }
 
