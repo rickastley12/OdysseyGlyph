@@ -241,10 +241,11 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
                         isClickable = true
                         isFocusable = true
                         setOnClickListener {
-                            // Normally we would parse and apply this, but the toy service handles it automatically 
-                            // via track metadata. We can't easily inject manual lyrics into the toy service 
-                            // without a more complex IPC or shared DB. For this beta, we just show if it exists.
-                            Snackbar.make(findViewById(android.R.id.content), "Selected ${track.trackName}", Snackbar.LENGTH_SHORT).show()
+                            val parsed = LrcUtils.parseLrc(track.syncedLyrics!!)
+                            SpotifyPlaybackState.manualOverrideLyrics = parsed
+                            
+                            val rootView = this@SpotifyLiveActivity.findViewById<View>(android.R.id.content)
+                            Snackbar.make(rootView, "Override applied: ${track.trackName}", Snackbar.LENGTH_SHORT).show()
                         }
                     }
                     

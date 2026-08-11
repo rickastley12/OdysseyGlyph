@@ -61,7 +61,9 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
             val prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
             val isEnabled = prefs.getBoolean("live_lyrics_enabled", false)
             
-            if (!isEnabled || !SpotifyPlaybackState.hasActiveSession || currentParsedLyrics.isEmpty()) {
+            val lyricsToUse = SpotifyPlaybackState.manualOverrideLyrics ?: currentParsedLyrics
+            
+            if (!isEnabled || !SpotifyPlaybackState.hasActiveSession || lyricsToUse.isEmpty()) {
                 glyphManager?.turnOff()
                 mainHandler.postDelayed(this, 100L) // Slow poll when inactive/unmatched
                 return
@@ -74,7 +76,7 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
                 estimatedPositionMs += ((SystemClock.elapsedRealtime() - SpotifyPlaybackState.lastUpdateTime) * SpotifyPlaybackState.playbackSpeed).toLong()
             }
             
-            val frameData = LrcUtils.getFrameTextAtTime(currentParsedLyrics, estimatedPositionMs, fontStyle, animStyle)
+            val frameData = LrcUtils.getFrameTextAtTime(lyricsToUse, estimatedPositionMs, fontStyle, animStyle)
             
             if (frameData == null) {
                 glyphManager?.turnOff()

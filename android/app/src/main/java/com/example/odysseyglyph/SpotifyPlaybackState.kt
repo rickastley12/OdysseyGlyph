@@ -12,6 +12,7 @@ object SpotifyPlaybackState {
     var playbackSpeed: Float = 1.0f
     
     var hasActiveSession: Boolean = false
+    var manualOverrideLyrics: List<Pair<Long, String>>? = null
     
     interface StateChangeListener {
         fun onMetadataChanged(title: String, artist: String)
@@ -34,6 +35,7 @@ object SpotifyPlaybackState {
         if (trackTitle != newTitle || artist != newArtist) {
             trackTitle = newTitle
             artist = newArtist
+            manualOverrideLyrics = null
             listeners.forEach { it.onMetadataChanged(trackTitle, artist) }
         }
     }
