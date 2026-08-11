@@ -1,243 +1,231 @@
 package com.example.odysseyglyph
 
+import android.Manifest
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.slider.RangeSlider
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 class LyricStudioActivity : ComponentActivity() {
 
-    private lateinit var etSearch: EditText
+    private lateinit var prefs: SharedPreferences
+    
+    // UI Elements
+    private lateinit var toolbar: MaterialToolbar
+    private lateinit var etSearch: TextInputEditText
     private lateinit var resultsContainer: LinearLayout
-    private lateinit var previewText: TextView
+    private lateinit var previewCard: MaterialCardView
+    private lateinit var previewImage: CenteredImageView
     
-    private lateinit var btnStylePixel: MaterialButton
-    private lateinit var btnStyleBold: MaterialButton
-    private lateinit var btnStyleSmooth: MaterialButton
+    private lateinit var editorPanel: LinearLayout
+    private lateinit var toggleTypography: MaterialButtonToggleGroup
+    private lateinit var toggleAnimation: MaterialButtonToggleGroup
     
-    private lateinit var btnAnimFlash: MaterialButton
-    private lateinit var btnAnimScroll: MaterialButton
+    private lateinit var tvTrimTimes: TextView
+    private lateinit var tvLyricPreview: TextView
+    private lateinit var rangeSlider: RangeSlider
+    private lateinit var slotSpinner: AutoCompleteTextView
     
+    private lateinit var audioCard: MaterialCardView
+    private lateinit var tvAudioStatus: TextView
     private lateinit var btnAttachAudio: MaterialButton
+    private lateinit var btnDrmInfo: ImageButton
+    
     private lateinit var btnRender: MaterialButton
-    
+    private lateinit var btnCancel: MaterialButton
     private lateinit var progressBar: ProgressBar
-    private lateinit var tvStatus: TextView
-    
+    private lateinit var btnOpenManager: MaterialButton
+
+    // State
     private var selectedAudioUri: Uri? = null
     private var selectedTrack: LrcTrack? = null
     private var currentFontStyle = GlyphFontEngine.FontStyle.SMOOTH
     private var currentAnimStyle = 0 // 0=Flash, 1=Scroll
-    
+    private var isProgrammaticTextChange = false
+    private var searchJobId = 0
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var isRendering = AtomicBoolean(false)
+    private var parsedLyricsCache = mutableListOf<Pair<Long, String>>()
+
     private val selectAudioLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) {
             selectedAudioUri = uri
-            btnAttachAudio.text = "Audio Attached ✓"
-            btnAttachAudio.setBackgroundColor(Color.parseColor("#4CAF50"))
+            updateAudioStatus("Attached: Manual Selection", true)
+        }
+    }
+
+    private val requestAudioPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            selectedTrack?.let { attemptAutoMatchAudio(it) }
+        } else {
+            Snackbar.make(findViewById(android.R.id.content), "Audio permission denied. Cannot auto-match local audio.", Snackbar.LENGTH_LONG).show()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_lyric_studio)
+        prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
+
+        bindViews()
+        setupListeners()
+        syncSlotState()
+    }
+
+    private fun bindViews() {
+        toolbar = findViewById(R.id.toolbar)
+        etSearch = findViewById(R.id.etSearch)
+        resultsContainer = findViewById(R.id.resultsContainer)
+        previewCard = findViewById(R.id.previewCard)
+        previewImage = findViewById(R.id.previewImage)
         
-        // Instagram-style gradient background
-        val gradient = GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(Color.parseColor("#1E1528"), Color.parseColor("#0F0C1B"))
-        )
-        window.decorView.background = gradient
+        editorPanel = findViewById(R.id.editorPanel)
+        toggleTypography = findViewById(R.id.toggleTypography)
+        toggleAnimation = findViewById(R.id.toggleAnimation)
+        
+        tvTrimTimes = findViewById(R.id.tvTrimTimes)
+        tvLyricPreview = findViewById(R.id.tvLyricPreview)
+        rangeSlider = findViewById(R.id.rangeSlider)
+        slotSpinner = findViewById(R.id.slotSpinner)
+        
+        audioCard = findViewById(R.id.audioCard)
+        tvAudioStatus = findViewById(R.id.tvAudioStatus)
+        btnAttachAudio = findViewById(R.id.btnAttachAudio)
+        btnDrmInfo = findViewById(R.id.btnDrmInfo)
+        
+        btnRender = findViewById(R.id.btnRender)
+        btnCancel = findViewById(R.id.btnCancel)
+        progressBar = findViewById(R.id.progressBar)
+        btnOpenManager = findViewById(R.id.btnOpenManager)
+    }
 
-        val rootLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(48, 64, 48, 48)
-        }
+    private fun setupListeners() {
+        toolbar.setNavigationOnClickListener { finish() }
 
-        // Header
-        rootLayout.addView(TextView(this).apply {
-            text = "Lyric Studio"
-            textSize = 32f
-            setTextColor(Color.WHITE)
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(0, 0, 0, 8)
-        })
-        rootLayout.addView(TextView(this).apply {
-            text = "Create hologram visuals perfectly synced to music."
-            setTextColor(Color.parseColor("#BBBBBB"))
-            textSize = 14f
-            setPadding(0, 0, 0, 32)
-        })
-
-        // Search Bar
-        etSearch = EditText(this).apply {
-            hint = "Search for a song..."
-            setHintTextColor(Color.parseColor("#777777"))
-            setTextColor(Color.WHITE)
-            setPadding(48, 32, 48, 32)
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#2A2235"))
-                cornerRadius = 48f
+        // Search Debounce & Re-entrancy
+        etSearch.addTextChangedListener(object : TextWatcher {
+            private val searchRunnable = Runnable {
+                val query = etSearch.text.toString()
+                if (query.length > 2) performSearch(query)
             }
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            
-            addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                override fun afterTextChanged(s: Editable?) {
-                    if (s.toString().length > 2) {
-                        performSearch(s.toString())
-                    }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (isProgrammaticTextChange) return
+                mainHandler.removeCallbacks(searchRunnable)
+                mainHandler.postDelayed(searchRunnable, 400) // 400ms debounce
+            }
+        })
+
+        // Toggles
+        toggleTypography.check(R.id.btnTypeSmooth)
+        toggleTypography.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                currentFontStyle = when (checkedId) {
+                    R.id.btnTypePixel -> GlyphFontEngine.FontStyle.PIXEL_TINY
+                    R.id.btnTypeBold -> GlyphFontEngine.FontStyle.BLOCK_BOLD
+                    else -> GlyphFontEngine.FontStyle.SMOOTH
                 }
-            })
-        }
-        rootLayout.addView(etSearch)
-        
-        // Results Area
-        val scrollResults = ScrollView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f).apply {
-                topMargin = 32
+                updateWysiwygPreview()
             }
         }
-        resultsContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        scrollResults.addView(resultsContainer)
-        rootLayout.addView(scrollResults)
 
-        // Typography Selector (Instagram Style)
-        val styleLabel = TextView(this).apply {
-            text = "Aa Typography"
-            setTextColor(Color.WHITE)
-            textSize = 16f
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(0, 32, 0, 16)
-        }
-        rootLayout.addView(styleLabel)
-        
-        val styleRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_HORIZONTAL
-        }
-        
-        btnStylePixel = createStyleButton("PIXEL").apply { 
-            setOnClickListener { setFontStyle(GlyphFontEngine.FontStyle.PIXEL_TINY, this) } 
-        }
-        btnStyleBold = createStyleButton("BOLD").apply { 
-            setOnClickListener { setFontStyle(GlyphFontEngine.FontStyle.BLOCK_BOLD, this) } 
-        }
-        btnStyleSmooth = createStyleButton("SMOOTH").apply { 
-            setOnClickListener { setFontStyle(GlyphFontEngine.FontStyle.SMOOTH, this) } 
-        }
-        
-        styleRow.addView(btnStylePixel)
-        styleRow.addView(btnStyleBold)
-        styleRow.addView(btnStyleSmooth)
-        rootLayout.addView(styleRow)
-        
-        setFontStyle(GlyphFontEngine.FontStyle.SMOOTH, btnStyleSmooth) // Default
-
-        // Animation Selector
-        val animRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(0, 32, 0, 32)
-        }
-        
-        btnAnimFlash = createStyleButton("⚡ FLASH").apply {
-            setOnClickListener { setAnimStyle(0, this) }
-        }
-        btnAnimScroll = createStyleButton("⟵ SCROLL").apply {
-            setOnClickListener { setAnimStyle(1, this) }
-        }
-        
-        animRow.addView(btnAnimFlash)
-        animRow.addView(btnAnimScroll)
-        rootLayout.addView(animRow)
-        
-        setAnimStyle(0, btnAnimFlash) // Default
-
-        // Attach Audio
-        btnAttachAudio = MaterialButton(this).apply {
-            text = "Attach MP3 Track"
-            setBackgroundColor(Color.parseColor("#333333"))
-            setOnClickListener { selectAudioLauncher.launch(arrayOf("audio/*")) }
-        }
-        rootLayout.addView(btnAttachAudio)
-
-        // Render Button
-        btnRender = MaterialButton(this).apply {
-            text = "RENDER LYRIC HOLOGRAM"
-            setPadding(0, 32, 0, 32)
-            textSize = 16f
-            setBackgroundColor(Color.parseColor("#E91E63")) // Vibrant pink
-            isEnabled = false // Disabled until song selected
-            setOnClickListener { renderLyrics() }
-        }
-        rootLayout.addView(btnRender)
-        
-        tvStatus = TextView(this).apply {
-            text = ""
-            setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
-            setPadding(0, 16, 0, 0)
-        }
-        rootLayout.addView(tvStatus)
-        
-        progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-            max = 100
-            visibility = View.GONE
-            setPadding(0, 16, 0, 0)
-        }
-        rootLayout.addView(progressBar)
-
-        setContentView(rootLayout)
-    }
-    
-    private fun createStyleButton(label: String): MaterialButton {
-        return MaterialButton(this).apply {
-            text = label
-            cornerRadius = 32
-            setBackgroundColor(Color.parseColor("#222222"))
-            setTextColor(Color.parseColor("#888888"))
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                setMargins(8, 0, 8, 0)
+        toggleAnimation.check(R.id.btnAnimFlash)
+        toggleAnimation.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                currentAnimStyle = if (checkedId == R.id.btnAnimScroll) 1 else 0
+                updateWysiwygPreview()
             }
         }
-    }
-    
-    private fun setFontStyle(style: GlyphFontEngine.FontStyle, activeBtn: MaterialButton) {
-        currentFontStyle = style
-        btnStylePixel.apply { setBackgroundColor(Color.parseColor("#222222")); setTextColor(Color.parseColor("#888888")) }
-        btnStyleBold.apply { setBackgroundColor(Color.parseColor("#222222")); setTextColor(Color.parseColor("#888888")) }
-        btnStyleSmooth.apply { setBackgroundColor(Color.parseColor("#222222")); setTextColor(Color.parseColor("#888888")) }
+
+        // Sliders
+        rangeSlider.addOnChangeListener { slider, _, _ ->
+            val values = slider.values
+            tvTrimTimes.text = String.format("%.1fs - %.1fs", values[0], values[1])
+            updateLyricPreviewLine(values[0])
+        }
+
+        // Audio
+        btnAttachAudio.setOnClickListener { selectAudioLauncher.launch(arrayOf("audio/*")) }
+        btnDrmInfo.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Why can't you just grab the song from Spotify?")
+                .setMessage("Streaming apps protect their audio so other apps can't access the files — that's true industry-wide, not something we can work around. We can only attach audio that's actually stored as a file on your phone. If we find a match, it's one tap. If not, you can still pick any audio file manually.")
+                .setPositiveButton("Got it", null)
+                .show()
+        }
+
+        // Rendering
+        btnRender.setOnClickListener { renderLyrics() }
+        btnCancel.setOnClickListener { cancelProcessing() }
+
+        // Toys Manager
+        btnOpenManager.setOnClickListener {
+            try {
+                val intent = Intent()
+                intent.component = ComponentName("com.nothing.thirdparty", "com.nothing.thirdparty.matrix.toys.manager.ToysManagerActivity")
+                startActivity(intent)
+            } catch (e: Exception) {
+                Snackbar.make(findViewById(android.R.id.content), "Nothing OS Toys Manager not found.", Snackbar.LENGTH_LONG).show()
+            }
+        }
         
-        activeBtn.apply { setBackgroundColor(Color.WHITE); setTextColor(Color.BLACK) }
+        slotSpinner.setOnItemClickListener { _, _, position, _ ->
+            prefs.edit().putInt("selected_slot", position + 1).apply()
+        }
     }
-    
-    private fun setAnimStyle(style: Int, activeBtn: MaterialButton) {
-        currentAnimStyle = style
-        btnAnimFlash.apply { setBackgroundColor(Color.parseColor("#222222")); setTextColor(Color.parseColor("#888888")) }
-        btnAnimScroll.apply { setBackgroundColor(Color.parseColor("#222222")); setTextColor(Color.parseColor("#888888")) }
-        
-        activeBtn.apply { setBackgroundColor(Color.WHITE); setTextColor(Color.BLACK) }
+
+    private fun syncSlotState() {
+        val slot = prefs.getInt("selected_slot", 1)
+        slotSpinner.setText("Slot $slot", false)
     }
-    
+
+    private fun updateAudioStatus(text: String, attached: Boolean) {
+        tvAudioStatus.text = text
+        if (attached) {
+            tvAudioStatus.setTextColor(ContextCompat.getColor(this, R.color.colorSuccess))
+            btnAttachAudio.text = "Change Audio"
+        } else {
+            tvAudioStatus.setTextColor(ContextCompat.getColor(this, R.color.colorOnSurface))
+            btnAttachAudio.text = "Select Local Audio File"
+        }
+    }
+
     private fun performSearch(query: String) {
         resultsContainer.removeAllViews()
+        val jobId = ++searchJobId
+        
         val loadingText = TextView(this).apply {
             text = "Searching..."
             setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
+            gravity = android.view.Gravity.CENTER
             setPadding(0, 32, 0, 32)
         }
         resultsContainer.addView(loadingText)
@@ -245,25 +233,35 @@ class LyricStudioActivity : ComponentActivity() {
         thread {
             val results = LRCLibClient.searchLyrics(query)
             
-            runOnUiThread {
+            mainHandler.post {
+                if (jobId != searchJobId) return@post // Stale response guard
+                
                 resultsContainer.removeAllViews()
                 if (results.isEmpty()) {
                     resultsContainer.addView(TextView(this).apply {
-                        text = "No synced lyrics found."
-                        setTextColor(Color.parseColor("#FF5252"))
-                        gravity = Gravity.CENTER
+                        text = "No matches found for \"$query\"."
+                        setTextColor(ContextCompat.getColor(this@LyricStudioActivity, R.color.colorError))
+                        gravity = android.view.Gravity.CENTER
                     })
-                    return@runOnUiThread
+                    return@post
                 }
                 
-                for (track in results) {
-                    if (track.syncedLyrics == null) continue // Only show synced
-                    
+                val syncedResults = results.filter { it.syncedLyrics != null }
+                if (syncedResults.isEmpty()) {
+                    resultsContainer.addView(TextView(this).apply {
+                        text = "Matches found, but none have synchronized lyrics."
+                        setTextColor(ContextCompat.getColor(this@LyricStudioActivity, R.color.colorError))
+                        gravity = android.view.Gravity.CENTER
+                    })
+                    return@post
+                }
+                
+                for (track in syncedResults) {
                     val card = MaterialCardView(this).apply {
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                             setMargins(0, 0, 0, 16)
                         }
-                        setCardBackgroundColor(Color.parseColor("#2A2235"))
+                        setCardBackgroundColor(ContextCompat.getColor(this@LyricStudioActivity, R.color.colorSurfaceVariant))
                         radius = 24f
                         
                         val inner = LinearLayout(this@LyricStudioActivity).apply {
@@ -280,18 +278,14 @@ class LyricStudioActivity : ComponentActivity() {
                         
                         inner.addView(TextView(this@LyricStudioActivity).apply {
                             text = "${track.artistName} • ${track.albumName}"
-                            setTextColor(Color.parseColor("#AAAAAA"))
+                            setTextColor(ContextCompat.getColor(this@LyricStudioActivity, R.color.colorOnSurfaceVariant))
                             textSize = 12f
                         })
                         
                         addView(inner)
                         
                         setOnClickListener {
-                            selectedTrack = track
-                            etSearch.setText(track.trackName)
-                            resultsContainer.removeAllViews()
-                            btnRender.isEnabled = true
-                            tvStatus.text = "Selected: ${track.trackName}"
+                            selectTrack(track)
                         }
                     }
                     resultsContainer.addView(card)
@@ -299,14 +293,148 @@ class LyricStudioActivity : ComponentActivity() {
             }
         }
     }
-    
-    private fun renderLyrics() {
-        val track = selectedTrack ?: return
-        val lyrics = track.syncedLyrics ?: return
+
+    private fun selectTrack(track: LrcTrack) {
+        selectedTrack = track
         
+        isProgrammaticTextChange = true
+        etSearch.setText(track.trackName)
+        isProgrammaticTextChange = false
+        
+        resultsContainer.removeAllViews()
+        editorPanel.visibility = View.VISIBLE
+        previewCard.visibility = View.VISIBLE
+        btnOpenManager.visibility = View.GONE
+        
+        parseLyricsCache(track.syncedLyrics ?: "")
+        updateWysiwygPreview()
+        checkAndRequestAudioMatch(track)
+    }
+
+    private fun parseLyricsCache(syncedLyrics: String) {
+        parsedLyricsCache.clear()
+        val lines = syncedLyrics.split("\n")
+        val regex = Regex("\\[(\\d+):(\\d+)\\.(\\d+)\\](.*)")
+        for (line in lines) {
+            val match = regex.find(line.trim())
+            if (match != null) {
+                val min = match.groupValues[1].toLong()
+                val sec = match.groupValues[2].toLong()
+                val msStr = match.groupValues[3]
+                val ms = if (msStr.length == 2) msStr.toLong() * 10 else msStr.toLong()
+                val totalMs = min * 60 * 1000 + sec * 1000 + ms
+                val text = match.groupValues[4].trim()
+                if (text.isNotEmpty()) {
+                    parsedLyricsCache.add(Pair(totalMs, text))
+                }
+            }
+        }
+        
+        if (parsedLyricsCache.isNotEmpty()) {
+            val lastLyricMs = parsedLyricsCache.last().first
+            val maxSecs = (lastLyricMs + 5000L) / 1000f
+            val defaultEnd = minOf(20f, maxSecs)
+            
+            rangeSlider.valueFrom = 0f
+            rangeSlider.valueTo = maxSecs
+            rangeSlider.values = listOf(0f, defaultEnd)
+            tvTrimTimes.text = String.format("%.1fs - %.1fs", 0f, defaultEnd)
+            updateLyricPreviewLine(0f)
+        }
+    }
+
+    private fun updateLyricPreviewLine(timeSecs: Float) {
+        val targetMs = (timeSecs * 1000).toLong()
+        var currentText = "..."
+        for (i in parsedLyricsCache.indices) {
+            if (targetMs >= parsedLyricsCache[i].first) {
+                currentText = parsedLyricsCache[i].second
+            } else {
+                break
+            }
+        }
+        tvLyricPreview.text = "Preview: \"$currentText\""
+    }
+
+    private fun updateWysiwygPreview() {
+        val textToPreview = parsedLyricsCache.firstOrNull()?.second ?: "Odyssey"
+        val rawBytes = GlyphFontEngine.renderTextFrame(textToPreview, currentFontStyle, 0f)
+        
+        val bitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
+        val pixels = IntArray(625)
+        for (i in 0 until 625) {
+            val v = rawBytes[i].toInt() and 0xFF
+            pixels[i] = Color.rgb(v, v, v)
+        }
+        bitmap.setPixels(pixels, 0, 25, 0, 0, 25, 25)
+        
+        previewImage.setImageBitmap(bitmap)
+    }
+
+    private fun checkAndRequestAudioMatch(track: LrcTrack) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                requestAudioPermissionLauncher.launch(Manifest.permission.READ_MEDIA_AUDIO)
+                return
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                requestAudioPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                return
+            }
+        }
+        attemptAutoMatchAudio(track)
+    }
+
+    private fun attemptAutoMatchAudio(track: LrcTrack) {
+        val projection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST)
+        
+        // Simple heuristic: search for track name in TITLE
+        val selection = "${MediaStore.Audio.Media.TITLE} LIKE ?"
+        val selectionArgs = arrayOf("%${track.trackName}%")
+        
+        var foundUri: Uri? = null
+        var foundName = ""
+        
+        contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val idIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val titleIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                val id = cursor.getLong(idIndex)
+                foundName = cursor.getString(titleIndex)
+                foundUri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id.toString())
+            }
+        }
+        
+        if (foundUri != null) {
+            selectedAudioUri = foundUri
+            updateAudioStatus("Found Local: $foundName", true)
+        } else {
+            updateAudioStatus("Audio: Unattached", false)
+        }
+    }
+
+    private fun cancelProcessing() {
+        isRendering.set(true)
+        btnRender.visibility = View.VISIBLE
+        btnCancel.visibility = View.GONE
+        progressBar.visibility = View.GONE
+        Snackbar.make(findViewById(android.R.id.content), "Render cancelled.", Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun renderLyrics() {
+        val lyrics = selectedTrack?.syncedLyrics ?: return
+        
+        isRendering.set(false)
         progressBar.visibility = View.VISIBLE
-        tvStatus.text = "Rendering hologram matrices..."
-        btnRender.isEnabled = false
+        progressBar.progress = 0
+        btnRender.visibility = View.GONE
+        btnCancel.visibility = View.VISIBLE
+        btnOpenManager.visibility = View.GONE
+        
+        val slot = prefs.getInt("selected_slot", 1)
+        val startTimeMs = (rangeSlider.values[0] * 1000).toLong()
+        val endTimeMs = (rangeSlider.values[1] * 1000).toLong()
         
         VideoProcessor.processLyrics(
             context = this,
@@ -314,28 +442,27 @@ class LyricStudioActivity : ComponentActivity() {
             audioUri = selectedAudioUri,
             fontStyle = currentFontStyle,
             animationStyle = currentAnimStyle,
+            startTimeMs = startTimeMs,
+            endTimeMs = endTimeMs,
             targetFps = 12,
-            slotIndex = 3, // Hardcode to slot 3 for Lyric Studio for now, or add a spinner
+            slotIndex = slot,
+            isCancelled = isRendering,
             onProgress = { prog ->
                 progressBar.progress = prog
             },
             onComplete = { success, error ->
-                btnRender.isEnabled = true
+                btnRender.visibility = View.VISIBLE
+                btnCancel.visibility = View.GONE
                 progressBar.visibility = View.GONE
+                
                 if (success) {
-                    tvStatus.text = "Success! Saved to Slot 3."
-                    tvStatus.setTextColor(Color.parseColor("#4CAF50"))
-                    
-                    val intent = Intent()
-                    intent.component = ComponentName(
-                        "com.nothing.thirdparty",
-                        "com.nothing.thirdparty.matrix.toys.manager.ToysManagerActivity"
-                    )
-                    startActivity(intent)
+                    Snackbar.make(findViewById(android.R.id.content), "Success! Saved to Slot $slot.", Snackbar.LENGTH_LONG).show()
+                    btnOpenManager.visibility = View.VISIBLE
                     sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
                 } else {
-                    tvStatus.text = "Error: $error"
-                    tvStatus.setTextColor(Color.parseColor("#FF5252"))
+                    if (error != "Cancelled by user.") {
+                        Snackbar.make(findViewById(android.R.id.content), "Error: $error", Snackbar.LENGTH_LONG).show()
+                    }
                 }
             }
         )

@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurfaceVariant">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Lyric Studio" 
+            app:navigationIcon="?attr/homeAsUpIndicator" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_medium">
+
+            <!-- Search Bar -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                app:startIconDrawable="@android:drawable/ic_menu_search"
+                app:boxCornerRadiusTopStart="@dimen/corner_radius_large"
+                app:boxCornerRadiusTopEnd="@dimen/corner_radius_large"
+                app:boxCornerRadiusBottomStart="@dimen/corner_radius_large"
+                app:boxCornerRadiusBottomEnd="@dimen/corner_radius_large">
+                
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Search for a song..."
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
+            
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+                
+                <!-- Live Preview Canvas -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/previewCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/video_card_height"
+                    android:layout_marginTop="@dimen/spacing_medium"
+                    app:cardBackgroundColor="@android:color/black"
+                    app:cardCornerRadius="@dimen/corner_radius_large"
+                    android:visibility="gone">
+                    <com.example.odysseyglyph.CenteredImageView
+                        android:id="@+id/previewImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </com.google.android.material.card.MaterialCardView>
+                
+                <!-- Search Results -->
+                <LinearLayout
+                    android:id="@+id/resultsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="@dimen/spacing_medium" />
+            </FrameLayout>
+
+            <!-- Lyric Editor Panel -->
+            <LinearLayout
+                android:id="@+id/editorPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginTop="@dimen/spacing_large">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Typography"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:layout_marginBottom="@dimen/spacing_small" />
+                    
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleTypography"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true"
+                    app:selectionRequired="true"
+                    android:layout_marginBottom="@dimen/spacing_medium">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTypePixel"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="PIXEL" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTypeBold"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="BOLD" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTypeSmooth"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="SMOOTH" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Animation"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:layout_marginBottom="@dimen/spacing_small" />
+                    
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleAnimation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true"
+                    app:selectionRequired="true"
+                    android:layout_marginBottom="@dimen/spacing_large">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAnimFlash"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="⚡ FLASH" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAnimScroll"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="⟵ SCROLL" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <!-- Lyric Range Trim -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:cardCornerRadius="@dimen/corner_radius_medium"
+                    android:layout_marginBottom="@dimen/spacing_medium">
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/spacing_medium">
+                        
+                        <TextView
+                            android:id="@+id/tvLyricPreview"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Trim lyrics (Default: First 20s)"
+                            android:gravity="center"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:layout_marginBottom="@dimen/spacing_small" />
+                            
+                        <TextView
+                            android:id="@+id/tvTrimTimes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="0.0s - 20.0s"
+                            android:gravity="center"
+                            android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+                        <com.google.android.material.slider.RangeSlider
+                            android:id="@+id/rangeSlider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:hint="Save to Slot"
+                    android:layout_marginBottom="@dimen/spacing_large">
+                    
+                    <AutoCompleteTextView
+                        android:id="@+id/slotSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        app:simpleItems="@array/save_slots" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Universal Audio Component -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/audioCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:cardCornerRadius="@dimen/corner_radius_medium"
+                    android:layout_marginBottom="@dimen/spacing_large">
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/spacing_medium">
+                        
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            
+                            <TextView
+                                android:id="@+id/tvAudioStatus"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:text="Audio: Unattached"
+                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                                
+                            <ImageButton
+                                android:id="@+id/btnDrmInfo"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@android:drawable/ic_menu_help"
+                                android:background="?attr/selectableItemBackgroundBorderless" />
+                        </LinearLayout>
+                        
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAttachAudio"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Select Local Audio File"
+                            android:layout_marginTop="@dimen/spacing_small" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Actions -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRender"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="RENDER LYRIC HOLOGRAM"
+                    android:paddingVertical="16dp" />
+                    
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancel"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="CANCEL"
+                    android:textColor="?attr/colorError"
+                    android:visibility="gone"
+                    android:paddingVertical="16dp" />
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="@dimen/spacing_medium"
+                    android:visibility="gone"
+                    android:max="100" />
+                    
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnOpenManager"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="OPEN TOYS MANAGER"
+                    android:visibility="gone"
+                    android:layout_marginTop="@dimen/spacing_medium" />
+                    
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

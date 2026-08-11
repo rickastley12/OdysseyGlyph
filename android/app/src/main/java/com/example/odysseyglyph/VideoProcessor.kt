@@ -15,6 +15,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 object VideoProcessor {
@@ -39,6 +40,7 @@ object VideoProcessor {
         cropRadius: Float,
         inverseTransform: Matrix,
         slotIndex: Int = 1,
+        isCancelled: AtomicBoolean = AtomicBoolean(false),
         onProgress: (Int) -> Unit, 
         onComplete: (Boolean, String?) -> Unit
     ) {
@@ -84,6 +86,10 @@ object VideoProcessor {
                         }
 
                         for (i in 0 until totalFrames) {
+                            if (isCancelled.get()) {
+                                mainHandler.post { onComplete(false, "Cancelled by user.") }
+                                return@thread
+                            }
                             val timeUs = (validStartMs + i * intervalMs) * 1000
                             val bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST)
                             if (bitmap != null) {
@@ -120,6 +126,10 @@ object VideoProcessor {
                     val canvas = Canvas(bitmap)
                     
                     for (i in 0 until totalFrames) {
+                        if (isCancelled.get()) {
+                            mainHandler.post { onComplete(false, "Cancelled by user.") }
+                            return@thread
+                        }
                         val timeMs = validStartMs + i * intervalMs
                         movie.setTime(timeMs.toInt())
                         
@@ -184,6 +194,10 @@ object VideoProcessor {
                     if (frame != null) {
                         val totalFrames = imageDurationSec * targetFps
                         for (i in 0 until totalFrames) {
+                            if (isCancelled.get()) {
+                                mainHandler.post { onComplete(false, "Cancelled by user.") }
+                                return@thread
+                            }
                             rawFrames.add(frame)
                         }
                     }
@@ -203,6 +217,10 @@ object VideoProcessor {
                 val radiusSq = (MATRIX_SIZE / 2f) * (MATRIX_SIZE / 2f)
 
                 for ((index, frame) in rawFrames.withIndex()) {
+                    if (isCancelled.get()) {
+                        mainHandler.post { onComplete(false, "Cancelled by user.") }
+                        return@thread
+                    }
                     val processedFrame = ByteArray(MATRIX_SIZE * MATRIX_SIZE)
                     
                     // Extract to 2D grid for spatial filtering
@@ -401,8 +419,11 @@ object VideoProcessor {
         audioUri: Uri?,
         fontStyle: GlyphFontEngine.FontStyle,
         animationStyle: Int, // 0 = Flash, 1 = Scroll Left
+        startTimeMs: Long = 0,
+        endTimeMs: Long = Long.MAX_VALUE,
         targetFps: Int = 12,
         slotIndex: Int = 1,
+        isCancelled: AtomicBoolean = AtomicBoolean(false),
         onProgress: (Int) -> Unit,
         onComplete: (Boolean, String?) -> Unit
     ) {
@@ -437,15 +458,33 @@ object VideoProcessor {
                     return@thread
                 }
                 
-                // Calculate total duration (add 5 seconds to last lyric)
-                val durationMs = parsedLines.last().first + 5000L
-                val totalFrames = (durationMs * targetFps / 1000L).toInt()
+                // Calculate total duration
+                val maxDurationMs = parsedLines.last().first + 5000L
+                val validEndMs = if (endTimeMs <= 0 || endTimeMs > maxDurationMs) maxDurationMs else endTimeMs
+                val validStartMs = if (startTimeMs < 0 || startTimeMs >= validEndMs) 0L else startTimeMs
+                val processDurationMs = validEndMs - validStartMs
+                
+                if (processDurationMs <= 0) {
+                    mainHandler.post { onComplete(false, "Trimmed duration is zero.") }
+                    return@thread
+                }
+                
+                val totalFrames = (processDurationMs * targetFps / 1000L).toInt()
+                if (totalFrames == 0) {
+                    mainHandler.post { onComplete(false, "Selected range is too short.") }
+                    return@thread
+                }
                 
                 val finalFrames = mutableListOf<ByteArray>()
                 
                 var lyricIndex = 0
                 for (i in 0 until totalFrames) {
-                    val currentMs = i * 1000L / targetFps
+                    if (isCancelled.get()) {
+                        mainHandler.post { onComplete(false, "Cancelled by user.") }
+                        return@thread
+                    }
+                    
+                    val currentMs = validStartMs + i * 1000L / targetFps
                     
                     // Advance lyric index if current time is past the NEXT lyric
                     if (lyricIndex < parsedLines.size - 1 && currentMs >= parsedLines[lyricIndex + 1].first) {

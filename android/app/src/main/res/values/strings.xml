@@ -6,4 +6,15 @@
     <string name="toy_name_2">Odyssey Slot 2</string>
     <string name="toy_name_3">Odyssey Slot 3</string>
     <string name="toy_summary">Custom Glyph Animation</string>
+    
+    <string-array name="playback_modes">
+        <item>LOOP</item>
+        <item>ONCE</item>
+    </string-array>
+
+    <string-array name="save_slots">
+        <item>Slot 1</item>
+        <item>Slot 2</item>
+        <item>Slot 3</item>
+    </string-array>
 </resources>

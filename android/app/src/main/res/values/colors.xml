@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#E91E63</color>
+    <color name="colorSecondary">#BB86FC</color>
+    <color name="colorSurface">#1E1E1E</color>
+    <color name="colorSurfaceVariant">#2A2235</color>
+    <color name="colorBackground">#121212</color>
+    <color name="colorOnSurface">#FFFFFF</color>
+    <color name="colorOnSurfaceVariant">#AAAAAA</color>
+    <color name="colorError">#FF5252</color>
+    <color name="colorSuccess">#4CAF50</color>
+    
+    <color name="colorDivider">#333333</color>
+</resources>

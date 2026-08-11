@@ -29,6 +29,11 @@ class CropOverlayView @JvmOverloads constructor(
         strokeWidth = 5f
     }
 
+    private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#33FFFFFF") // 20% white
+        strokeWidth = 1f
+    }
+
     init {
         setLayerType(LAYER_TYPE_HARDWARE, null)
         // Pass touches through to the view below (the ZoomableVideoView)
@@ -48,7 +53,31 @@ class CropOverlayView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), dimPaint)
-        canvas.drawCircle(circleX, circleY, circleRadius, clearPaint)
+        
+        // Clip to circle so grid only draws inside
+        canvas.save()
+        val path = Path()
+        path.addCircle(circleX, circleY, circleRadius, Path.Direction.CW)
+        canvas.clipPath(path)
+        
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+        
+        // Draw 25x25 grid
+        val gridSize = 25
+        val startX = circleX - circleRadius
+        val startY = circleY - circleRadius
+        val step = (circleRadius * 2) / gridSize
+        
+        for (i in 1 until gridSize) {
+            val x = startX + i * step
+            canvas.drawLine(x, startY, x, startY + circleRadius * 2, gridPaint)
+            
+            val y = startY + i * step
+            canvas.drawLine(startX, y, startX + circleRadius * 2, y, gridPaint)
+        }
+        
+        canvas.restore()
+        
         canvas.drawCircle(circleX, circleY, circleRadius, borderPaint)
     }
 }
