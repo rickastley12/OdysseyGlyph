@@ -90,9 +90,9 @@
             <intent-filter>
                 <action android:name="com.nothing.glyph.TOY" />
             </intent-filter>
-            <meta-data android:name="com.nothing.glyph.toy.name" android:value="Odyssey Live" />
+            <meta-data android:name="com.nothing.glyph.toy.name" android:resource="@string/toy_name_live" />
             <meta-data android:name="com.nothing.glyph.toy.image" android:resource="@drawable/img_toy_preview" />
-            <meta-data android:name="com.nothing.glyph.toy.summary" android:value="Live Spotify Lyrics" />
+            <meta-data android:name="com.nothing.glyph.toy.summary" android:resource="@string/toy_summary_live" />
             <meta-data android:name="com.nothing.glyph.toy.longpress" android:value="0" />
         </service>
 
