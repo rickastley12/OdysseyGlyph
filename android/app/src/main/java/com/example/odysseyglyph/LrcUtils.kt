@@ -66,8 +66,9 @@ object LrcUtils {
         val timeSinceStart = currentMs - currentLyric.first
         
         // Cap the line duration so long instrumental gaps don't cause slow-motion text.
-        // Assume a very slow maximum reading speed of ~400ms per character.
-        val maxDurationMs = text.length * 400L
+        // However, we MUST guarantee a minimum of 5 seconds so short, held-out vocal notes (e.g. "Ohhhh") 
+        // aren't forcefully chopped off!
+        val maxDurationMs = Math.max(text.length * 300L, 5000L)
         val gapDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L)
         val lineDuration = Math.min(gapDuration, maxDurationMs).toFloat()
 
