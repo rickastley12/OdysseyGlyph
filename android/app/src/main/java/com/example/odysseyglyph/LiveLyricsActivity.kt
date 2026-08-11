@@ -13,6 +13,7 @@ import android.provider.Settings
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
@@ -159,6 +160,16 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
             if (query.isNotEmpty()) {
                 performSearch(query)
             }
+        }
+        
+        if (prefs.getBoolean("first_run_live", true)) {
+            AlertDialog.Builder(this, R.style.Theme_OdysseyGlyph)
+                .setTitle("Live Lyrics")
+                .setMessage("Live Lyrics reads your phone's media playback (like Spotify or YouTube Music) and automatically searches for synchronized lyrics. If a match is found, it streams them directly to your Glyph matrix in real-time as the song plays!")
+                .setPositiveButton("LET'S GO") { _, _ ->
+                    prefs.edit().putBoolean("first_run_live", false).apply()
+                }
+                .show()
         }
     }
 
@@ -311,14 +322,49 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
     }
 
     private val previewUpdater = object : Runnable {
+        var sleepTick = 0f
+        
         override fun run() {
-            // Very rudimentary live preview. The Toy Service handles real rendering,
-            // this just gives a visual indicator in the activity.
-            if (switchMaster.isChecked && MusicPlaybackState.hasActiveSession) {
-                // Here we would ideally duplicate the Toy Service parsing logic to show a live preview.
-                // But for the sake of simplicity, we just leave the previewImage blank unless we implement
-                // shared memory parsing.
+            if (!switchMaster.isChecked || !MusicPlaybackState.hasActiveSession) {
+                mainHandler.postDelayed(this, 100L)
+                return
             }
+
+            var textToRender = ""
+            var scrollOffset = 0f
+            
+            if (MusicPlaybackState.isPlaying && MusicPlaybackState.manualOverrideLyrics != null) {
+                val syncOffset = prefs.getInt("live_sync_offset", 0).toLong()
+                val currentPos = MusicPlaybackState.position + 
+                    (System.currentTimeMillis() - MusicPlaybackState.lastUpdateTime) * MusicPlaybackState.playbackSpeed.toLong() +
+                    syncOffset
+                
+                val lyrics = MusicPlaybackState.manualOverrideLyrics!!
+                val currentLine = lyrics.lastOrNull { it.first <= currentPos }
+                if (currentLine != null) {
+                    textToRender = currentLine.second
+                }
+            } else if (!MusicPlaybackState.isPlaying) {
+                sleepTick += 0.2f
+                val zCount = (sleepTick.toInt() % 4)
+                textToRender = "Z".repeat(zCount)
+            }
+            
+            if (textToRender.isNotEmpty()) {
+                val rawMatrix = GlyphFontEngine.renderTextFrame(textToRender, currentFontStyle, scrollOffset, autoScale = true)
+                val bitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
+                val pixels = IntArray(625)
+                for (i in 0 until 625) {
+                    val bright = rawMatrix[i].toInt() and 0xFF
+                    pixels[i] = Color.argb(255, bright, bright, bright)
+                }
+                bitmap.setPixels(pixels, 0, 25, 0, 0, 25, 25)
+                val scaled = Bitmap.createScaledBitmap(bitmap, 250, 250, false)
+                previewImage.setImageBitmap(scaled)
+            } else {
+                previewImage.setImageDrawable(null)
+            }
+            
             mainHandler.postDelayed(this, 100L)
         }
     }

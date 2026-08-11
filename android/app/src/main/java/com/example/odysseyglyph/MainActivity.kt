@@ -98,7 +98,6 @@ class MainActivity : AppCompatActivity() {
             }
             settingsPanel.visibility = View.VISIBLE
             bottomActionBar.visibility = View.VISIBLE
-            showCoachmarks()
         }
     }
 
@@ -178,6 +177,16 @@ class MainActivity : AppCompatActivity() {
 
         setupListeners()
         syncSlotState()
+        
+        if (prefs.getBoolean("first_run_main", true)) {
+            AlertDialog.Builder(this, R.style.Theme_OdysseyGlyph)
+                .setTitle("Welcome to Odyssey Glyph")
+                .setMessage("Choose a Video or Image to crop, pan, and transform into a custom LED matrix animation. Pinch to zoom and drag to center your subject in the circle.")
+                .setPositiveButton("GOT IT") { _, _ ->
+                    prefs.edit().putBoolean("first_run_main", false).apply()
+                }
+                .show()
+        }
     }
 
     private fun updateScrollViewPadding() {
@@ -436,15 +445,6 @@ class MainActivity : AppCompatActivity() {
         imageView.setImageURIWithAnim(uri)
     }
     
-    private fun showCoachmarks() {
-        if (prefs.getBoolean("first_run_coachmark", true)) {
-            val typeStr = if (currentMediaType == 2) "image" else "video"
-            Snackbar.make(findViewById(android.R.id.content), "Pinch and drag the $typeStr to fit inside the circle.", Snackbar.LENGTH_LONG)
-                .setAction("Got it") {
-                    prefs.edit().putBoolean("first_run_coachmark", false).apply()
-                }.show()
-        }
-    }
 
     private fun cancelProcessing() {
         isRendering.set(true)

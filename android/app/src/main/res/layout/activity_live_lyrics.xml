@@ -9,23 +9,27 @@
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="140dp"
         android:background="?android:attr/colorBackground"
         android:fitsSystemWindows="true">
-        
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="?attr/homeAsUpIndicator">
-            
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Live Lyrics"
-                android:fontFamily="@font/ndot57"
-                android:textAppearance="?attr/textAppearanceTitleLarge" />
-        </com.google.android.material.appbar.MaterialToolbar>
+            android:layout_height="match_parent"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:collapsedTitleTextAppearance="@style/TextAppearance.Odyssey.CollapsedTitle"
+            app:expandedTitleTextAppearance="@style/TextAppearance.Odyssey.ExpandedTitle"
+            app:collapsedTitleTextColor="?attr/colorOnSurface"
+            app:expandedTitleTextColor="?attr/colorOnSurface"
+            app:title="LIVE LYRICS">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:navigationIcon="?attr/homeAsUpIndicator"
+                app:layout_collapseMode="pin" />
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView

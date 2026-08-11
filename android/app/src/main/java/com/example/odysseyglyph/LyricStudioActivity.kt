@@ -125,6 +125,16 @@ class LyricStudioActivity : AppCompatActivity() {
         bindViews()
         setupListeners()
         syncSlotState()
+        
+        if (prefs.getBoolean("first_run_studio", true)) {
+            AlertDialog.Builder(this, R.style.Theme_OdysseyGlyph)
+                .setTitle("Lyric Studio")
+                .setMessage("Search for any song to automatically download synchronized lyrics. You can then render the lyrics into a scrolling or flashing hologram on the Glyph matrix. Make sure to select the matching local audio file so it plays in sync!")
+                .setPositiveButton("GOT IT") { _, _ ->
+                    prefs.edit().putBoolean("first_run_studio", false).apply()
+                }
+                .show()
+        }
     }
 
     private fun bindViews() {
