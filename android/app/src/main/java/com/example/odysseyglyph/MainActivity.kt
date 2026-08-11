@@ -66,6 +66,7 @@ class MainActivity : AppCompatActivity() {
     private var selectedAudioUri: Uri? = null
     private var videoDurationMs: Long = 0
     private var isRendering = AtomicBoolean(false)
+    private var systemBarsBottom = 0
 
     // Advanced Settings state
     private var advFps = 12
@@ -148,19 +149,44 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
         
-        val scrollView = findViewById<ScrollView>(R.id.scrollView)
-        ViewCompat.setOnApplyWindowInsetsListener(scrollView) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, systemBars.bottom)
-            insets
-        }
-        
         prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
 
         loadAdvancedSettings()
         bindViews()
+        
+        val scrollView = findViewById<ScrollView>(R.id.scrollView)
+        ViewCompat.setOnApplyWindowInsetsListener(scrollView) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            systemBarsBottom = systemBars.bottom
+            updateScrollViewPadding()
+            insets
+        }
+        
+        ViewCompat.setOnApplyWindowInsetsListener(bottomActionBar) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val basePadding = resources.getDimensionPixelSize(R.dimen.spacing_medium)
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, basePadding + systemBars.bottom)
+            insets
+        }
+        
+        bottomActionBar.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if ((bottom - top) != (oldBottom - oldTop)) {
+                updateScrollViewPadding()
+            }
+        }
+
         setupListeners()
         syncSlotState()
+    }
+
+    private fun updateScrollViewPadding() {
+        val scrollView = findViewById<ScrollView>(R.id.scrollView)
+        val paddingBottom = if (bottomActionBar.visibility == View.VISIBLE && bottomActionBar.height > 0) {
+            bottomActionBar.height
+        } else {
+            systemBarsBottom
+        }
+        scrollView.setPadding(scrollView.paddingLeft, scrollView.paddingTop, scrollView.paddingRight, paddingBottom)
     }
 
     override fun onResume() {

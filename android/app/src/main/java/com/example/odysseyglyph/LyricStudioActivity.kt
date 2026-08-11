@@ -400,6 +400,11 @@ class LyricStudioActivity : AppCompatActivity() {
         bitmap.setPixels(pixels, 0, 25, 0, 0, 25, 25)
         
         previewImage.setImageBitmap(bitmap)
+        // The bitmap is only 25x25 — without disabling the default bilinear
+        // filter, ImageView smears it into a blurry blob when scaled up to
+        // fill the preview bezel. Nearest-neighbor keeps it crisp, which is
+        // also a more honest preview of what the actual LED grid looks like.
+        (previewImage.drawable as? android.graphics.drawable.BitmapDrawable)?.paint?.isFilterBitmap = false
     }
 
     private fun checkAndRequestAudioMatch(track: LrcTrack) {
