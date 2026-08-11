@@ -408,18 +408,30 @@ class MainActivity : AppCompatActivity() {
         val brightnessMulti = brightnessSlider.value / 100f
         val sharpen = sharpenSwitch.isChecked
 
-        val matrix = Matrix()
-        if (currentMediaType == 0) {
-            videoView.getTransformMatrix(matrix)
-        } else {
-            imageView.getTransformMatrix(matrix)
-        }
-
         val inverseTransform = Matrix()
-        if (!matrix.invert(inverseTransform)) {
-            cancelProcessing()
-            Snackbar.make(findViewById(android.R.id.content), "Matrix inversion failed.", Snackbar.LENGTH_LONG).show()
-            return
+        if (currentMediaType == 0) {
+            videoView.engine.matrix.invert(inverseTransform)
+            videoView.pause()
+        } else {
+            imageView.engine.matrix.invert(inverseTransform)
+            
+            // Adjust matrix if the preview drawable was downsampled compared to the raw file
+            try {
+                val opts = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                contentResolver.openInputStream(uri)?.use { 
+                    android.graphics.BitmapFactory.decodeStream(it, null, opts) 
+                }
+                val rawW = opts.outWidth
+                val rawH = opts.outHeight
+                val drawable = imageView.drawable
+                if (drawable != null && rawW > 0 && drawable.intrinsicWidth > 0) {
+                    val scaleMatrix = Matrix()
+                    scaleMatrix.setScale(rawW.toFloat() / drawable.intrinsicWidth, rawH.toFloat() / drawable.intrinsicHeight)
+                    inverseTransform.postConcat(scaleMatrix)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         VideoProcessor.processMedia(
