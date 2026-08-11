@@ -17,6 +17,10 @@ class CenteredImageView @JvmOverloads constructor(
         setOverScrollHorizontal(true)
         setOverScrollVertical(true)
         setOverPinchable(true)
+        setTransformation(
+            com.otaliastudios.zoom.ZoomApi.TRANSFORMATION_CENTER_CROP,
+            com.otaliastudios.zoom.ZoomApi.TRANSFORMATION_GRAVITY_AUTO
+        )
     }
 
     fun setImageURIWithAnim(uri: Uri) {
