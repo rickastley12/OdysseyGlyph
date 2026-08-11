@@ -99,7 +99,8 @@ class LiveLyricsToyService : Service(), MusicPlaybackState.StateChangeListener {
             } else {
                 val frameText = frameData.first
                 val offsetX = frameData.second
-                val frameBytes = GlyphFontEngine.renderTextFrame(frameText, fontStyle, offsetX, autoScale = false)
+                // Flash mode (0) should auto-scale to prevent strobe time-chunking. Scroll mode (1) shouldn't.
+                val frameBytes = GlyphFontEngine.renderTextFrame(frameText, fontStyle, offsetX, autoScale = (animStyle == 0))
                 
                 val currentHash = frameBytes.contentHashCode()
                 if (currentHash != lastFrameHash) {

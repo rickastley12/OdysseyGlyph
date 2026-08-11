@@ -129,63 +129,36 @@ object GlyphFontEngine {
     }
     
     /**
-     * Adapts a single word into 1, 2, or multiple chunks based on raw pixel width.
-     * Ensures chunks do not exceed the 25px matrix width (using 24f for safety).
+     * Adapts a single word into 1 or 2 lines.
+     * We use autoScale=true to see if the engine can shrink it to fit.
+     * We avoid time-chunking because it causes illegible strobe flashing on fast rap songs!
      */
     fun formatWordForDisplay(word: String, style: FontStyle, progress: Float = 0f): String {
-        // Measure the unscaled text width.
-        val singleLineWidth = measureTextWidth(word, style, autoScale = false)
+        // Check if the word fits on one line if the engine shrinks it
+        val singleLineWidth = measureTextWidth(word, style, autoScale = true)
         if (singleLineWidth <= 24f) {
             return word
         }
 
-        // Try splitting into 2 lines. Find the index that minimizes the difference between width1 and width2.
+        // It doesn't fit on one line even when shrunk, so split it into 2 balanced lines
         var bestSplitIdx = -1
         var minDiff = Float.MAX_VALUE
-        var bestW1 = 0f
-        var bestW2 = 0f
         
         for (i in 1 until word.length) {
             val p1 = word.substring(0, i) + "-"
             val p2 = word.substring(i)
-            val w1 = measureTextWidth(p1, style, autoScale = false)
-            val w2 = measureTextWidth(p2, style, autoScale = false)
-            val diff = kotlin.math.abs(w1 - w2)
+            // Just measure character lengths as a rough proxy for width to find the center
+            val diff = kotlin.math.abs(p1.length - p2.length).toFloat()
             if (diff < minDiff) {
                 minDiff = diff
                 bestSplitIdx = i
-                bestW1 = w1
-                bestW2 = w2
             }
         }
         
-        // If both parts fit within 24f when stacked
-        if (bestSplitIdx != -1 && bestW1 <= 24f && bestW2 <= 24f) {
+        if (bestSplitIdx != -1) {
             return word.substring(0, bestSplitIdx) + "-\n" + word.substring(bestSplitIdx)
         }
         
-        // Time-chunking: break word into sequential chunks that fit within ~24f
-        val chunks = mutableListOf<String>()
-        var currentChunk = ""
-        for (i in word.indices) {
-            val char = word[i]
-            val suffix = if (i == word.lastIndex) "" else "-"
-            if (measureTextWidth(currentChunk + char + suffix, style, autoScale = false) <= 24f) {
-                currentChunk += char
-            } else {
-                if (currentChunk.isNotEmpty()) {
-                    chunks.add(currentChunk + "-")
-                }
-                currentChunk = char.toString()
-            }
-        }
-        if (currentChunk.isNotEmpty()) {
-            chunks.add(currentChunk)
-        }
-        
-        if (chunks.isEmpty()) return word
-        
-        val chunkIndex = (progress * chunks.size).toInt().coerceIn(0, chunks.size - 1)
-        return chunks[chunkIndex]
+        return word
     }
 }
