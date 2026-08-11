@@ -356,6 +356,9 @@ class LyricStudioActivity : AppCompatActivity() {
         previewCard.visibility = View.VISIBLE
         successActionsContainer.visibility = View.GONE
         
+        // Collapse app bar to optimize vertical space
+        findViewById<com.google.android.material.appbar.AppBarLayout>(R.id.appBarLayout)?.setExpanded(false, true)
+        
         parseLyricsCache(track.syncedLyrics ?: "")
         updateWysiwygPreview()
         checkAndRequestAudioMatch(track)

@@ -100,6 +100,9 @@ class MainActivity : AppCompatActivity() {
             btnAdvancedToggle.visibility = View.VISIBLE
             bottomActionBar.visibility = View.VISIBLE
             audioCard.visibility = if (currentMediaType == 0) View.VISIBLE else View.GONE
+            
+            // Collapse app bar to shift content up and optimize space
+            findViewById<com.google.android.material.appbar.AppBarLayout>(R.id.appBarLayout)?.setExpanded(false, true)
         }
     }
 

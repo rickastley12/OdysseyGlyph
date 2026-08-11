@@ -8,8 +8,9 @@
     android:fitsSystemWindows="true">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="140dp"
+        android:layout_height="110dp"
         android:background="?android:attr/colorBackground"
         android:fitsSystemWindows="true">
 
