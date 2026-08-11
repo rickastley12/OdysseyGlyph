@@ -44,52 +44,60 @@
             android:orientation="vertical"
             android:padding="@dimen/spacing_medium">
 
-            <!-- App Description -->
-            <TextView
+            <!-- Launcher Group -->
+            <LinearLayout
+                android:id="@+id/launcherGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Select media to map to the Glyph Matrix."
-                android:fontFamily="@font/jetbrains_mono"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:layout_marginBottom="@dimen/spacing_large" />
+                android:orientation="vertical">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSelectVideo"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="CHOOSE MEDIA"
-                android:fontFamily="@font/jetbrains_mono"
-                app:cornerRadius="0dp"
-                android:paddingVertical="12dp"
-                app:icon="@drawable/ic_folder"
-                android:layout_marginBottom="@dimen/spacing_medium" />
-                
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLaunchLyricStudio"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="OPEN LYRIC STUDIO"
-                android:fontFamily="@font/jetbrains_mono"
-                app:cornerRadius="0dp"
-                android:paddingVertical="12dp"
-                app:icon="@drawable/ic_lyrics"
-                android:layout_marginBottom="@dimen/spacing_medium" />
+                <!-- App Description -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Select media to map to the Glyph Matrix."
+                    android:fontFamily="@font/jetbrains_mono"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:layout_marginBottom="@dimen/spacing_large" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLaunchLiveLyrics"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="LIVE LYRICS"
-                android:fontFamily="@font/ndot57"
-                app:cornerRadius="0dp"
-                android:paddingVertical="12dp"
-                app:icon="@drawable/ic_audio"
-                app:iconTint="#FFFFFF"
-                app:backgroundTint="#FF0000"
-                android:textColor="#FFFFFF" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSelectVideo"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="CHOOSE MEDIA"
+                    android:fontFamily="@font/jetbrains_mono"
+                    app:cornerRadius="0dp"
+                    android:paddingVertical="12dp"
+                    app:icon="@drawable/ic_folder"
+                    android:layout_marginBottom="@dimen/spacing_medium" />
+                    
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLaunchLyricStudio"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="OPEN LYRIC STUDIO"
+                    android:fontFamily="@font/jetbrains_mono"
+                    app:cornerRadius="0dp"
+                    android:paddingVertical="12dp"
+                    app:icon="@drawable/ic_lyrics"
+                    android:layout_marginBottom="@dimen/spacing_medium" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLaunchLiveLyrics"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="LIVE LYRICS"
+                    android:fontFamily="@font/ndot57"
+                    app:cornerRadius="0dp"
+                    android:paddingVertical="12dp"
+                    app:icon="@drawable/ic_audio"
+                    app:iconTint="#FFFFFF"
+                    app:backgroundTint="#FF0000"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
 
             <!-- Settings Panel -->
             <LinearLayout

@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     
     // UI Elements
+    private lateinit var toolbar: MaterialToolbar
+    private lateinit var launcherGroup: LinearLayout
     private lateinit var btnSelectVideo: MaterialButton
     private lateinit var videoContainer: FrameLayout
     private lateinit var videoView: CenteredVideoView
@@ -47,7 +49,6 @@ class MainActivity : AppCompatActivity() {
     
     private lateinit var audioCard: LinearLayout
     private lateinit var switchIncludeAudio: com.google.android.material.materialswitch.MaterialSwitch
-    private lateinit var toolbar: MaterialToolbar
     
     private lateinit var btnAdvancedToggle: LinearLayout
     
@@ -187,6 +188,7 @@ class MainActivity : AppCompatActivity() {
         btnLaunchLyricStudio = findViewById(R.id.btnLaunchLyricStudio)
         btnLaunchLiveLyrics = findViewById(R.id.btnLaunchLiveLyrics)
         toolbar = findViewById(R.id.toolbar)
+        launcherGroup = findViewById(R.id.launcherGroup)
         videoContainer = findViewById(R.id.videoContainer)
         videoView = findViewById(R.id.videoView)
         imageView = findViewById(R.id.imageView)
@@ -230,6 +232,12 @@ class MainActivity : AppCompatActivity() {
                 dialog.show()
             } else {
                 selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
+            }
+        }
+        
+        toolbar.setNavigationOnClickListener {
+            if (launcherGroup.visibility == View.GONE && !isRendering.get()) {
+                resetToLauncher()
             }
         }
 
@@ -354,8 +362,12 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setupVideo(uri: Uri) {
-        imageView.visibility = View.GONE
+        launcherGroup.visibility = View.GONE
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
         videoView.visibility = View.VISIBLE
+        imageView.visibility = View.GONE
         trimmerCard.visibility = View.VISIBLE
 
         videoView.setVideoURI(uri)
@@ -377,6 +389,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupGif(uri: Uri) {
+        launcherGroup.visibility = View.GONE
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
         videoView.visibility = View.GONE
         imageView.visibility = View.VISIBLE
         trimmerCard.visibility = View.VISIBLE
@@ -389,6 +405,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupStaticImage(uri: Uri) {
+        launcherGroup.visibility = View.GONE
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
         videoView.visibility = View.GONE
         imageView.visibility = View.VISIBLE
         trimmerCard.visibility = View.GONE
@@ -396,6 +416,26 @@ class MainActivity : AppCompatActivity() {
         imageView.setImageURIWithAnim(uri)
     }
     
+    private fun resetToLauncher() {
+        selectedMediaUri = null
+        currentMediaType = -1
+        
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+        supportActionBar?.setDisplayShowHomeEnabled(false)
+        
+        launcherGroup.visibility = View.VISIBLE
+        settingsPanel.visibility = View.GONE
+        trimmerCard.visibility = View.GONE
+        btnProcess.visibility = View.GONE
+        btnCancel.visibility = View.GONE
+        progressBar.visibility = View.GONE
+        btnAdvancedToggle.visibility = View.GONE
+        audioCard.visibility = View.GONE
+        
+        if (videoView.isPlaying) {
+            videoView.pause()
+        }
+    }
 
     private fun cancelProcessing() {
         isRendering.set(true)
