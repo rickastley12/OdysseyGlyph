@@ -225,10 +225,9 @@ class LyricStudioActivity : AppCompatActivity() {
         // Audio
         btnAttachAudio.setOnClickListener { selectAudioLauncher.launch(arrayOf("audio/*")) }
         switchAudio.setOnCheckedChangeListener { _, isChecked ->
-            val alpha = if (isChecked) 1.0f else 0.5f
-            tvAudioStatus.alpha = alpha
-            btnAttachAudio.alpha = alpha
-            btnAttachAudio.isEnabled = isChecked
+            val visibility = if (isChecked) View.VISIBLE else View.GONE
+            tvAudioStatus.visibility = visibility
+            btnAttachAudio.visibility = visibility
         }
 
         // Rendering
@@ -361,9 +360,6 @@ class LyricStudioActivity : AppCompatActivity() {
         editorPanel.visibility = View.VISIBLE
         previewCard.visibility = View.VISIBLE
         successActionsContainer.visibility = View.GONE
-        
-        // Collapse app bar to optimize vertical space
-        findViewById<com.google.android.material.appbar.AppBarLayout>(R.id.appBarLayout)?.setExpanded(false, true)
         
         parseLyricsCache(track.syncedLyrics ?: "")
         updateWysiwygPreview()

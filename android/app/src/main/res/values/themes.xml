@@ -38,6 +38,7 @@
     <style name="Widget.Odyssey.MaterialSwitch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
         <item name="trackTint">@color/switch_track_selector</item>
         <item name="thumbTint">@color/switch_thumb_selector</item>
+        <item name="thumbIcon">@empty</item>
     </style>
     
     <style name="ShapeAppearance.Odyssey.Sharp" parent="ShapeAppearance.Material3.SmallComponent">
