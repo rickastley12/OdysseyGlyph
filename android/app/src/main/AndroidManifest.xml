@@ -69,6 +69,32 @@
             <meta-data android:name="com.nothing.glyph.toy.summary" android:resource="@string/toy_summary" />
             <meta-data android:name="com.nothing.glyph.toy.longpress" android:value="1" />
         </service>
+        <activity
+            android:name=".SpotifyLiveActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OdysseyGlyph" />
+
+        <service
+            android:name=".MediaSessionListenerService"
+            android:label="Odyssey Spotify Listener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".SpotifyLiveToyService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.nothing.glyph.TOY" />
+            </intent-filter>
+            <meta-data android:name="com.nothing.glyph.toy.name" android:value="Odyssey Live" />
+            <meta-data android:name="com.nothing.glyph.toy.image" android:resource="@drawable/img_toy_preview" />
+            <meta-data android:name="com.nothing.glyph.toy.summary" android:value="Live Spotify Lyrics" />
+            <meta-data android:name="com.nothing.glyph.toy.longpress" android:value="0" />
+        </service>
 
     </application>
 </manifest>

@@ -433,25 +433,7 @@ object VideoProcessor {
             try {
                 // 1. Parse LRC
                 // Format: [mm:ss.xx] text
-                val lines = syncedLyrics.split("\n")
-                val parsedLines = mutableListOf<Pair<Long, String>>() // Pair of Timestamp(ms), Text
-                
-                val regex = Regex("\\[(\\d+):(\\d+)\\.(\\d+)\\](.*)")
-                for (line in lines) {
-                    val match = regex.find(line.trim())
-                    if (match != null) {
-                        val min = match.groupValues[1].toLong()
-                        val sec = match.groupValues[2].toLong()
-                        val msStr = match.groupValues[3]
-                        val ms = if (msStr.length == 2) msStr.toLong() * 10 else msStr.toLong()
-                        
-                        val totalMs = min * 60 * 1000 + sec * 1000 + ms
-                        val text = match.groupValues[4].trim()
-                        if (text.isNotEmpty()) {
-                            parsedLines.add(Pair(totalMs, text))
-                        }
-                    }
-                }
+                val parsedLines = LrcUtils.parseLrc(syncedLyrics)
                 
                 if (parsedLines.isEmpty()) {
                     mainHandler.post { onComplete(false, "No valid synced lyrics found.") }
@@ -481,11 +463,6 @@ object VideoProcessor {
                 
                 val finalFrames = mutableListOf<ByteArray>()
                 
-                var lyricIndex = 0
-                while (lyricIndex < parsedLines.size - 1 && validStartMs >= parsedLines[lyricIndex + 1].first) {
-                    lyricIndex++
-                }
-
                 for (i in 0 until totalFrames) {
                     if (isCancelled.get()) {
                         mainHandler.post { onComplete(false, "Cancelled by user.") }
@@ -494,75 +471,12 @@ object VideoProcessor {
                     
                     val currentMs = validStartMs + i * 1000L / targetFps
                     
-                    // Advance lyric index if current time is past the NEXT lyric
-                    while (lyricIndex < parsedLines.size - 1 && currentMs >= parsedLines[lyricIndex + 1].first) {
-                        lyricIndex++
-                    }
-                    
-                    val currentLyric = parsedLines[lyricIndex]
-                    val nextTimeMs = if (lyricIndex < parsedLines.size - 1) parsedLines[lyricIndex + 1].first else maxDurationMs
-                    
-                    if (currentMs < currentLyric.first || currentMs > nextTimeMs) {
+                    val frameData = LrcUtils.getFrameTextAtTime(parsedLines, currentMs, fontStyle, animationStyle)
+                    if (frameData == null) {
                         finalFrames.add(ByteArray(625)) // Blank frame
                     } else {
-                        val text = currentLyric.second
-                        val timeSinceStart = currentMs - currentLyric.first
-                        
-                        var offsetX = 0f
-                        var frameText = text
-                        if (animationStyle == 1) {
-                            // Scroll Left
-                            val textWidth = GlyphFontEngine.measureTextWidth(text, fontStyle)
-                            val lineDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L).toFloat()
-                            val progress = timeSinceStart.toFloat() / lineDuration
-                            offsetX = 25f - (progress * (textWidth + 25f))
-                        } else {
-                            // Flash Word-by-Word with Punctuation-Aware Character Proportional Timing
-                            val words = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
-                            if (words.isNotEmpty()) {
-                                val lineDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L).toFloat()
-                                
-                                val wordWeights = words.map { word ->
-                                    var weight = word.length.toFloat()
-                                    if (word.endsWith("...")) {
-                                        weight += 12f
-                                    } else if (word.endsWith(".") || word.endsWith("!") || word.endsWith("?")) {
-                                        weight += 8f
-                                    } else if (word.endsWith(",")) {
-                                        weight += 5f
-                                    }
-                                    weight
-                                }
-                                val totalWeight = wordWeights.sum()
-                                
-                                var accumulatedWeight = 0f
-                                var targetWordIndex = words.size - 1
-                                
-                                for ((wIdx, word) in words.withIndex()) {
-                                    val wordWeight = wordWeights[wIdx]
-                                    val wordStartWeight = accumulatedWeight
-                                    val wordEndWeight = accumulatedWeight + wordWeight
-                                    
-                                    val wordStartTime = (wordStartWeight / totalWeight) * lineDuration
-                                    val wordEndTime = (wordEndWeight / totalWeight) * lineDuration
-                                    
-                                    if (timeSinceStart >= wordStartTime && timeSinceStart < wordEndTime) {
-                                        targetWordIndex = wIdx
-                                        
-                                        val wordDuration = wordEndTime - wordStartTime
-                                        val timeInWord = timeSinceStart - wordStartTime
-                                        val chunkProgress = timeInWord / wordDuration
-                                        
-                                        frameText = GlyphFontEngine.formatWordForDisplay(word, fontStyle, chunkProgress)
-                                        break
-                                    }
-                                    accumulatedWeight += wordWeight
-                                }
-                            }
-                            val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle, autoScale = false)
-                            offsetX = (25f - textWidth) / 2f
-                        }
-                        
+                        val frameText = frameData.first
+                        val offsetX = frameData.second
                         val frame = GlyphFontEngine.renderTextFrame(frameText, fontStyle, offsetX, autoScale = false)
                         finalFrames.add(frame)
                     }

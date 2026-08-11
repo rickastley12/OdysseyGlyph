@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnExport: MaterialButton
     private lateinit var btnImport: MaterialButton
     private lateinit var btnLaunchLyricStudio: MaterialButton
+    private lateinit var btnLaunchLiveLyrics: MaterialButton
     private lateinit var bottomActionBar: LinearLayout
 
     private var selectedMediaUri: Uri? = null
@@ -228,6 +229,7 @@ class MainActivity : AppCompatActivity() {
     private fun bindViews() {
         btnSelectVideo = findViewById(R.id.btnSelectVideo)
         btnLaunchLyricStudio = findViewById(R.id.btnLaunchLyricStudio)
+        btnLaunchLiveLyrics = findViewById(R.id.btnLaunchLiveLyrics)
         toolbar = findViewById(R.id.toolbar)
         videoContainer = findViewById(R.id.videoContainer)
         videoView = findViewById(R.id.videoView)
@@ -264,6 +266,10 @@ class MainActivity : AppCompatActivity() {
 
         btnLaunchLyricStudio.setOnClickListener {
             startActivity(Intent(this, LyricStudioActivity::class.java))
+        }
+
+        btnLaunchLiveLyrics.setOnClickListener {
+            startActivity(Intent(this, Class.forName("com.example.odysseyglyph.SpotifyLiveActivity")))
         }
 
         btnAdvancedToggle.setOnClickListener {

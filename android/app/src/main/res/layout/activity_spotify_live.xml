@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/colorBackground"
+        android:fitsSystemWindows="true">
+        
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Live Lyrics (Beta)"
+            app:navigationIcon="?attr/homeAsUpIndicator" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_medium">
+
+            <!-- Master Switch -->
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchMaster"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ENABLE LIVE LYRICS"
+                android:fontFamily="@font/jetbrains_mono"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:layout_marginBottom="@dimen/spacing_large" />
+
+            <!-- Permission Card -->
+            <LinearLayout
+                android:id="@+id/permissionCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_search_result"
+                android:padding="@dimen/spacing_medium"
+                android:layout_marginBottom="@dimen/spacing_large">
+                
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Reads what's currently playing locally on your phone — nothing is uploaded."
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:layout_marginBottom="@dimen/spacing_small" />
+                    
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGrantPermission"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GRANT PERMISSION" />
+            </LinearLayout>
+
+            <!-- Status Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_medium"
+                android:layout_marginBottom="@dimen/spacing_large">
+                
+                <TextView
+                    android:id="@+id/tvStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Waiting for Spotify playback…"
+                    android:fontFamily="@font/jetbrains_mono"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorPrimary" />
+                    
+                <TextView
+                    android:id="@+id/tvTrackInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:fontFamily="@font/jetbrains_mono"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <!-- Preview Image (Placeholder for live preview) -->
+            <FrameLayout
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center_horizontal"
+                android:background="#222"
+                android:layout_marginBottom="@dimen/spacing_large">
+                
+                <ImageView
+                    android:id="@+id/previewImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitCenter" />
+            </FrameLayout>
+
+            <!-- Typography Toggle -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TYPOGRAPHY"
+                android:fontFamily="@font/jetbrains_mono"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:layout_marginBottom="@dimen/spacing_small" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleTypography"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                android:layout_marginBottom="@dimen/spacing_large">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSmooth"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="SMOOTH"
+                    android:fontFamily="@font/jetbrains_mono" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBlocky"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="BLOCKY"
+                    android:fontFamily="@font/jetbrains_mono" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpenManager"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="OPEN GLYPH TOYS MANAGER"
+                android:fontFamily="@font/jetbrains_mono"
+                app:cornerRadius="0dp"
+                android:paddingVertical="12dp"
+                android:layout_marginBottom="@dimen/spacing_large" />
+                
+            <!-- Manual Search Fallback -->
+            <LinearLayout
+                android:id="@+id/searchContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MANUAL OVERRIDE (DEBUG)"
+                    android:fontFamily="@font/jetbrains_mono"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:layout_marginBottom="@dimen/spacing_small" />
+                    
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="@dimen/spacing_small">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSearch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Track Name"
+                            android:fontFamily="@font/jetbrains_mono"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSearch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/spacing_small"
+                        android:layout_gravity="center_vertical"
+                        android:text="SEARCH"
+                        android:fontFamily="@font/jetbrains_mono" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/resultsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

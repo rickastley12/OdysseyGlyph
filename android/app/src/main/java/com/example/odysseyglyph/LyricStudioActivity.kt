@@ -90,12 +90,7 @@ class LyricStudioActivity : AppCompatActivity() {
                         val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
                         if (nameIndex != -1) {
                             var name = cursor.getString(nameIndex)
-                            // Remove extension
-                            val dotIndex = name.lastIndexOf('.')
-                            if (dotIndex > 0) name = name.substring(0, dotIndex)
-                            // Remove track numbers and clean up
-                            name = name.replace(Regex("^\\d+\\s*-?\\s*"), "")
-                            name = name.replace("_", " ")
+                            name = LrcQueryCleaner.clean(name)
                             
                             etSearch.setText(name)
                             Snackbar.make(findViewById(android.R.id.content), "Searching for lyrics: $name", Snackbar.LENGTH_SHORT).show()
@@ -341,22 +336,7 @@ class LyricStudioActivity : AppCompatActivity() {
 
     private fun parseLyricsCache(syncedLyrics: String) {
         parsedLyricsCache.clear()
-        val lines = syncedLyrics.split("\n")
-        val regex = Regex("\\[(\\d+):(\\d+)\\.(\\d+)\\](.*)")
-        for (line in lines) {
-            val match = regex.find(line.trim())
-            if (match != null) {
-                val min = match.groupValues[1].toLong()
-                val sec = match.groupValues[2].toLong()
-                val msStr = match.groupValues[3]
-                val ms = if (msStr.length == 2) msStr.toLong() * 10 else msStr.toLong()
-                val totalMs = min * 60 * 1000 + sec * 1000 + ms
-                val text = match.groupValues[4].trim()
-                if (text.isNotEmpty()) {
-                    parsedLyricsCache.add(Pair(totalMs, text))
-                }
-            }
-        }
+        parsedLyricsCache.addAll(LrcUtils.parseLrc(syncedLyrics))
         
         if (parsedLyricsCache.isNotEmpty()) {
             val firstLyricMs = parsedLyricsCache.first().first
