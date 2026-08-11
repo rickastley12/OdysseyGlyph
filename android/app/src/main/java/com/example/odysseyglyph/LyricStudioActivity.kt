@@ -72,7 +72,7 @@ class LyricStudioActivity : AppCompatActivity() {
     // State
     private var selectedAudioUri: Uri? = null
     private var selectedTrack: LrcTrack? = null
-    private var currentFontStyle = GlyphFontEngine.FontStyle.SMOOTH
+    private var currentFontStyle = GlyphFontEngine.FontStyle.PIXEL_TINY
     private var currentAnimStyle = 0 // 0=Flash, 1=Scroll
     private var isProgrammaticTextChange = false
     private var searchJobId = 0
@@ -195,7 +195,7 @@ class LyricStudioActivity : AppCompatActivity() {
         })
 
         // Toggles
-        toggleTypography.check(R.id.btnTypeSmooth)
+        toggleTypography.check(R.id.btnTypePixel)
         toggleTypography.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
                 currentFontStyle = when (checkedId) {
@@ -224,6 +224,12 @@ class LyricStudioActivity : AppCompatActivity() {
 
         // Audio
         btnAttachAudio.setOnClickListener { selectAudioLauncher.launch(arrayOf("audio/*")) }
+        switchAudio.setOnCheckedChangeListener { _, isChecked ->
+            val alpha = if (isChecked) 1.0f else 0.5f
+            tvAudioStatus.alpha = alpha
+            btnAttachAudio.alpha = alpha
+            btnAttachAudio.isEnabled = isChecked
+        }
 
         // Rendering
         btnRender.setOnClickListener { renderLyrics() }

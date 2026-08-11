@@ -49,7 +49,15 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_live_lyrics)
+        
+        val scrollView = findViewById<ScrollView>(R.id.scrollView)
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(scrollView) { view, insets ->
+            val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, systemBars.bottom)
+            insets
+        }
         
         prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
         

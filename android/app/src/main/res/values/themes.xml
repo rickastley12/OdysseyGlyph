@@ -4,6 +4,7 @@
         <!-- Core Colors -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorTertiary">@color/colorSurfaceVariant</item>
         <item name="colorSurface">@color/colorSurface</item>
         <item name="colorSurfaceVariant">@color/colorSurfaceVariant</item>
         <item name="android:colorBackground">@color/colorBackground</item>
@@ -30,6 +31,13 @@
         
         <!-- Default Font (Inter/sans-serif) -->
         <item name="android:fontFamily">sans-serif</item>
+        
+        <item name="materialSwitchStyle">@style/Widget.Odyssey.MaterialSwitch</item>
+    </style>
+    
+    <style name="Widget.Odyssey.MaterialSwitch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="trackTint">@color/switch_track_selector</item>
+        <item name="thumbTint">@color/switch_thumb_selector</item>
     </style>
     
     <style name="ShapeAppearance.Odyssey.Sharp" parent="ShapeAppearance.Material3.SmallComponent">
@@ -38,10 +46,14 @@
     </style>
     
     <style name="TextAppearance.Odyssey.CollapsedTitle" parent="TextAppearance.Material3.TitleLarge">
-        <item name="android:fontFamily">@font/dotgothic16</item>
+        <item name="android:fontFamily">@font/ndot57</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:letterSpacing">0.1</item>
     </style>
 
-    <style name="TextAppearance.Odyssey.ExpandedTitle" parent="TextAppearance.Material3.DisplaySmall">
-        <item name="android:fontFamily">@font/dotgothic16</item>
+    <style name="TextAppearance.Odyssey.ExpandedTitle" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:fontFamily">@font/ndot57</item>
+        <item name="android:textSize">48sp</item>
+        <item name="android:letterSpacing">0.1</item>
     </style>
 </resources>

@@ -279,7 +279,10 @@
                 android:paddingVertical="12dp"
                 android:layout_marginBottom="@dimen/spacing_large" />
                 
-                <!-- Manual search removed as requested -->
+            <!-- Static padding for system navigation bar to prevent edge-to-edge clipping bugs -->
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
             
             </LinearLayout>
         </LinearLayout>
