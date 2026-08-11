@@ -59,16 +59,31 @@ class GalleryActivity : AppCompatActivity() {
     }
 
     private fun onDeleteClicked(preset: Preset) {
-        AlertDialog.Builder(this)
-            .setTitle("Delete Preset")
-            .setMessage("Are you sure you want to delete '${preset.name}'?")
-            .setPositiveButton("Delete") { _, _ ->
-                PresetManager.deletePreset(this, preset.id)
-                loadPresets()
-                Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        showDeleteConfirmationDialog(preset) {
+            PresetManager.deletePreset(this, preset.id)
+            loadPresets()
+            Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
+        }
+    }
+
+    private fun showDeleteConfirmationDialog(preset: Preset, onConfirm: () -> Unit) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_confirm, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "DELETE PRESET"
+        dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "Are you sure you want to delete '${preset.name}'?\nThis action cannot be undone."
+
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDialogCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDialogConfirm).setOnClickListener {
+            onConfirm()
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun onPresetClicked(preset: Preset) {
@@ -148,17 +163,12 @@ class GalleryActivity : AppCompatActivity() {
         }
 
         dialogView.findViewById<MaterialButton>(R.id.btnDelete).setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Delete Preset")
-                .setMessage("Are you sure you want to delete '${preset.name}'?")
-                .setPositiveButton("Delete") { _, _ ->
-                    PresetManager.deletePreset(this, preset.id)
-                    loadPresets()
-                    dialog.dismiss()
-                    Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
+            showDeleteConfirmationDialog(preset) {
+                PresetManager.deletePreset(this, preset.id)
+                loadPresets()
+                dialog.dismiss()
+                Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
+            }
         }
 
         dialog.show()
