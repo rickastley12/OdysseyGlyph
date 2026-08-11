@@ -505,6 +505,7 @@ object VideoProcessor {
                         val timeSinceStart = currentMs - currentLyric.first
                         
                         var offsetX = 0f
+                        var frameText = text
                         if (animationStyle == 1) {
                             // Scroll Left
                             val textWidth = GlyphFontEngine.measureTextWidth(text, fontStyle)
@@ -512,12 +513,19 @@ object VideoProcessor {
                             val progress = timeSinceStart.toFloat() / lineDuration
                             offsetX = 25f - (progress * (textWidth + 25f))
                         } else {
-                            // Flash (Center)
-                            val textWidth = GlyphFontEngine.measureTextWidth(text, fontStyle)
+                            // Flash Word-by-Word
+                            val words = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
+                            if (words.isNotEmpty()) {
+                                val lineDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L).toFloat()
+                                val progress = timeSinceStart.toFloat() / lineDuration
+                                val wordIndex = (progress * words.size).toInt().coerceIn(0, words.size - 1)
+                                frameText = words[wordIndex]
+                            }
+                            val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle)
                             offsetX = (25f - textWidth) / 2f
                         }
                         
-                        val frame = GlyphFontEngine.renderTextFrame(text, fontStyle, offsetX)
+                        val frame = GlyphFontEngine.renderTextFrame(frameText, fontStyle, offsetX)
                         finalFrames.add(frame)
                     }
                     

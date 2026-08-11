@@ -389,7 +389,21 @@ class LyricStudioActivity : AppCompatActivity() {
 
     private fun updateWysiwygPreview() {
         val textToPreview = parsedLyricsCache.firstOrNull()?.second ?: "Odyssey"
-        val rawBytes = GlyphFontEngine.renderTextFrame(textToPreview, currentFontStyle, 0f)
+        
+        val displayText = if (currentAnimStyle == 0) {
+            textToPreview.split("\\s+".toRegex()).firstOrNull { it.isNotEmpty() } ?: textToPreview
+        } else {
+            textToPreview
+        }
+        
+        val offsetX = if (currentAnimStyle == 0) {
+            val textWidth = GlyphFontEngine.measureTextWidth(displayText, currentFontStyle)
+            (25f - textWidth) / 2f
+        } else {
+            0f
+        }
+        
+        val rawBytes = GlyphFontEngine.renderTextFrame(displayText, currentFontStyle, offsetX)
         
         val bitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
         val pixels = IntArray(625)
