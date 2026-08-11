@@ -95,6 +95,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             settingsPanel.visibility = View.VISIBLE
+            btnAdvancedToggle.visibility = View.VISIBLE
             bottomActionBar.visibility = View.VISIBLE
             audioCard.visibility = if (currentMediaType == 0) View.VISIBLE else View.GONE
         }
@@ -111,6 +112,8 @@ class MainActivity : AppCompatActivity() {
 
         loadAdvancedSettings()
         bindViews()
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
         
         val scrollView = findViewById<ScrollView>(R.id.scrollView)
         ViewCompat.setOnApplyWindowInsetsListener(scrollView) { _, insets ->
@@ -275,10 +278,6 @@ class MainActivity : AppCompatActivity() {
                 Snackbar.make(findViewById(android.R.id.content), "Toys Manager not found on this device.", Snackbar.LENGTH_LONG).show()
             }
         }
-        
-        btnGallery.setOnClickListener {
-            startActivity(Intent(this, GalleryActivity::class.java))
-        }
 
         slotSpinner.setOnItemClickListener { _, _, position, _ ->
             prefs.edit().putInt("selected_slot", position + 1).apply()
@@ -335,7 +334,8 @@ class MainActivity : AppCompatActivity() {
         sharpenSwitch.setOnCheckedChangeListener { _, isChecked -> advSharpen = isChecked }
 
         dialog.setOnDismissListener {
-            advFps = etFps.text.toString().toIntOrNull() ?: 12
+            val parsedFps = etFps.text.toString().toIntOrNull() ?: 12
+            advFps = parsedFps.coerceIn(1, 30)
             saveAdvancedSettings()
         }
 
@@ -447,6 +447,8 @@ class MainActivity : AppCompatActivity() {
         progressBar.visibility = View.GONE
         btnAdvancedToggle.visibility = View.GONE
         audioCard.visibility = View.GONE
+        bottomActionBar.visibility = View.GONE
+        checkToysManagerVisibility()
         
         if (videoView.isPlaying) {
             videoView.pause()

@@ -148,10 +148,17 @@ class GalleryActivity : AppCompatActivity() {
         }
 
         dialogView.findViewById<MaterialButton>(R.id.btnDelete).setOnClickListener {
-            PresetManager.deletePreset(this, preset.id)
-            loadPresets()
-            dialog.dismiss()
-            Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).show()
+            AlertDialog.Builder(this)
+                .setTitle("Delete Preset")
+                .setMessage("Are you sure you want to delete '${preset.name}'?")
+                .setPositiveButton("Delete") { _, _ ->
+                    PresetManager.deletePreset(this, preset.id)
+                    loadPresets()
+                    dialog.dismiss()
+                    Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
 
         dialog.show()
