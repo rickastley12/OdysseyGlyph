@@ -174,6 +174,13 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         checkNotificationPermission()
         MusicPlaybackState.addListener(this)
         updateUIState()
+        
+        if (MusicPlaybackState.hasActiveSession && 
+            MusicPlaybackState.trackTitle.isNotEmpty() && 
+            MusicPlaybackState.manualOverrideLyrics == null) {
+            onMetadataChanged(MusicPlaybackState.trackTitle, MusicPlaybackState.artist)
+        }
+        
         mainHandler.post(previewUpdater)
     }
 
@@ -293,6 +300,8 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
                 sleepTick += 0.2f
                 val zCount = (sleepTick.toInt() % 4)
                 textToRender = "Z".repeat(zCount)
+            } else if (MusicPlaybackState.isPlaying && MusicPlaybackState.manualOverrideLyrics == null) {
+                textToRender = "-"
             }
             
             if (textToRender.isNotEmpty()) {
