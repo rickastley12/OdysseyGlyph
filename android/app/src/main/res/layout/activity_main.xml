@@ -263,21 +263,7 @@
                         app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
 
-                <!-- Actions moved to bottomActionBar -->
-                    
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="@dimen/spacing_medium">
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnGallery"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="OPEN PRESET GALLERY"
-                        android:fontFamily="@font/jetbrains_mono" />
-                </LinearLayout>
+
 
                 <!-- Static padding so the export/import buttons aren't hidden behind the sticky bottomActionBar -->
                 <Space

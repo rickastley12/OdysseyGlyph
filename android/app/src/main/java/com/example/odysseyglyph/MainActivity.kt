@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var successActionsContainer: View
     private lateinit var btnOpenManager: MaterialButton
     private lateinit var btnOpenGallerySuccess: MaterialButton
-    private lateinit var btnGallery: MaterialButton
+
     private lateinit var btnLaunchLyricStudio: MaterialButton
     private lateinit var btnLaunchLiveLyrics: MaterialButton
     private lateinit var bottomActionBar: LinearLayout
@@ -218,7 +218,7 @@ class MainActivity : AppCompatActivity() {
         successActionsContainer = findViewById(R.id.successActionsContainer)
         btnOpenManager = findViewById(R.id.btnOpenManager)
         btnOpenGallerySuccess = findViewById(R.id.btnOpenGallerySuccess)
-        btnGallery = findViewById(R.id.btnGallery)
+
         bottomActionBar = findViewById(R.id.bottomActionBar)
     }
 
@@ -269,9 +269,7 @@ class MainActivity : AppCompatActivity() {
         btnProcess.setOnClickListener { startProcessing() }
         btnCancel.setOnClickListener { cancelProcessing() }
 
-        btnGallery.setOnClickListener {
-            startActivity(Intent(this, GalleryActivity::class.java))
-        }
+
 
         btnOpenManager.setOnClickListener {
             try {
