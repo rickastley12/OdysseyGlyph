@@ -56,8 +56,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnCancel: MaterialButton
     private lateinit var progressBar: GlyphProgressView
     private lateinit var btnOpenManager: MaterialButton
-    private lateinit var btnExport: MaterialButton
-    private lateinit var btnImport: MaterialButton
+    private lateinit var btnGallery: MaterialButton
     private lateinit var btnLaunchLyricStudio: MaterialButton
     private lateinit var btnLaunchLiveLyrics: MaterialButton
     private lateinit var bottomActionBar: LinearLayout
@@ -253,8 +252,7 @@ class MainActivity : AppCompatActivity() {
         btnCancel = findViewById(R.id.btnCancel)
         progressBar = findViewById(R.id.progressBar)
         btnOpenManager = findViewById(R.id.btnOpenManager)
-        btnExport = findViewById(R.id.btnExport)
-        btnImport = findViewById(R.id.btnImport)
+        btnGallery = findViewById(R.id.btnGallery)
         bottomActionBar = findViewById(R.id.bottomActionBar)
     }
 
@@ -306,16 +304,12 @@ class MainActivity : AppCompatActivity() {
                 intent.component = ComponentName("com.nothing.thirdparty", "com.nothing.thirdparty.matrix.toys.manager.ToysManagerActivity")
                 startActivity(intent)
             } catch (e: Exception) {
-                Snackbar.make(findViewById(android.R.id.content), "Nothing OS Toys Manager not found.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(findViewById(android.R.id.content), "Toys Manager not found on this device.", Snackbar.LENGTH_LONG).show()
             }
         }
         
-        btnExport.setOnClickListener {
-            val slot = prefs.getInt("selected_slot", 1)
-            exportLauncher.launch("slot${slot}_preset.odyssey")
-        }
-        btnImport.setOnClickListener {
-            importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
+        btnGallery.setOnClickListener {
+            startActivity(Intent(this, GalleryActivity::class.java))
         }
 
         slotSpinner.setOnItemClickListener { _, _, position, _ ->

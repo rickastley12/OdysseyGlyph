@@ -43,6 +43,7 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
     private lateinit var etSearch: TextInputEditText
     private lateinit var btnSearch: MaterialButton
     private lateinit var resultsContainer: LinearLayout
+    private lateinit var optionsContainer: LinearLayout
     
     private var currentFontStyle = GlyphFontEngine.FontStyle.SMOOTH
     private var isNotificationAccessGranted = false
@@ -74,10 +75,14 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         etSearch = findViewById(R.id.etSearch)
         btnSearch = findViewById(R.id.btnSearch)
         resultsContainer = findViewById(R.id.resultsContainer)
+        optionsContainer = findViewById(R.id.optionsContainer)
         
         switchMaster.isChecked = prefs.getBoolean("live_lyrics_enabled", false)
+        optionsContainer.visibility = if (switchMaster.isChecked) View.VISIBLE else View.GONE
+        
         switchMaster.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("live_lyrics_enabled", isChecked).apply()
+            optionsContainer.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
         
         val savedAnimStyle = prefs.getInt("live_anim_style", 0)

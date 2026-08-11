@@ -291,8 +291,12 @@ object VideoProcessor {
                     finalFrames.addAll(reverseFrames)
                 }
 
-                // Write to frames_slotX.bin
-                val outFile = File(context.filesDir, "frames_slot$slotIndex.bin")
+                // Write to Preset Gallery
+                val presetName = "Media Matrix ${System.currentTimeMillis() % 10000}"
+                val presetId = PresetManager.createPreset(context, presetName, "MEDIA")
+                val dir = PresetManager.getPresetsDir(context)
+                
+                val outFile = File(dir, "${presetId}.bin")
                 FileOutputStream(outFile).use { fos ->
                     val header = ByteBuffer.allocate(12).order(ByteOrder.LITTLE_ENDIAN)
                     header.putInt(finalFrames.size)
@@ -306,7 +310,7 @@ object VideoProcessor {
                 }
                 
                 // Handle Audio Attachment
-                val audioFile = File(context.filesDir, "audio_slot$slotIndex.mp3")
+                val audioFile = File(dir, "${presetId}.mp3")
                 if (audioUri != null) {
                     try {
                         context.contentResolver.openInputStream(audioUri)?.use { input ->
@@ -317,11 +321,10 @@ object VideoProcessor {
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
-                } else {
-                    if (audioFile.exists()) {
-                        audioFile.delete()
-                    }
                 }
+                
+                // Assign to requested slot
+                PresetManager.assignPresetToSlot(context, presetId, slotIndex)
 
                 mainHandler.post { onProgress(100) }
                 mainHandler.post { onComplete(true, null) }
@@ -490,8 +493,12 @@ object VideoProcessor {
                 val blankCount = finalFrames.count { frame -> frame.all { it == 0.toByte() } }
                 android.util.Log.d("OdysseyLyrics", "totalFrames=${finalFrames.size} blankFrames=$blankCount")
                 
-                // Write to frames_slotX.bin
-                val outFile = File(context.filesDir, "frames_slot$slotIndex.bin")
+                // Write to Preset Gallery
+                val presetName = "Lyric Matrix ${System.currentTimeMillis() % 10000}"
+                val presetId = PresetManager.createPreset(context, presetName, "LYRIC")
+                val dir = PresetManager.getPresetsDir(context)
+                
+                val outFile = File(dir, "${presetId}.bin")
                 FileOutputStream(outFile).use { fos ->
                     val header = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN)
                     header.putInt(finalFrames.size)
@@ -506,7 +513,7 @@ object VideoProcessor {
                 }
                 
                 // Handle Audio Attachment
-                val audioFile = File(context.filesDir, "audio_slot$slotIndex.mp3")
+                val audioFile = File(dir, "${presetId}.mp3")
                 if (audioUri != null) {
                     try {
                         context.contentResolver.openInputStream(audioUri)?.use { input ->
@@ -517,11 +524,10 @@ object VideoProcessor {
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
-                } else {
-                    if (audioFile.exists()) {
-                        audioFile.delete()
-                    }
                 }
+                
+                // Assign to requested slot
+                PresetManager.assignPresetToSlot(context, presetId, slotIndex)
 
                 mainHandler.post { onProgress(100) }
                 mainHandler.post { onComplete(true, null) }

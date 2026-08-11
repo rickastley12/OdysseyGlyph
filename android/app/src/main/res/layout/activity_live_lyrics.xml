@@ -52,6 +52,12 @@
                 android:fontFamily="@font/jetbrains_mono"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:layout_marginBottom="@dimen/spacing_large" />
+                
+            <LinearLayout
+                android:id="@+id/optionsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
             <!-- Permission Card -->
             <LinearLayout
@@ -306,6 +312,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical" />
+            </LinearLayout>
+            
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

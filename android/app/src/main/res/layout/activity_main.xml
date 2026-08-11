@@ -281,20 +281,11 @@
                     android:orientation="horizontal"
                     android:layout_marginTop="@dimen/spacing_medium">
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnExport"
+                        android:id="@+id/btnGallery"
                         style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="EXPORT PRESET"
-                        android:fontFamily="@font/jetbrains_mono" />
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnImport"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="IMPORT PRESET"
+                        android:text="OPEN PRESET GALLERY"
                         android:fontFamily="@font/jetbrains_mono" />
                 </LinearLayout>
 
