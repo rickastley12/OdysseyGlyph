@@ -230,7 +230,7 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
                 val results = LRCLibClient.searchLyrics("$title $artist")
                 val syncedResult = results.firstOrNull { it.syncedLyrics != null }
                 if (syncedResult != null) {
-                    val parsed = LrcUtils.parseLrc(syncedResult.syncedLyrics)
+                    val parsed = LrcUtils.parseLrc(syncedResult.syncedLyrics!!)
                     MusicPlaybackState.manualOverrideLyrics = parsed
                     MusicPlaybackState.manualOverrideTrackName = syncedResult.trackName
                     mainHandler.post { updateUIState() }
