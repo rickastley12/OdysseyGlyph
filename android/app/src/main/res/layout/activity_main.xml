@@ -294,6 +294,11 @@
                         android:text="IMPORT PRESET"
                         android:fontFamily="@font/jetbrains_mono" />
                 </LinearLayout>
+
+                <!-- Static padding so the export/import buttons aren't hidden behind the sticky bottomActionBar -->
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp" />
             </LinearLayout>
 
         </LinearLayout>

@@ -48,12 +48,6 @@ object GlyphFontEngine {
             while (lines.any { paint.measureText(it) > maxWidth } && paint.textSize > 5f) {
                 paint.textSize -= 0.5f
             }
-            
-            // Force anti-aliasing if the font scaled down below normal pixel size, 
-            // otherwise Canvas will drop pixels and render random noise (like '****')
-            if (paint.textSize < 9f) {
-                paint.isAntiAlias = true
-            }
         }
         return paint
     }
@@ -77,29 +71,29 @@ object GlyphFontEngine {
         val fontMetrics = paint.fontMetrics
         val textHeight = fontMetrics.bottom - fontMetrics.top
         
+        val bounds = android.graphics.Rect()
+        
         if (lines.size == 1) {
+            val line = lines[0]
+            paint.getTextBounds(line, 0, line.length, bounds)
+            val leftBearingOffset = if (bounds.left < 0) -bounds.left.toFloat() else 0f
+            
             val textOffset = textHeight / 2 - fontMetrics.bottom
             val y = 25f / 2f + textOffset
-            
-            // If auto-scaling is enabled, we are in Flash mode and should perfectly center the text.
-            // Otherwise, we respect the scroll offset.
-            val x = if (autoScale) {
-                (25f - paint.measureText(lines[0])) / 2f
-            } else {
-                scrollOffsetX
-            }
-            
-            canvas.drawText(lines[0], x, y, paint)
+            canvas.drawText(line, scrollOffsetX + leftBearingOffset, y, paint)
         } else {
             // Compress line spacing so words don't hit the narrow top/bottom edges of the circular matrix
             val lineHeight = textHeight * 0.8f
             val totalHeight = lineHeight * lines.size
             var startY = (25f - totalHeight) / 2f - fontMetrics.top
             for (line in lines) {
+                paint.getTextBounds(line, 0, line.length, bounds)
+                val leftBearingOffset = if (bounds.left < 0) -bounds.left.toFloat() else 0f
+                
                 // Ignore scrollOffsetX for multiline since it's only used in Flash mode, which calculates its own line X
                 val lineWidth = paint.measureText(line)
                 val lineX = (25f - lineWidth) / 2f
-                canvas.drawText(line, lineX, startY, paint)
+                canvas.drawText(line, lineX + leftBearingOffset, startY, paint)
                 startY += lineHeight
             }
         }
@@ -144,36 +138,63 @@ object GlyphFontEngine {
     }
     
     /**
-     * Adapts a single word into 1 or 2 lines.
-     * We use autoScale=true to see if the engine can shrink it to fit.
-     * We avoid time-chunking because it causes illegible strobe flashing on fast rap songs!
+     * Adapts a single word into 1, 2, or multiple chunks based on raw pixel width.
+     * Ensures chunks do not exceed the 25px matrix width (using 24f for safety).
      */
     fun formatWordForDisplay(word: String, style: FontStyle, progress: Float = 0f): String {
-        // Check if the word fits on one line if the engine shrinks it
-        val singleLineWidth = measureTextWidth(word, style, autoScale = true)
+        // Measure the unscaled text width.
+        val singleLineWidth = measureTextWidth(word, style, autoScale = false)
         if (singleLineWidth <= 24f) {
             return word
         }
 
-        // It doesn't fit on one line even when shrunk, so split it into 2 balanced lines
+        // Try splitting into 2 lines. Find the index that minimizes the difference between width1 and width2.
         var bestSplitIdx = -1
         var minDiff = Float.MAX_VALUE
+        var bestW1 = 0f
+        var bestW2 = 0f
         
         for (i in 1 until word.length) {
             val p1 = word.substring(0, i) + "-"
             val p2 = word.substring(i)
-            // Just measure character lengths as a rough proxy for width to find the center
-            val diff = kotlin.math.abs(p1.length - p2.length).toFloat()
+            val w1 = measureTextWidth(p1, style, autoScale = false)
+            val w2 = measureTextWidth(p2, style, autoScale = false)
+            val diff = kotlin.math.abs(w1 - w2)
             if (diff < minDiff) {
                 minDiff = diff
                 bestSplitIdx = i
+                bestW1 = w1
+                bestW2 = w2
             }
         }
         
-        if (bestSplitIdx != -1) {
+        // If both parts fit within 24f when stacked
+        if (bestSplitIdx != -1 && bestW1 <= 24f && bestW2 <= 24f) {
             return word.substring(0, bestSplitIdx) + "-\n" + word.substring(bestSplitIdx)
         }
         
-        return word
+        // Time-chunking: break word into sequential chunks that fit within ~24f
+        val chunks = mutableListOf<String>()
+        var currentChunk = ""
+        for (i in word.indices) {
+            val char = word[i]
+            val suffix = if (i == word.lastIndex) "" else "-"
+            if (measureTextWidth(currentChunk + char + suffix, style, autoScale = false) <= 24f) {
+                currentChunk += char
+            } else {
+                if (currentChunk.isNotEmpty()) {
+                    chunks.add(currentChunk + "-")
+                }
+                currentChunk = char.toString()
+            }
+        }
+        if (currentChunk.isNotEmpty()) {
+            chunks.add(currentChunk)
+        }
+        
+        if (chunks.isEmpty()) return word
+        
+        val chunkIndex = (progress * chunks.size).toInt().coerceIn(0, chunks.size - 1)
+        return chunks[chunkIndex]
     }
 }

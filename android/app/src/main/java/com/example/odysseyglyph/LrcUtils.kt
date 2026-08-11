@@ -40,7 +40,7 @@ object LrcUtils {
 
     /**
      * Finds the lyric line and computes the formatted frame text (with offset) for a given time.
-     * Reuses the Flash Word-by-Word punctuation-aware character proportional timing logic.
+     * Uses character-length proportional weighting to distribute word timing within a line.
      */
     fun getFrameTextAtTime(
         parsedLines: List<Pair<Long, String>>,
@@ -59,40 +59,35 @@ object LrcUtils {
         val nextTimeMs = if (lyricIndex < parsedLines.size - 1) {
             parsedLines[lyricIndex + 1].first
         } else {
-            currentLyric.first + 4000L // default 4 seconds for last line
+            currentLyric.first + 4000L
         }
 
         val text = currentLyric.second
         val timeSinceStart = currentMs - currentLyric.first
         
-        // Cap the line duration so long instrumental gaps don't cause slow-motion text.
-        // However, we MUST guarantee a minimum of 5 seconds so short, held-out vocal notes (e.g. "Ohhhh") 
-        // aren't forcefully chopped off!
-        val maxDurationMs = Math.max(text.length * 300L, 5000L)
-        val gapDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L)
-        val lineDuration = Math.min(gapDuration, maxDurationMs).toFloat()
-
-        if (timeSinceStart < 0 || timeSinceStart > lineDuration) {
-            return null // Blank frame
+        // Trust the LRC timestamps directly
+        val lineDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L).toFloat()
+        
+        // Blank during long instrumental gaps (>10s) or if we've passed the line
+        if (timeSinceStart < 0 || timeSinceStart > lineDuration || lineDuration > 10000f) {
+            return null
         }
 
-        var frameText = text
+        var frameText = ""
         var offsetX = 0f
 
         if (animationStyle == 1) {
             // Scroll Left
+            frameText = text
             val textWidth = GlyphFontEngine.measureTextWidth(text, fontStyle, autoScale = false)
             val progress = timeSinceStart.toFloat() / lineDuration
             offsetX = 25f - (progress * (textWidth + 25f))
         } else {
-            // Flash Word-by-Word
+            // Flash Word-by-Word with character-length proportional timing
             val words = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
             if (words.isNotEmpty()) {
                 val wordWeights = words.map { word ->
-                    // Base weight on word length to approximate syllables, with a minimum weight
-                    // so short words like "I" don't flash too fast.
                     var weight = Math.max(3f, word.length.toFloat())
-                    // Small bump for punctuation pauses, but NOT massive multipliers
                     if (word.endsWith(",") || word.endsWith(".") || word.endsWith("?") || word.endsWith("!")) {
                         weight += 2f
                     }
@@ -101,7 +96,6 @@ object LrcUtils {
                 val totalWeight = wordWeights.sum()
                 
                 var accumulatedWeight = 0f
-                var targetWordIndex = words.size - 1
                 
                 for ((wIdx, word) in words.withIndex()) {
                     val wordWeight = wordWeights[wIdx]
@@ -112,20 +106,45 @@ object LrcUtils {
                     val wordEndTime = (wordEndWeight / totalWeight) * lineDuration
                     
                     if (timeSinceStart >= wordStartTime && timeSinceStart < wordEndTime) {
-                        targetWordIndex = wIdx
-                        
                         val wordDuration = wordEndTime - wordStartTime
                         val timeInWord = timeSinceStart - wordStartTime
                         val chunkProgress = timeInWord / wordDuration
                         
-                        frameText = GlyphFontEngine.formatWordForDisplay(word, fontStyle, chunkProgress)
+                        // Create a dynamic blank gap at the end of every word to create a discrete strobe effect.
+                        // 50ms is too fast for the eye. We use 25% of the word duration, capped at 200ms.
+                        val gapDuration = Math.min(200f, wordDuration * 0.25f)
+                        if (wordDuration > 100f && timeInWord > wordDuration - gapDuration) {
+                            frameText = ""
+                            break
+                        }
+                        
+                        // Strip trailing punctuation so it doesn't artificially widen the word and ruin centering
+                        val cleanWord = word.trimEnd { it == ',' || it == '.' || it == '?' || it == '!' || it == ';' || it == ':' || it == ')' || it == '"' || it == '\'' }
+                        if (cleanWord.isEmpty()) {
+                            frameText = ""
+                            break
+                        }
+                        
+                        if (animationStyle == 2) {
+                            // HYBRID: Flash words, but if a word is too long, scroll it leftwards during its time slice.
+                            frameText = cleanWord
+                            val textWidth = GlyphFontEngine.measureTextWidth(cleanWord, fontStyle, autoScale = false)
+                            if (textWidth > 25f) {
+                                offsetX = 25f - (chunkProgress * (textWidth + 25f))
+                            } else {
+                                offsetX = (25f - textWidth) / 2f
+                            }
+                        } else {
+                            // FLASH: Multi-line or strobe chunks for long words
+                            frameText = GlyphFontEngine.formatWordForDisplay(cleanWord, fontStyle, chunkProgress)
+                            val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle, autoScale = false)
+                            offsetX = (25f - textWidth) / 2f
+                        }
                         break
                     }
                     accumulatedWeight += wordWeight
                 }
             }
-            val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle, autoScale = false)
-            offsetX = (25f - textWidth) / 2f
         }
         
         return Pair(frameText, offsetX)

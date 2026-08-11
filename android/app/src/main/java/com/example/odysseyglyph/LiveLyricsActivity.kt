@@ -80,15 +80,19 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         }
         
         val savedAnimStyle = prefs.getInt("live_anim_style", 0)
-        if (savedAnimStyle == 1) {
-            toggleAnimation.check(R.id.btnAnimScroll)
-        } else {
-            toggleAnimation.check(R.id.btnAnimFlash)
+        when (savedAnimStyle) {
+            1 -> toggleAnimation.check(R.id.btnAnimScroll)
+            2 -> toggleAnimation.check(R.id.btnAnimHybrid)
+            else -> toggleAnimation.check(R.id.btnAnimFlash)
         }
         
         toggleAnimation.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
-                val style = if (checkedId == R.id.btnAnimScroll) 1 else 0
+                val style = when (checkedId) {
+                    R.id.btnAnimScroll -> 1
+                    R.id.btnAnimHybrid -> 2
+                    else -> 0
+                }
                 prefs.edit().putInt("live_anim_style", style).apply()
             }
         }

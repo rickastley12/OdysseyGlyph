@@ -13,6 +13,23 @@ class MediaSessionListenerService : NotificationListenerService() {
     private var activeController: MediaController? = null
     private var isConnected = false
     private var activeSource = ""
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    
+    /**
+     * Active position re-sync: Spotify/YT Music only send PlaybackState callbacks on
+     * state CHANGES (play, pause, skip). Between those events, our position estimate
+     * drifts because we're extrapolating from stale data. This runnable actively polls 
+     * the MediaController every 500ms to get fresh position data, preventing drift.
+     */
+    private val positionSyncRunnable = object : Runnable {
+        override fun run() {
+            if (!isConnected) return
+            activeController?.playbackState?.let { state ->
+                MusicPlaybackState.updatePlaybackState(state)
+            }
+            handler.postDelayed(this, 500L)
+        }
+    }
     
     private val controllerCallback = object : MediaController.Callback() {
         override fun onMetadataChanged(metadata: MediaMetadata?) {
@@ -55,6 +72,7 @@ class MediaSessionListenerService : NotificationListenerService() {
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         isConnected = false
+        handler.removeCallbacks(positionSyncRunnable)
         
         activeController?.unregisterCallback(controllerCallback)
         activeController = null
@@ -72,6 +90,7 @@ class MediaSessionListenerService : NotificationListenerService() {
         if (musicController != null) {
             if (activeController?.sessionToken != musicController.sessionToken) {
                 activeController?.unregisterCallback(controllerCallback)
+                handler.removeCallbacks(positionSyncRunnable)
                 
                 activeController = musicController
                 activeSource = if (musicController.packageName.contains("spotify")) "Spotify" else "YouTube Music"
@@ -84,10 +103,14 @@ class MediaSessionListenerService : NotificationListenerService() {
                 // Initial state dump
                 controllerCallback.onMetadataChanged(musicController.metadata)
                 controllerCallback.onPlaybackStateChanged(musicController.playbackState)
+                
+                // Start active position polling to prevent drift
+                handler.post(positionSyncRunnable)
             }
         } else {
             if (activeController != null) {
                 activeController?.unregisterCallback(controllerCallback)
+                handler.removeCallbacks(positionSyncRunnable)
                 activeController = null
                 MusicPlaybackState.hasActiveSession = false
                 Log.d("MusicListener", "Music session ended")
