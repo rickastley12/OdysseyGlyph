@@ -163,13 +163,17 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         }
         
         if (prefs.getBoolean("first_run_live", true)) {
-            AlertDialog.Builder(this, R.style.Theme_OdysseyGlyph)
-                .setTitle("Live Lyrics")
-                .setMessage("Live Lyrics reads your phone's media playback (like Spotify or YouTube Music) and automatically searches for synchronized lyrics. If a match is found, it streams them directly to your Glyph matrix in real-time as the song plays!")
-                .setPositiveButton("LET'S GO") { _, _ ->
-                    prefs.edit().putBoolean("first_run_live", false).apply()
-                }
-                .show()
+            val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
+            val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            
+            dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "LIVE LYRICS"
+            dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "Live Lyrics reads your phone's media playback (like Spotify or YouTube Music) and automatically searches for synchronized lyrics. If a match is found, it streams them directly to your Glyph matrix in real-time as the song plays!"
+            dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).setOnClickListener {
+                prefs.edit().putBoolean("first_run_live", false).apply()
+                dialog.dismiss()
+            }
+            dialog.show()
         }
     }
 

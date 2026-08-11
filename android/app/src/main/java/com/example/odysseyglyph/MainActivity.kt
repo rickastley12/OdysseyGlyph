@@ -177,16 +177,6 @@ class MainActivity : AppCompatActivity() {
 
         setupListeners()
         syncSlotState()
-        
-        if (prefs.getBoolean("first_run_main", true)) {
-            AlertDialog.Builder(this, R.style.Theme_OdysseyGlyph)
-                .setTitle("Welcome to Odyssey Glyph")
-                .setMessage("Choose a Video or Image to crop, pan, and transform into a custom LED matrix animation. Pinch to zoom and drag to center your subject in the circle.")
-                .setPositiveButton("GOT IT") { _, _ ->
-                    prefs.edit().putBoolean("first_run_main", false).apply()
-                }
-                .show()
-        }
     }
 
     private fun updateScrollViewPadding() {
@@ -270,7 +260,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnSelectVideo.setOnClickListener {
-            selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
+            if (prefs.getBoolean("first_run_main", true)) {
+                val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
+                val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+                dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+                
+                dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "WELCOME TO ODYSSEY"
+                dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "Choose a Video or Image to crop, pan, and transform into a custom LED matrix animation. Pinch to zoom and drag to center your subject in the circle."
+                dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).setOnClickListener {
+                    prefs.edit().putBoolean("first_run_main", false).apply()
+                    dialog.dismiss()
+                    selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
+                }
+                dialog.show()
+            } else {
+                selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
+            }
         }
 
         btnLaunchLyricStudio.setOnClickListener {

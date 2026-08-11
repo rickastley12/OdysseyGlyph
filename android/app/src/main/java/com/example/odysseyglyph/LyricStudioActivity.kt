@@ -127,13 +127,17 @@ class LyricStudioActivity : AppCompatActivity() {
         syncSlotState()
         
         if (prefs.getBoolean("first_run_studio", true)) {
-            AlertDialog.Builder(this, R.style.Theme_OdysseyGlyph)
-                .setTitle("Lyric Studio")
-                .setMessage("Search for any song to automatically download synchronized lyrics. You can then render the lyrics into a scrolling or flashing hologram on the Glyph matrix. Make sure to select the matching local audio file so it plays in sync!")
-                .setPositiveButton("GOT IT") { _, _ ->
-                    prefs.edit().putBoolean("first_run_studio", false).apply()
-                }
-                .show()
+            val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
+            val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            
+            dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "LYRIC STUDIO"
+            dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "Search for any song to automatically download synchronized lyrics. You can then render the lyrics into a scrolling or flashing hologram on the Glyph matrix. Make sure to select the matching local audio file so it plays in sync!"
+            dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).setOnClickListener {
+                prefs.edit().putBoolean("first_run_studio", false).apply()
+                dialog.dismiss()
+            }
+            dialog.show()
         }
     }
 
