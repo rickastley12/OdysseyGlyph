@@ -213,7 +213,7 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
                 for (track in syncedResults) {
                     val card = LinearLayout(this).apply {
                         orientation = LinearLayout.VERTICAL
-                        background = ContextCompat.getDrawable(this@SpotifyLiveActivity, R.drawable.bg_search_result)
+                        background = android.graphics.drawable.ColorDrawable(Color.parseColor("#333333"))
                         setPadding(32, 32, 32, 32)
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,

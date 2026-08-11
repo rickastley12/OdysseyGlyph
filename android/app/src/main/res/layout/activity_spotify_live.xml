@@ -48,7 +48,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@drawable/bg_search_result"
+                android:background="?attr/colorSurfaceVariant"
                 android:padding="@dimen/spacing_medium"
                 android:layout_marginBottom="@dimen/spacing_large">
                 
