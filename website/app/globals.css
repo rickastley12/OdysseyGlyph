@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+@font-face {
+    font-family: 'NDot57';
+    src: url('/fonts/ndot57.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+    --background: #000000;
+    --foreground: #ffffff;
+    --accent-red: #ea1919;
+    --surface: #111111;
+    --border-color: rgba(255, 255, 255, 0.15);
+}
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+html,
+body {
+    max-width: 100vw;
+    overflow-x: hidden;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'JetBrains Mono', monospace;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'NDot57', sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* Utilities */
+.text-accent {
+    color: var(--accent-red);
+}
+
+.brutalist-border {
+    border: 1px solid var(--border-color);
+}
+
+.brutalist-btn {
+    font-family: 'NDot57', sans-serif;
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--foreground);
+    padding: 12px 32px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brutalist-btn:hover {
+    background: var(--foreground);
+    color: var(--background);
+}
+
+.brutalist-btn.primary {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+}
+
+.brutalist-btn.primary:hover {
+    background: transparent;
+    color: var(--accent-red);
+}
+
+/* Glassmorphism */
+.glass-panel {
+    background: rgba(17, 17, 17, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+}

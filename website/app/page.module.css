@@ -1,0 +1,211 @@
+.main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    width: 100%;
+}
+
+/* HERO */
+.hero {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 2rem;
+}
+
+.heroContent {
+    text-align: center;
+    z-index: 10;
+    max-width: 800px;
+}
+
+.glitchText {
+    font-size: clamp(3rem, 10vw, 8rem);
+    line-height: 1;
+    margin-bottom: 2rem;
+    position: relative;
+    color: var(--foreground);
+    text-shadow: 4px 4px 0px var(--accent-red);
+}
+
+.heroSub {
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    color: var(--border-color);
+    margin-bottom: 3rem;
+    line-height: 1.5;
+    color: #999;
+}
+
+.heroActions {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.scrollIndicator {
+    position: absolute;
+    bottom: 3rem;
+    color: var(--border-color);
+    opacity: 0.5;
+}
+
+/* SECTION BASE */
+.section {
+    padding: 10rem 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.sectionTitle {
+    font-size: clamp(2rem, 5vw, 4rem);
+    margin-bottom: 2rem;
+    color: var(--accent-red);
+}
+
+.sectionBody {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    color: #aaa;
+}
+
+/* GRID */
+.grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .grid2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.visionCardWrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.visionCard {
+    padding: 3rem;
+    max-width: 400px;
+}
+
+.visionCard h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* FEATURES */
+.featuresSection {
+    padding: 5rem 0;
+    border-top: 1px solid var(--border-color);
+    background: #080808;
+}
+
+.featureRow {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+    padding: 5rem 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.featureRowReverse {
+    flex-direction: row-reverse;
+}
+
+.featureIcon {
+    flex: 0 0 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    background: rgba(234, 25, 25, 0.05);
+}
+
+.featureText h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.featureText p {
+    font-size: 1.2rem;
+    color: #aaa;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .featureRow, .featureRowReverse {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+    }
+}
+
+/* TECHNICAL */
+.technicalSection {
+    padding: 10rem 0;
+    background: #000;
+}
+
+.codeBlock {
+    max-width: 800px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.codeHeader {
+    background: #1a1a1a;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    font-family: 'NDot57', sans-serif;
+    color: #888;
+}
+
+.codeBlock pre {
+    padding: 2rem;
+    overflow-x: auto;
+    color: #4ade80; /* Hacker green */
+}
+
+.codeBlock code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* FOOTER */
+.footer {
+    border-top: 1px solid var(--border-color);
+    padding: 4rem 2rem;
+    text-align: center;
+    background: #050505;
+}
+
+.footer p {
+    font-family: 'NDot57', sans-serif;
+    margin-bottom: 1rem;
+}
+
+.footer .muted {
+    font-family: 'JetBrains Mono', monospace;
+    color: #555;
+    font-size: 0.8rem;
+}

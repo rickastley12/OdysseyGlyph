@@ -260,7 +260,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnSelectVideo.setOnClickListener {
-            if (prefs.getBoolean("first_run_main", true)) {
+            if (prefs.getBoolean("first_run_main_v2", true)) {
                 val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
                 val dialog = AlertDialog.Builder(this).setView(dialogView).create()
                 dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -268,7 +268,7 @@ class MainActivity : AppCompatActivity() {
                 dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "WELCOME TO ODYSSEY"
                 dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "Choose a Video or Image to crop, pan, and transform into a custom LED matrix animation. Pinch to zoom and drag to center your subject in the circle."
                 dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).setOnClickListener {
-                    prefs.edit().putBoolean("first_run_main", false).apply()
+                    prefs.edit().putBoolean("first_run_main_v2", false).apply()
                     dialog.dismiss()
                     selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
                 }
