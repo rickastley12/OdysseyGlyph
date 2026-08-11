@@ -396,7 +396,15 @@ class LyricStudioActivity : AppCompatActivity() {
         val textToPreview = parsedLyricsCache.firstOrNull()?.second ?: "Odyssey"
         
         val displayText = if (currentAnimStyle == 0) {
-            textToPreview.split("\\s+".toRegex()).firstOrNull { it.isNotEmpty() } ?: textToPreview
+            val firstWord = textToPreview.split("\\s+".toRegex()).firstOrNull { it.isNotEmpty() } ?: textToPreview
+            if (firstWord.length <= 6) {
+                firstWord
+            } else if (firstWord.length <= 12) {
+                val mid = firstWord.length / 2
+                firstWord.substring(0, mid) + "-\n" + firstWord.substring(mid)
+            } else {
+                firstWord.chunked(6)[0] + "-"
+            }
         } else {
             textToPreview
         }

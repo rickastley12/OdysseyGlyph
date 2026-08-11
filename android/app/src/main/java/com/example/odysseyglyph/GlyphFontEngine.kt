@@ -36,7 +36,16 @@ object GlyphFontEngine {
         }
         
         if (autoScale) {
-            while (paint.measureText(text) > 23f && paint.textSize > 6f) {
+            val lines = text.split("\n")
+            val isMultiline = lines.size > 1
+            
+            if (isMultiline && paint.textSize > 7.5f) {
+                paint.textSize = 7.5f
+            }
+            
+            val maxWidth = if (isMultiline) 17f else 22f
+            
+            while (lines.any { paint.measureText(it) > maxWidth } && paint.textSize > 5f) {
                 paint.textSize -= 0.5f
             }
         }
@@ -58,13 +67,27 @@ object GlyphFontEngine {
         
         val paint = getConfiguredPaint(text, style, autoScale)
         
-        // Calculate vertical centering
+        val lines = text.split("\n")
         val fontMetrics = paint.fontMetrics
         val textHeight = fontMetrics.bottom - fontMetrics.top
-        val textOffset = textHeight / 2 - fontMetrics.bottom
-        val y = 25f / 2f + textOffset
         
-        canvas.drawText(text, scrollOffsetX, y, paint)
+        if (lines.size == 1) {
+            val textOffset = textHeight / 2 - fontMetrics.bottom
+            val y = 25f / 2f + textOffset
+            canvas.drawText(lines[0], scrollOffsetX, y, paint)
+        } else {
+            // Compress line spacing so words don't hit the narrow top/bottom edges of the circular matrix
+            val lineHeight = textHeight * 0.8f
+            val totalHeight = lineHeight * lines.size
+            var startY = (25f - totalHeight) / 2f - fontMetrics.top
+            for (line in lines) {
+                // Ignore scrollOffsetX for multiline since it's only used in Flash mode, which calculates its own line X
+                val lineWidth = paint.measureText(line)
+                val lineX = (25f - lineWidth) / 2f
+                canvas.drawText(line, lineX, startY, paint)
+                startY += lineHeight
+            }
+        }
         
         // Extract to ByteArray
         val pixels = IntArray(625)
@@ -101,6 +124,7 @@ object GlyphFontEngine {
      */
     fun measureTextWidth(text: String, style: FontStyle, autoScale: Boolean = false): Float {
         val paint = getConfiguredPaint(text, style, autoScale)
-        return paint.measureText(text)
+        val lines = text.split("\n")
+        return lines.maxOfOrNull { paint.measureText(it) } ?: 0f
     }
 }
