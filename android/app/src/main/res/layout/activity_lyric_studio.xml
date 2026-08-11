@@ -317,16 +317,39 @@
                     android:layout_marginVertical="@dimen/spacing_medium"
                     android:visibility="gone" />
                     
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnOpenManager"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                <LinearLayout
+                    android:id="@+id/successActionsContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="OPEN TOYS MANAGER"
-                    android:fontFamily="@font/jetbrains_mono"
-                    app:cornerRadius="0dp"
+                    android:orientation="horizontal"
                     android:visibility="gone"
-                    android:layout_marginTop="@dimen/spacing_medium" />
+                    android:layout_marginTop="@dimen/spacing_medium"
+                    android:weightSum="2">
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenGallerySuccess"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
+                        android:text="OPEN GALLERY"
+                        android:fontFamily="@font/jetbrains_mono"
+                        app:cornerRadius="0dp"
+                        android:paddingVertical="12dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenManager"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:text="TOYS MANAGER"
+                        android:fontFamily="@font/jetbrains_mono"
+                        app:cornerRadius="0dp"
+                        android:paddingVertical="12dp" />
+                </LinearLayout>
                     
                 <!-- Static padding for system navigation bar to prevent edge-to-edge clipping bugs -->
                 <Space

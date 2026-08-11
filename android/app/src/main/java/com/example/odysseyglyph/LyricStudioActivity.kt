@@ -65,7 +65,9 @@ class LyricStudioActivity : AppCompatActivity() {
     private lateinit var btnRender: MaterialButton
     private lateinit var btnCancel: MaterialButton
     private lateinit var progressBar: GlyphProgressView
+    private lateinit var successActionsContainer: View
     private lateinit var btnOpenManager: MaterialButton
+    private lateinit var btnOpenGallerySuccess: MaterialButton
 
     // State
     private var selectedAudioUri: Uri? = null
@@ -165,7 +167,9 @@ class LyricStudioActivity : AppCompatActivity() {
         btnRender = findViewById(R.id.btnRender)
         btnCancel = findViewById(R.id.btnCancel)
         progressBar = findViewById(R.id.progressBar)
+        successActionsContainer = findViewById(R.id.successActionsContainer)
         btnOpenManager = findViewById(R.id.btnOpenManager)
+        btnOpenGallerySuccess = findViewById(R.id.btnOpenGallerySuccess)
     }
 
     private fun setupListeners() {
@@ -224,6 +228,10 @@ class LyricStudioActivity : AppCompatActivity() {
         // Rendering
         btnRender.setOnClickListener { renderLyrics() }
         btnCancel.setOnClickListener { cancelProcessing() }
+
+        btnOpenGallerySuccess.setOnClickListener {
+            startActivity(Intent(this, GalleryActivity::class.java))
+        }
 
         // Toys Manager
         btnOpenManager.setOnClickListener {
@@ -346,7 +354,7 @@ class LyricStudioActivity : AppCompatActivity() {
         resultsContainer.removeAllViews()
         editorPanel.visibility = View.VISIBLE
         previewCard.visibility = View.VISIBLE
-        btnOpenManager.visibility = View.GONE
+        successActionsContainer.visibility = View.GONE
         
         parseLyricsCache(track.syncedLyrics ?: "")
         updateWysiwygPreview()
@@ -485,7 +493,7 @@ class LyricStudioActivity : AppCompatActivity() {
         progressBar.setProgress(0)
         btnRender.visibility = View.GONE
         btnCancel.visibility = View.VISIBLE
-        btnOpenManager.visibility = View.GONE
+        successActionsContainer.visibility = View.GONE
         
         val slot = prefs.getInt("selected_slot", 1)
         val startTimeMs = (rangeSlider.values[0] * 1000).toLong()
@@ -512,7 +520,7 @@ class LyricStudioActivity : AppCompatActivity() {
                 if (success) {
                     val msg = if (slot == 4) "SUCCESS! SAVED TO GALLERY." else "SUCCESS! RENDERED TO SLOT $slot."
                     Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).applyNothingStyle().show()
-                    btnOpenManager.visibility = View.VISIBLE
+                    successActionsContainer.visibility = View.VISIBLE
                     sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
                     
                     val sv = findViewById<ScrollView>(R.id.scrollView)

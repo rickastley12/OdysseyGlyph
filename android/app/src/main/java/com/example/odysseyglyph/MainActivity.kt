@@ -55,7 +55,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnProcess: MaterialButton
     private lateinit var btnCancel: MaterialButton
     private lateinit var progressBar: GlyphProgressView
+    private lateinit var successActionsContainer: View
     private lateinit var btnOpenManager: MaterialButton
+    private lateinit var btnOpenGallerySuccess: MaterialButton
     private lateinit var btnGallery: MaterialButton
     private lateinit var btnLaunchLyricStudio: MaterialButton
     private lateinit var btnLaunchLiveLyrics: MaterialButton
@@ -213,7 +215,9 @@ class MainActivity : AppCompatActivity() {
         btnProcess = findViewById(R.id.btnProcess)
         btnCancel = findViewById(R.id.btnCancel)
         progressBar = findViewById(R.id.progressBar)
+        successActionsContainer = findViewById(R.id.successActionsContainer)
         btnOpenManager = findViewById(R.id.btnOpenManager)
+        btnOpenGallerySuccess = findViewById(R.id.btnOpenGallerySuccess)
         btnGallery = findViewById(R.id.btnGallery)
         bottomActionBar = findViewById(R.id.bottomActionBar)
     }
@@ -277,6 +281,10 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Snackbar.make(findViewById(android.R.id.content), "Toys Manager not found on this device.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
             }
+        }
+
+        btnOpenGallerySuccess.setOnClickListener {
+            startActivity(Intent(this, GalleryActivity::class.java))
         }
 
         slotSpinner.setOnItemClickListener { _, _, position, _ ->
@@ -369,9 +377,9 @@ class MainActivity : AppCompatActivity() {
         val slot = prefs.getInt("selected_slot", 1)
         val file = java.io.File(filesDir, "frames_slot$slot.bin")
         if (file.exists()) {
-            btnOpenManager.visibility = View.VISIBLE
+            successActionsContainer.visibility = View.VISIBLE
         } else {
-            btnOpenManager.visibility = View.GONE
+            successActionsContainer.visibility = View.GONE
         }
     }
 
@@ -476,7 +484,7 @@ class MainActivity : AppCompatActivity() {
         btnCancel.visibility = View.VISIBLE
         progressBar.visibility = View.VISIBLE
         progressBar.setProgress(0)
-        btnOpenManager.visibility = View.GONE
+        successActionsContainer.visibility = View.GONE
 
         val startTimeMs = if (currentMediaType == 2) 0L else (rangeSlider.values[0] * 1000).toLong()
         val endTimeMs = if (currentMediaType == 2) 0L else (rangeSlider.values[1] * 1000).toLong()
@@ -547,7 +555,7 @@ class MainActivity : AppCompatActivity() {
                 if (success) {
                     val msg = if (slot == 4) "SUCCESS! SAVED TO GALLERY." else "SUCCESS! RENDERED TO SLOT $slot."
                     Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).applyNothingStyle().show()
-                    btnOpenManager.visibility = View.VISIBLE
+                    successActionsContainer.visibility = View.VISIBLE
                     sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
                 } else {
                     if (error != "Cancelled by user.") {
