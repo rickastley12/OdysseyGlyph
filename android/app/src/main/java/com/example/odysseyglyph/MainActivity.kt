@@ -275,7 +275,7 @@ class MainActivity : AppCompatActivity() {
                 intent.component = ComponentName("com.nothing.thirdparty", "com.nothing.thirdparty.matrix.toys.manager.ToysManagerActivity")
                 startActivity(intent)
             } catch (e: Exception) {
-                Snackbar.make(findViewById(android.R.id.content), "Toys Manager not found on this device.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(findViewById(android.R.id.content), "Toys Manager not found on this device.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
             }
         }
 
@@ -461,13 +461,13 @@ class MainActivity : AppCompatActivity() {
         btnCancel.visibility = View.GONE
         progressBar.visibility = View.GONE
         progressBar.setProgress(0)
-        Snackbar.make(findViewById(android.R.id.content), "Render cancelled.", Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(findViewById(android.R.id.content), "Render cancelled.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
     }
 
     private fun startProcessing() {
         val uri = selectedMediaUri
         if (uri == null) {
-            Snackbar.make(findViewById(android.R.id.content), "Please select a media file first.", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(findViewById(android.R.id.content), "Please select a media file first.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
             return
         }
 
@@ -546,12 +546,12 @@ class MainActivity : AppCompatActivity() {
 
                 if (success) {
                     val msg = if (slot == 4) "SUCCESS! SAVED TO GALLERY." else "SUCCESS! RENDERED TO SLOT $slot."
-                    Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).applyNothingStyle().show()
                     btnOpenManager.visibility = View.VISIBLE
                     sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
                 } else {
                     if (error != "Cancelled by user.") {
-                        Snackbar.make(findViewById(android.R.id.content), "ERROR: $error", Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(findViewById(android.R.id.content), "ERROR: $error", Snackbar.LENGTH_LONG).applyNothingStyle().show()
                     }
                 }
             }

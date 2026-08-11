@@ -160,7 +160,7 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
                 intent.component = ComponentName("com.nothing.thirdparty", "com.nothing.thirdparty.matrix.toys.manager.ToysManagerActivity")
                 startActivity(intent)
             } catch (e: Exception) {
-                Snackbar.make(findViewById(android.R.id.content), "Toys Manager not found.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(findViewById(android.R.id.content), "Toys Manager not found.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
             }
         }
         

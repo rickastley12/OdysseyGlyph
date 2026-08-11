@@ -93,7 +93,7 @@ class LyricStudioActivity : AppCompatActivity() {
                             name = LrcQueryCleaner.clean(name)
                             
                             etSearch.setText(name)
-                            Snackbar.make(findViewById(android.R.id.content), "Searching for lyrics: $name", Snackbar.LENGTH_SHORT).show()
+                            Snackbar.make(findViewById(android.R.id.content), "Searching for lyrics: $name", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
                         }
                     }
                 }
@@ -107,7 +107,7 @@ class LyricStudioActivity : AppCompatActivity() {
         if (isGranted) {
             selectedTrack?.let { attemptAutoMatchAudio(it) }
         } else {
-            Snackbar.make(findViewById(android.R.id.content), "Audio permission denied. Cannot auto-match local audio.", Snackbar.LENGTH_LONG).show()
+            Snackbar.make(findViewById(android.R.id.content), "Audio permission denied. Cannot auto-match local audio.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
         }
     }
 
@@ -232,7 +232,7 @@ class LyricStudioActivity : AppCompatActivity() {
                 intent.component = ComponentName("com.nothing.thirdparty", "com.nothing.thirdparty.matrix.toys.manager.ToysManagerActivity")
                 startActivity(intent)
             } catch (e: Exception) {
-                Snackbar.make(findViewById(android.R.id.content), "Nothing OS Toys Manager not found.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(findViewById(android.R.id.content), "Nothing OS Toys Manager not found.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
             }
         }
         
@@ -474,7 +474,7 @@ class LyricStudioActivity : AppCompatActivity() {
         btnCancel.visibility = View.GONE
         progressBar.visibility = View.GONE
         progressBar.setProgress(0)
-        Snackbar.make(findViewById(android.R.id.content), "Render cancelled.", Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(findViewById(android.R.id.content), "Render cancelled.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
     }
 
     private fun renderLyrics() {
@@ -509,10 +509,9 @@ class LyricStudioActivity : AppCompatActivity() {
                 btnRender.visibility = View.VISIBLE
                 btnCancel.visibility = View.GONE
                 progressBar.visibility = View.GONE
-                
-                if (success) {
+                            if (success) {
                     val msg = if (slot == 4) "SUCCESS! SAVED TO GALLERY." else "SUCCESS! RENDERED TO SLOT $slot."
-                    Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).applyNothingStyle().show()
                     btnOpenManager.visibility = View.VISIBLE
                     sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
                     
@@ -523,12 +522,12 @@ class LyricStudioActivity : AppCompatActivity() {
                     
                     sv.postDelayed({
                         sv.smoothScrollTo(0, sv.getChildAt(0).bottom)
-                    }, 150)
+                    }, 100)
                 } else {
                     if (error != "Cancelled by user.") {
-                        Snackbar.make(findViewById(android.R.id.content), "Error: $error", Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(findViewById(android.R.id.content), "Error: $error", Snackbar.LENGTH_LONG).applyNothingStyle().show()
                     }
-                }
+                }     }
             }
         )
     }

@@ -65,7 +65,7 @@ class GalleryActivity : AppCompatActivity() {
             .setPositiveButton("Delete") { _, _ ->
                 PresetManager.deletePreset(this, preset.id)
                 loadPresets()
-                Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -155,7 +155,7 @@ class GalleryActivity : AppCompatActivity() {
                     PresetManager.deletePreset(this, preset.id)
                     loadPresets()
                     dialog.dismiss()
-                    Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
@@ -171,7 +171,7 @@ class GalleryActivity : AppCompatActivity() {
         intent.putExtra("slot", slot)
         sendBroadcast(intent)
         
-        Snackbar.make(findViewById(android.R.id.content), "Assigned to Slot $slot", Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(findViewById(android.R.id.content), "Assigned to Slot $slot", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
     }
 
     private fun sharePreset(preset: Preset) {
@@ -180,7 +180,7 @@ class GalleryActivity : AppCompatActivity() {
         val mp3File = File(dir, "${preset.id}.mp3")
 
         if (!binFile.exists()) {
-            Snackbar.make(findViewById(android.R.id.content), "Preset data missing.", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(findViewById(android.R.id.content), "Preset data missing.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
             return
         }
 
@@ -216,7 +216,7 @@ class GalleryActivity : AppCompatActivity() {
             startActivity(Intent.createChooser(shareIntent, "Share Preset"))
         } catch (e: Exception) {
             e.printStackTrace()
-            Snackbar.make(findViewById(android.R.id.content), "Failed to share preset.", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(findViewById(android.R.id.content), "Failed to share preset.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
         }
     }
 }
