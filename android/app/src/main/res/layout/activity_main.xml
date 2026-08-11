@@ -75,6 +75,7 @@
                 android:fontFamily="@font/jetbrains_mono"
                 app:cornerRadius="0dp"
                 android:paddingVertical="12dp"
+                app:icon="@drawable/ic_lyrics"
                 android:layout_marginBottom="@dimen/spacing_medium" />
 
             <com.google.android.material.button.MaterialButton
@@ -85,6 +86,8 @@
                 android:fontFamily="@font/ndot57"
                 app:cornerRadius="0dp"
                 android:paddingVertical="12dp"
+                app:icon="@drawable/ic_audio"
+                app:iconTint="#FFFFFF"
                 app:backgroundTint="#FF0000"
                 android:textColor="#FFFFFF" />
 
