@@ -31,27 +31,44 @@ abstract class BaseToyService : Service() {
 
     private var frames: List<IntArray> = emptyList()
     private var frameIntervalMs: Long = 83L // ~12fps default, overwritten once frames.bin is read
+    private var currentFps = 12
     private var frameIndex = 0
     private var isPaused = false
     private var currentPlaybackMode = 1 // 0=ONCE, 1=LOOP, 2=PING_PONG
     private var currentAudioOffsetMs = 0
+    private var startElapsedMs = 0L
 
     private val playbackRunnable = object : Runnable {
         override fun run() {
             if (frames.isEmpty()) return
             if (!isPaused) {
-                glyphManager?.setMatrixFrame(frames[frameIndex])
-                frameIndex++
-                if (frameIndex >= frames.size) {
-                    if (currentPlaybackMode == 0) { // ONCE
-                        glyphManager?.turnOff()
-                        return // Do not post next frame
-                    } else {
-                        frameIndex = 0
+                val elapsedMs: Long
+                val mp = mediaPlayer
+                if (mp != null && mp.isPlaying) {
+                    elapsedMs = (mp.currentPosition - currentAudioOffsetMs).toLong()
+                } else {
+                    elapsedMs = android.os.SystemClock.elapsedRealtime() - startElapsedMs
+                }
+                
+                if (elapsedMs >= 0) {
+                    var targetIndex = (elapsedMs * currentFps / 1000L).toInt()
+                    
+                    if (targetIndex >= frames.size) {
+                        if (currentPlaybackMode == 0) { // ONCE
+                            glyphManager?.turnOff()
+                            return // Do not post next frame
+                        } else {
+                            targetIndex %= frames.size
+                        }
+                    }
+                    
+                    if (targetIndex != frameIndex) {
+                        frameIndex = targetIndex
+                        glyphManager?.setMatrixFrame(frames[frameIndex])
                     }
                 }
             }
-            mainHandler.postDelayed(this, frameIntervalMs)
+            mainHandler.postDelayed(this, 20L) // Poll at 50Hz
         }
     }
 
@@ -77,6 +94,9 @@ abstract class BaseToyService : Service() {
                         mediaPlayer?.pause()
                     } else {
                         mediaPlayer?.start()
+                        // Shift startElapsedMs so elapsedMs doesn't jump
+                        val currentElapsed = (frameIndex * 1000L) / currentFps
+                        startElapsedMs = android.os.SystemClock.elapsedRealtime() - currentElapsed
                     }
                 }
             } else {
@@ -141,11 +161,13 @@ abstract class BaseToyService : Service() {
                     val fallback = assets.open(getFramesFileName())
                     val (loadedFrames, fps) = readFramesAsset(fallback)
                     frames = loadedFrames
+                    currentFps = fps
                     frameIntervalMs = (1000L / fps).coerceAtLeast(1L)
                 } else {
                     val input = java.io.FileInputStream(file)
                     val (loadedFrames, fps) = readFramesAsset(input)
                     frames = loadedFrames
+                    currentFps = fps
                     frameIntervalMs = (1000L / fps).coerceAtLeast(1L)
                 }
                 
@@ -175,6 +197,7 @@ abstract class BaseToyService : Service() {
                     if (!isPaused && mp != null) {
                         mp.setOnSeekCompleteListener { mp2 ->
                             mp2.start()
+                            startElapsedMs = android.os.SystemClock.elapsedRealtime()
                             mainHandler.post(playbackRunnable)
                         }
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -183,6 +206,7 @@ abstract class BaseToyService : Service() {
                             mp.seekTo(currentAudioOffsetMs)
                         }
                     } else {
+                        startElapsedMs = android.os.SystemClock.elapsedRealtime()
                         mainHandler.post(playbackRunnable)
                     }
                 }
