@@ -42,7 +42,7 @@ class LyricStudioActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var etSearch: TextInputEditText
     private lateinit var resultsContainer: LinearLayout
-    private lateinit var previewCard: MaterialCardView
+    private lateinit var previewCard: FrameLayout
     private lateinit var previewImage: CenteredImageView
     
     private lateinit var editorPanel: LinearLayout
@@ -54,7 +54,7 @@ class LyricStudioActivity : AppCompatActivity() {
     private lateinit var rangeSlider: RangeSlider
     private lateinit var slotSpinner: AutoCompleteTextView
     
-    private lateinit var audioCard: MaterialCardView
+    private lateinit var audioCard: LinearLayout
     private lateinit var tvAudioStatus: TextView
     private lateinit var btnAttachAudio: MaterialButton
     private lateinit var btnDrmInfo: ImageButton
