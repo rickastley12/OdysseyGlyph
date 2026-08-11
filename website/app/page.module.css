@@ -50,17 +50,17 @@
   padding: 1rem 3rem;
   font-size: 1.25rem;
   text-transform: uppercase;
-  border-radius: 9999px; /* Pill shape */
+  border-radius: 0; /* Sharp brutalist edge */
   font-weight: 700;
   cursor: pointer;
-  border: 2px solid transparent;
-  transition: background-color 0.2s, color 0.2s;
+  border: 2px solid var(--foreground);
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .downloadBtn:hover {
-  background: transparent;
+  background: var(--accent);
   color: var(--foreground);
-  border-color: var(--foreground);
+  border-color: var(--accent);
 }
 
 .features {
@@ -132,7 +132,7 @@
 
 .glyphDot {
   background: var(--muted-foreground);
-  border-radius: 50%;
+  border-radius: 0; /* Square for Ndot */
   aspect-ratio: 1;
 }
 

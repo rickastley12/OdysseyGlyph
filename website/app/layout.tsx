@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Inter, Space_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const inter = Inter({
@@ -7,10 +8,10 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const spaceMono = Space_Mono({
-  variable: "--font-mono",
-  weight: ["400", "700"],
-  subsets: ["latin"],
+const ndot = localFont({
+  src: "../public/fonts/Ndot57-Regular.otf",
+  variable: "--font-ndot",
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${ndot.variable}`}>
       <body>{children}</body>
     </html>
   );
