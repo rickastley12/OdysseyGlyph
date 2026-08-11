@@ -79,11 +79,15 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
             }
             
             val animStyle = prefs.getInt("live_anim_style", 0)
+            val syncOffset = prefs.getInt("live_sync_offset", 0)
             
             var estimatedPositionMs = SpotifyPlaybackState.position
             if (SpotifyPlaybackState.isPlaying) {
                 estimatedPositionMs += ((SystemClock.elapsedRealtime() - SpotifyPlaybackState.lastUpdateTime) * SpotifyPlaybackState.playbackSpeed).toLong()
             }
+            
+            // Apply user sync offset
+            estimatedPositionMs += syncOffset
             
             val frameData = LrcUtils.getFrameTextAtTime(lyricsToUse, estimatedPositionMs, fontStyle, animStyle)
             
@@ -104,7 +108,7 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
                 }
             }
             
-            mainHandler.postDelayed(this, 33L) // ~30fps poll
+            mainHandler.postDelayed(this, 16L) // ~60fps poll
         }
     }
     

@@ -93,6 +93,19 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
             }
         }
         
+        val tvSyncOffset: TextView = findViewById(R.id.tvSyncOffset)
+        val sliderSync: com.google.android.material.slider.Slider = findViewById(R.id.sliderSync)
+        
+        val savedSyncOffset = prefs.getInt("live_sync_offset", 0)
+        sliderSync.value = savedSyncOffset.toFloat()
+        tvSyncOffset.text = "${savedSyncOffset}ms"
+        
+        sliderSync.addOnChangeListener { _, value, _ ->
+            val offsetMs = value.toInt()
+            tvSyncOffset.text = "${offsetMs}ms"
+            prefs.edit().putInt("live_sync_offset", offsetMs).apply()
+        }
+        
         val savedFontStyle = prefs.getInt("live_font_style", 0)
         currentFontStyle = when (savedFontStyle) {
             1 -> GlyphFontEngine.FontStyle.BLOCK_BOLD

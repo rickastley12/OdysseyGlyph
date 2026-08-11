@@ -143,6 +143,41 @@
                     android:fontFamily="@font/jetbrains_mono" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
 
+            <!-- Sync Offset -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AUDIO SYNC OFFSET (±1000ms)"
+                android:fontFamily="@font/jetbrains_mono"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:layout_marginBottom="4dp" />
+                
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_large">
+                
+                <TextView
+                    android:id="@+id/tvSyncOffset"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:text="0ms"
+                    android:fontFamily="@font/jetbrains_mono"
+                    android:textAlignment="center" />
+                    
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/sliderSync"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:valueFrom="-1000.0"
+                    android:valueTo="1000.0"
+                    android:stepSize="50.0"
+                    android:value="0.0" />
+            </LinearLayout>
+
             <!-- Typography Toggle -->
             <TextView
                 android:layout_width="wrap_content"
