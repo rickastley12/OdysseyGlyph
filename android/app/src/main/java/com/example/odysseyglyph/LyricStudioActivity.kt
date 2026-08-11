@@ -509,7 +509,7 @@ class LyricStudioActivity : AppCompatActivity() {
                 btnRender.visibility = View.VISIBLE
                 btnCancel.visibility = View.GONE
                 progressBar.visibility = View.GONE
-                            if (success) {
+                if (success) {
                     val msg = if (slot == 4) "SUCCESS! SAVED TO GALLERY." else "SUCCESS! RENDERED TO SLOT $slot."
                     Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).applyNothingStyle().show()
                     btnOpenManager.visibility = View.VISIBLE
@@ -527,7 +527,7 @@ class LyricStudioActivity : AppCompatActivity() {
                     if (error != "Cancelled by user.") {
                         Snackbar.make(findViewById(android.R.id.content), "Error: $error", Snackbar.LENGTH_LONG).applyNothingStyle().show()
                     }
-                }     }
+                }
             }
         )
     }

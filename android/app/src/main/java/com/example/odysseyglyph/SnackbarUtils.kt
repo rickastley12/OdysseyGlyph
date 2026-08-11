@@ -1,39 +1,27 @@
 package com.example.odysseyglyph
 
 import android.graphics.Color
+import android.view.LayoutInflater
 import android.widget.TextView
-import androidx.core.content.res.ResourcesCompat
 import com.google.android.material.snackbar.Snackbar
 
 fun Snackbar.applyNothingStyle(): Snackbar {
-    val view = this.view
-    val context = view.context
+    val layout = this.view as Snackbar.SnackbarLayout
+    val defaultText = layout.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)?.text?.toString() ?: ""
     
-    // Set brutalist background
-    view.setBackgroundColor(Color.parseColor("#000000"))
-    view.setPadding(0, 0, 0, 0)
+    // Clear default styling and views
+    layout.removeAllViews()
+    layout.setBackgroundColor(Color.TRANSPARENT)
+    layout.setPadding(0, 0, 0, 0)
+    layout.elevation = 0f
     
-    // Customize text
-    val textView = view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
-    textView.setTextColor(Color.WHITE)
-    try {
-        textView.typeface = ResourcesCompat.getFont(context, R.font.jetbrains_mono)
-    } catch (e: Exception) {
-        // Fallback if font fails to load
-    }
-    textView.textSize = 13f
-    textView.isAllCaps = true
+    // Inflate custom Nothing OS layout
+    val customView = LayoutInflater.from(layout.context).inflate(R.layout.nothing_snackbar, layout, false)
+    val tv = customView.findViewById<TextView>(R.id.tvSnackbarText)
+    tv.text = defaultText
     
-    // Customize action text if there's any action
-    val actionView = view.findViewById<TextView>(com.google.android.material.R.id.snackbar_action)
-    actionView.setTextColor(Color.RED)
-    try {
-        actionView.typeface = ResourcesCompat.getFont(context, R.font.jetbrains_mono)
-    } catch (e: Exception) {
-        // Fallback
-    }
-    actionView.textSize = 13f
-    actionView.isAllCaps = true
+    // Add to Snackbar layout
+    layout.addView(customView)
     
     return this
 }
