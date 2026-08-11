@@ -94,21 +94,32 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
         }
         
         val savedFontStyle = prefs.getInt("live_font_style", 0)
-        currentFontStyle = if (savedFontStyle == 1) GlyphFontEngine.FontStyle.BLOCK_BOLD else GlyphFontEngine.FontStyle.SMOOTH
-        if (currentFontStyle == GlyphFontEngine.FontStyle.BLOCK_BOLD) {
-            toggleTypography.check(R.id.btnBlocky)
-        } else {
-            toggleTypography.check(R.id.btnSmooth)
+        currentFontStyle = when (savedFontStyle) {
+            1 -> GlyphFontEngine.FontStyle.BLOCK_BOLD
+            2 -> GlyphFontEngine.FontStyle.PIXEL_TINY
+            else -> GlyphFontEngine.FontStyle.SMOOTH
+        }
+        
+        when (currentFontStyle) {
+            GlyphFontEngine.FontStyle.BLOCK_BOLD -> toggleTypography.check(R.id.btnBlocky)
+            GlyphFontEngine.FontStyle.PIXEL_TINY -> toggleTypography.check(R.id.btnPixel)
+            else -> toggleTypography.check(R.id.btnSmooth)
         }
         
         toggleTypography.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
-                currentFontStyle = if (checkedId == R.id.btnBlocky) {
-                    GlyphFontEngine.FontStyle.BLOCK_BOLD
-                } else {
-                    GlyphFontEngine.FontStyle.SMOOTH
+                currentFontStyle = when (checkedId) {
+                    R.id.btnBlocky -> GlyphFontEngine.FontStyle.BLOCK_BOLD
+                    R.id.btnPixel -> GlyphFontEngine.FontStyle.PIXEL_TINY
+                    else -> GlyphFontEngine.FontStyle.SMOOTH
                 }
-                prefs.edit().putInt("live_font_style", if (currentFontStyle == GlyphFontEngine.FontStyle.BLOCK_BOLD) 1 else 0).apply()
+                
+                val styleInt = when (currentFontStyle) {
+                    GlyphFontEngine.FontStyle.BLOCK_BOLD -> 1
+                    GlyphFontEngine.FontStyle.PIXEL_TINY -> 2
+                    else -> 0
+                }
+                prefs.edit().putInt("live_font_style", styleInt).apply()
             }
         }
         

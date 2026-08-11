@@ -177,6 +177,15 @@
                     android:layout_weight="1"
                     android:text="BLOCKY"
                     android:fontFamily="@font/jetbrains_mono" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPixel"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="PIXEL"
+                    android:fontFamily="@font/jetbrains_mono" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
             
             <com.google.android.material.button.MaterialButton
