@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="?attr/colorSurface">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ADVANCED SETTINGS"
+        android:fontFamily="@font/jetbrains_mono"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginBottom="24dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/fpsInputLayout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:hint="Target FPS (Max 30)">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etFps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/jetbrains_mono"
+            android:inputType="number"
+            android:text="12" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/cbInvert"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/jetbrains_mono"
+        android:layout_marginBottom="8dp"
+        android:text="INVERT COLORS" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/sharpenSwitch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/jetbrains_mono"
+        android:layout_marginBottom="16dp"
+        android:text="SHARPEN IMAGE"
+        android:checked="true" />
+
+    <TextView
+        android:id="@+id/contrastLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/jetbrains_mono"
+        android:text="CONTRAST MULTIPLIER: 1.0x"
+        android:layout_marginTop="8dp" />
+    <com.google.android.material.slider.Slider
+        android:id="@+id/contrastSlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:valueFrom="0.5"
+        android:valueTo="3.0"
+        android:value="1.0"
+        android:stepSize="0.1" />
+
+    <TextView
+        android:id="@+id/brightnessLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/jetbrains_mono"
+        android:text="LED BRIGHTNESS: 100%" />
+    <com.google.android.material.slider.Slider
+        android:id="@+id/brightnessSlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:valueFrom="10.0"
+        android:valueTo="100.0"
+        android:value="100.0"
+        android:stepSize="1.0" />
+
+    <TextView
+        android:id="@+id/durationLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/jetbrains_mono"
+        android:text="IMAGE DURATION: 5s"
+        android:visibility="gone" />
+    <com.google.android.material.slider.Slider
+        android:id="@+id/durationSlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:valueFrom="1.0"
+        android:valueTo="60.0"
+        android:value="5.0"
+        android:stepSize="1.0"
+        android:visibility="gone" />
+
+</LinearLayout>

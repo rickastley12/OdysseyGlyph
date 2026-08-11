@@ -23,6 +23,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -60,7 +61,7 @@ class LyricStudioActivity : AppCompatActivity() {
     
     private lateinit var btnRender: MaterialButton
     private lateinit var btnCancel: MaterialButton
-    private lateinit var progressBar: ProgressBar
+    private lateinit var progressBar: GlyphProgressView
     private lateinit var btnOpenManager: MaterialButton
 
     // State
@@ -91,6 +92,7 @@ class LyricStudioActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_lyric_studio)
         prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
 
@@ -118,7 +120,6 @@ class LyricStudioActivity : AppCompatActivity() {
         audioCard = findViewById(R.id.audioCard)
         tvAudioStatus = findViewById(R.id.tvAudioStatus)
         btnAttachAudio = findViewById(R.id.btnAttachAudio)
-        btnDrmInfo = findViewById(R.id.btnDrmInfo)
         
         btnRender = findViewById(R.id.btnRender)
         btnCancel = findViewById(R.id.btnCancel)
@@ -174,13 +175,6 @@ class LyricStudioActivity : AppCompatActivity() {
 
         // Audio
         btnAttachAudio.setOnClickListener { selectAudioLauncher.launch(arrayOf("audio/*")) }
-        btnDrmInfo.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Why can't you just grab the song from Spotify?")
-                .setMessage("Streaming apps protect their audio so other apps can't access the files — that's true industry-wide, not something we can work around. We can only attach audio that's actually stored as a file on your phone. If we find a match, it's one tap. If not, you can still pick any audio file manually.")
-                .setPositiveButton("Got it", null)
-                .show()
-        }
 
         // Rendering
         btnRender.setOnClickListener { renderLyrics() }
@@ -211,10 +205,10 @@ class LyricStudioActivity : AppCompatActivity() {
         tvAudioStatus.text = text
         if (attached) {
             tvAudioStatus.setTextColor(ContextCompat.getColor(this, R.color.colorSuccess))
-            btnAttachAudio.text = "Change Audio"
+            btnAttachAudio.text = "CHANGE AUDIO"
         } else {
             tvAudioStatus.setTextColor(ContextCompat.getColor(this, R.color.colorOnSurface))
-            btnAttachAudio.text = "Select Local Audio File"
+            btnAttachAudio.text = "SELECT LOCAL AUDIO"
         }
     }
 
@@ -423,6 +417,7 @@ class LyricStudioActivity : AppCompatActivity() {
         btnRender.visibility = View.VISIBLE
         btnCancel.visibility = View.GONE
         progressBar.visibility = View.GONE
+        progressBar.setProgress(0)
         Snackbar.make(findViewById(android.R.id.content), "Render cancelled.", Snackbar.LENGTH_SHORT).show()
     }
 
@@ -431,7 +426,7 @@ class LyricStudioActivity : AppCompatActivity() {
         
         isRendering.set(false)
         progressBar.visibility = View.VISIBLE
-        progressBar.progress = 0
+        progressBar.setProgress(0)
         btnRender.visibility = View.GONE
         btnCancel.visibility = View.VISIBLE
         btnOpenManager.visibility = View.GONE
@@ -452,7 +447,7 @@ class LyricStudioActivity : AppCompatActivity() {
             slotIndex = slot,
             isCancelled = isRendering,
             onProgress = { prog ->
-                progressBar.progress = prog
+                progressBar.setProgress(prog)
             },
             onComplete = { success, error ->
                 btnRender.visibility = View.VISIBLE

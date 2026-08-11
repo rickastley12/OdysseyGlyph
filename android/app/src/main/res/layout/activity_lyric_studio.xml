@@ -4,20 +4,33 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurfaceVariant">
+    android:background="?android:attr/colorBackground"
+    android:fitsSystemWindows="true">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:elevation="0dp">
+        android:layout_height="140dp"
+        android:background="?android:attr/colorBackground"
+        android:fitsSystemWindows="true">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="Lyric Studio" 
-            app:navigationIcon="?attr/homeAsUpIndicator" />
+            android:layout_height="match_parent"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:collapsedTitleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
+            app:expandedTitleTextAppearance="@style/TextAppearance.Material3.DisplaySmall"
+            app:collapsedTitleTextColor="?attr/colorOnSurface"
+            app:expandedTitleTextColor="?attr/colorOnSurface"
+            app:title="LYRIC STUDIO"
+            app:collapsedTitleFontFamily="@font/dotgothic16"
+            app:expandedTitleFontFamily="@font/dotgothic16">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_collapseMode="pin" />
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
@@ -37,17 +50,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                app:startIconDrawable="@android:drawable/ic_menu_search"
-                app:boxCornerRadiusTopStart="@dimen/corner_radius_large"
-                app:boxCornerRadiusTopEnd="@dimen/corner_radius_large"
-                app:boxCornerRadiusBottomStart="@dimen/corner_radius_large"
-                app:boxCornerRadiusBottomEnd="@dimen/corner_radius_large">
+                app:startIconDrawable="@drawable/ic_search"
+                app:boxCornerRadiusTopStart="0dp"
+                app:boxCornerRadiusTopEnd="0dp"
+                app:boxCornerRadiusBottomStart="0dp"
+                app:boxCornerRadiusBottomEnd="0dp">
                 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Search for a song..."
+                    android:hint="SEARCH FOR A SONG..."
+                    android:fontFamily="@font/jetbrains_mono"
                     android:singleLine="true" />
             </com.google.android.material.textfield.TextInputLayout>
             
@@ -56,20 +70,21 @@
                 android:layout_height="0dp"
                 android:layout_weight="1">
                 
-                <!-- Live Preview Canvas -->
-                <com.google.android.material.card.MaterialCardView
+                <!-- Live Preview Bezel -->
+                <FrameLayout
                     android:id="@+id/previewCard"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/video_card_height"
                     android:layout_marginTop="@dimen/spacing_medium"
-                    app:cardBackgroundColor="@android:color/black"
-                    app:cardCornerRadius="@dimen/corner_radius_large"
+                    android:background="@drawable/bg_preview_bezel"
                     android:visibility="gone">
                     <com.example.odysseyglyph.CenteredImageView
                         android:id="@+id/previewImage"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                </com.google.android.material.card.MaterialCardView>
+                        android:layout_height="match_parent"
+                        android:layout_margin="1dp"
+                        android:background="#000000" />
+                </FrameLayout>
                 
                 <!-- Search Results -->
                 <LinearLayout
@@ -92,7 +107,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Typography"
+                    android:text="TYPOGRAPHY"
+                    android:fontFamily="@font/jetbrains_mono"
                     android:textAppearance="?attr/textAppearanceTitleSmall"
                     android:layout_marginBottom="@dimen/spacing_small" />
                     
@@ -109,6 +125,8 @@
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
                         style="?attr/materialButtonOutlinedStyle"
+                        app:cornerRadius="0dp"
+                        android:fontFamily="@font/jetbrains_mono"
                         android:text="PIXEL" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnTypeBold"
@@ -116,6 +134,8 @@
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
                         style="?attr/materialButtonOutlinedStyle"
+                        app:cornerRadius="0dp"
+                        android:fontFamily="@font/jetbrains_mono"
                         android:text="BOLD" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnTypeSmooth"
@@ -123,13 +143,16 @@
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
                         style="?attr/materialButtonOutlinedStyle"
+                        app:cornerRadius="0dp"
+                        android:fontFamily="@font/jetbrains_mono"
                         android:text="SMOOTH" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Animation"
+                    android:text="ANIMATION"
+                    android:fontFamily="@font/jetbrains_mono"
                     android:textAppearance="?attr/textAppearanceTitleSmall"
                     android:layout_marginBottom="@dimen/spacing_small" />
                     
@@ -146,6 +169,8 @@
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
                         style="?attr/materialButtonOutlinedStyle"
+                        app:cornerRadius="0dp"
+                        android:fontFamily="@font/jetbrains_mono"
                         android:text="⚡ FLASH" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAnimScroll"
@@ -153,52 +178,54 @@
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
                         style="?attr/materialButtonOutlinedStyle"
+                        app:cornerRadius="0dp"
+                        android:fontFamily="@font/jetbrains_mono"
                         android:text="⟵ SCROLL" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorDivider" android:layout_marginBottom="@dimen/spacing_medium"/>
+
                 <!-- Lyric Range Trim -->
-                <com.google.android.material.card.MaterialCardView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="@dimen/corner_radius_medium"
+                    android:orientation="vertical"
+                    android:paddingVertical="@dimen/spacing_medium"
                     android:layout_marginBottom="@dimen/spacing_medium">
                     
-                    <LinearLayout
+                    <TextView
+                        android:id="@+id/tvLyricPreview"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="@dimen/spacing_medium">
+                        android:text="TRIM LYRICS (DEFAULT: FIRST 20S)"
+                        android:gravity="center"
+                        android:fontFamily="@font/jetbrains_mono"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:layout_marginBottom="@dimen/spacing_small" />
                         
-                        <TextView
-                            android:id="@+id/tvLyricPreview"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Trim lyrics (Default: First 20s)"
-                            android:gravity="center"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:layout_marginBottom="@dimen/spacing_small" />
-                            
-                        <TextView
-                            android:id="@+id/tvTrimTimes"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="0.0s - 20.0s"
-                            android:gravity="center"
-                            android:textAppearance="?attr/textAppearanceTitleSmall" />
+                    <TextView
+                        android:id="@+id/tvTrimTimes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0.0S - 20.0S"
+                        android:fontFamily="@font/jetbrains_mono"
+                        android:gravity="center"
+                        android:textAppearance="?attr/textAppearanceTitleSmall" />
 
-                        <com.google.android.material.slider.RangeSlider
-                            android:id="@+id/rangeSlider"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.slider.RangeSlider
+                        android:id="@+id/rangeSlider"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:tickVisible="false" />
+                </LinearLayout>
                 
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorDivider" android:layout_marginBottom="@dimen/spacing_medium"/>
+
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:hint="Save to Slot"
+                    android:hint="SAVE TO SLOT"
                     android:layout_marginBottom="@dimen/spacing_large">
                     
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -206,55 +233,48 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="none"
+                        android:fontFamily="@font/jetbrains_mono"
                         app:simpleItems="@array/save_slots" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Universal Audio Component -->
-                <com.google.android.material.card.MaterialCardView
+                <LinearLayout
                     android:id="@+id/audioCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="@dimen/corner_radius_medium"
+                    android:orientation="vertical"
+                    android:paddingVertical="@dimen/spacing_medium"
                     android:layout_marginBottom="@dimen/spacing_large">
                     
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="@dimen/spacing_medium">
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
                         
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:id="@+id/tvAudioStatus"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-                            
-                            <TextView
-                                android:id="@+id/tvAudioStatus"
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
-                                android:layout_height="wrap_content"
-                                android:text="Audio: Unattached"
-                                android:textAppearance="?attr/textAppearanceTitleMedium" />
-                                
-                            <ImageButton
-                                android:id="@+id/btnDrmInfo"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:src="@android:drawable/ic_menu_help"
-                                android:background="?attr/selectableItemBackgroundBorderless" />
-                        </LinearLayout>
-                        
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnAttachAudio"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Select Local Audio File"
-                            android:layout_marginTop="@dimen/spacing_small" />
+                            android:text="AUDIO: UNATTACHED"
+                            android:fontFamily="@font/jetbrains_mono"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAttachAudio"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="SELECT LOCAL AUDIO"
+                        android:fontFamily="@font/jetbrains_mono"
+                        app:cornerRadius="0dp"
+                        app:icon="@drawable/ic_audio"
+                        android:layout_marginTop="@dimen/spacing_small" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorDivider" android:layout_marginBottom="@dimen/spacing_medium"/>
 
                 <!-- Actions -->
                 <com.google.android.material.button.MaterialButton
@@ -262,33 +282,43 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="RENDER LYRIC HOLOGRAM"
+                    android:fontFamily="@font/jetbrains_mono"
+                    android:letterSpacing="0.1"
+                    app:cornerRadius="0dp"
+                    app:backgroundTint="?attr/colorPrimary"
+                    android:textColor="#FFFFFF"
                     android:paddingVertical="16dp" />
                     
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCancel"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="CANCEL"
+                    android:fontFamily="@font/jetbrains_mono"
+                    app:cornerRadius="0dp"
                     android:textColor="?attr/colorError"
+                    app:strokeColor="?attr/colorError"
                     android:visibility="gone"
+                    android:layout_marginTop="@dimen/spacing_small"
                     android:paddingVertical="16dp" />
 
-                <ProgressBar
+                <!-- Custom Progress Bar -->
+                <com.example.odysseyglyph.GlyphProgressView
                     android:id="@+id/progressBar"
-                    style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="24dp"
                     android:layout_marginVertical="@dimen/spacing_medium"
-                    android:visibility="gone"
-                    android:max="100" />
+                    android:visibility="gone" />
                     
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnOpenManager"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="OPEN TOYS MANAGER"
+                    android:fontFamily="@font/jetbrains_mono"
+                    app:cornerRadius="0dp"
                     android:visibility="gone"
                     android:layout_marginTop="@dimen/spacing_medium" />
                     

@@ -11,8 +11,21 @@
         <item name="colorOnSurfaceVariant">@color/colorOnSurfaceVariant</item>
         <item name="colorError">@color/colorError</item>
         
-        <!-- Navigation bar & Status bar -->
-        <item name="android:statusBarColor">@color/colorBackground</item>
-        <item name="android:navigationBarColor">@color/colorBackground</item>
+        <!-- Navigation bar & Status bar (transparent for edge-to-edge) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        
+        <!-- Shape Overrides (Sharp/Technical) -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Odyssey.Sharp</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Odyssey.Sharp</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Odyssey.Sharp</item>
+        
+        <!-- Default Font (Inter/sans-serif) -->
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+    
+    <style name="ShapeAppearance.Odyssey.Sharp" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">2dp</item>
     </style>
 </resources>
