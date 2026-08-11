@@ -166,6 +166,16 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         syncSlotState()
         checkToysManagerVisibility()
+        if (currentMediaType == 0) {
+            videoView.start()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (currentMediaType == 0) {
+            videoView.pause()
+        }
     }
 
     private fun loadAdvancedSettings() {
@@ -218,15 +228,9 @@ class MainActivity : AppCompatActivity() {
         btnImport = findViewById(R.id.btnImport)
         bottomActionBar = findViewById(R.id.bottomActionBar)
         
-        toolbar.inflateMenu(R.menu.main_menu)
-        toolbar.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_lyric_studio -> {
-                    startActivity(Intent(this, LyricStudioActivity::class.java))
-                    true
-                }
-                else -> false
-            }
+        val btnLaunchLyricStudioTop = findViewById<MaterialButton>(R.id.btnLaunchLyricStudioTop)
+        btnLaunchLyricStudioTop.setOnClickListener {
+            startActivity(Intent(this, LyricStudioActivity::class.java))
         }
     }
 
