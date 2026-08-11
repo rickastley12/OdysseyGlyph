@@ -513,21 +513,34 @@ object VideoProcessor {
                             val progress = timeSinceStart.toFloat() / lineDuration
                             offsetX = 25f - (progress * (textWidth + 25f))
                         } else {
-                            // Flash Word-by-Word with Character-Proportional Timing
+                            // Flash Word-by-Word with Punctuation-Aware Character Proportional Timing
                             val words = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
                             if (words.isNotEmpty()) {
                                 val lineDuration = (nextTimeMs - currentLyric.first).coerceAtLeast(1L).toFloat()
-                                val totalChars = words.sumOf { it.length }.toFloat()
                                 
-                                var accumulatedChars = 0f
+                                val wordWeights = words.map { word ->
+                                    var weight = word.length.toFloat()
+                                    if (word.endsWith("...")) {
+                                        weight += 12f
+                                    } else if (word.endsWith(".") || word.endsWith("!") || word.endsWith("?")) {
+                                        weight += 8f
+                                    } else if (word.endsWith(",")) {
+                                        weight += 5f
+                                    }
+                                    weight
+                                }
+                                val totalWeight = wordWeights.sum()
+                                
+                                var accumulatedWeight = 0f
                                 var targetWordIndex = words.size - 1
                                 
                                 for ((wIdx, word) in words.withIndex()) {
-                                    val wordStartChar = accumulatedChars
-                                    val wordEndChar = accumulatedChars + word.length
+                                    val wordWeight = wordWeights[wIdx]
+                                    val wordStartWeight = accumulatedWeight
+                                    val wordEndWeight = accumulatedWeight + wordWeight
                                     
-                                    val wordStartTime = (wordStartChar / totalChars) * lineDuration
-                                    val wordEndTime = (wordEndChar / totalChars) * lineDuration
+                                    val wordStartTime = (wordStartWeight / totalWeight) * lineDuration
+                                    val wordEndTime = (wordEndWeight / totalWeight) * lineDuration
                                     
                                     if (timeSinceStart >= wordStartTime && timeSinceStart < wordEndTime) {
                                         targetWordIndex = wIdx
@@ -547,7 +560,7 @@ object VideoProcessor {
                                         }
                                         break
                                     }
-                                    accumulatedChars += word.length
+                                    accumulatedWeight += wordWeight
                                 }
                             }
                             val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle)
