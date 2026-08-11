@@ -46,8 +46,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var slotSpinner: AutoCompleteTextView
     
     private lateinit var audioCard: LinearLayout
-    private lateinit var tvAudioStatus: TextView
-    private lateinit var btnAttachAudio: MaterialButton
+    private lateinit var switchIncludeAudio: com.google.android.material.materialswitch.MaterialSwitch
     private lateinit var toolbar: MaterialToolbar
     
     private lateinit var btnAdvancedToggle: LinearLayout
@@ -63,7 +62,6 @@ class MainActivity : AppCompatActivity() {
 
     private var selectedMediaUri: Uri? = null
     private var currentMediaType = 0 // 0=video, 1=gif, 2=static
-    private var selectedAudioUri: Uri? = null
     private var videoDurationMs: Long = 0
     private var isRendering = AtomicBoolean(false)
     private var systemBarsBottom = 0
@@ -97,51 +95,11 @@ class MainActivity : AppCompatActivity() {
             }
             settingsPanel.visibility = View.VISIBLE
             bottomActionBar.visibility = View.VISIBLE
+            audioCard.visibility = if (currentMediaType == 0) View.VISIBLE else View.GONE
         }
     }
 
-    private val selectAudioLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri != null) {
-            selectedAudioUri = uri
-            updateAudioStatus("AUDIO: CUSTOM FILE", true)
-        }
-    }
 
-    private val exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
-        if (uri != null) {
-            try {
-                val slot = prefs.getInt("selected_slot", 1)
-                val src = java.io.File(filesDir, "frames_slot$slot.bin")
-                if (!src.exists()) {
-                    Snackbar.make(findViewById(android.R.id.content), "No preset found in Slot $slot to export!", Snackbar.LENGTH_SHORT).show()
-                    return@registerForActivityResult
-                }
-                contentResolver.openOutputStream(uri)?.use { out ->
-                    src.inputStream().use { it.copyTo(out) }
-                }
-                Snackbar.make(findViewById(android.R.id.content), "Preset Exported successfully!", Snackbar.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private val importLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            try {
-                val slot = prefs.getInt("selected_slot", 1)
-                val dest = java.io.File(filesDir, "frames_slot$slot.bin")
-                contentResolver.openInputStream(uri)?.use { input ->
-                    dest.outputStream().use { input.copyTo(it) }
-                }
-                Snackbar.make(findViewById(android.R.id.content), "Preset Imported to Slot $slot!", Snackbar.LENGTH_SHORT).show()
-                btnOpenManager.visibility = View.VISIBLE
-                sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -243,8 +201,7 @@ class MainActivity : AppCompatActivity() {
         slotSpinner = findViewById(R.id.slotSpinner)
         
         audioCard = findViewById(R.id.audioCard)
-        tvAudioStatus = findViewById(R.id.tvAudioStatus)
-        btnAttachAudio = findViewById(R.id.btnAttachAudio)
+        switchIncludeAudio = findViewById(R.id.switchIncludeAudio)
         
         btnAdvancedToggle = findViewById(R.id.btnAdvancedToggle)
         
@@ -288,7 +245,7 @@ class MainActivity : AppCompatActivity() {
             showAdvancedSettingsBottomSheet()
         }
 
-        btnAttachAudio.setOnClickListener { selectAudioLauncher.launch(arrayOf("audio/*")) }
+        // Audio listener removed
 
         rangeSlider.addOnChangeListener { slider, _, _ ->
             val values = slider.values
@@ -390,16 +347,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateAudioStatus(text: String, attached: Boolean) {
-        tvAudioStatus.text = text
-        if (attached) {
-            tvAudioStatus.setTextColor(ContextCompat.getColor(this, R.color.colorSuccess))
-            btnAttachAudio.text = "CHANGE AUDIO"
-        } else {
-            tvAudioStatus.setTextColor(ContextCompat.getColor(this, R.color.colorOnSurface))
-            btnAttachAudio.text = "SELECT LOCAL AUDIO"
-        }
-    }
+
 
     private fun setupVideo(uri: Uri) {
         imageView.visibility = View.GONE
@@ -509,7 +457,7 @@ class MainActivity : AppCompatActivity() {
         VideoProcessor.processMedia(
             context = this,
             mediaUri = uri,
-            audioUri = selectedAudioUri,
+            audioUri = if (currentMediaType == 0 && switchIncludeAudio.isChecked) uri else null,
             mediaType = currentMediaType,
             startTimeMs = startTimeMs,
             endTimeMs = endTimeMs,

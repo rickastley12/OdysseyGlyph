@@ -215,32 +215,13 @@
                     android:paddingVertical="@dimen/spacing_medium"
                     android:layout_marginBottom="@dimen/spacing_medium">
                     
-                    <LinearLayout
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchIncludeAudio"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-                        
-                        <TextView
-                            android:id="@+id/tvAudioStatus"
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:text="AUDIO: UNATTACHED"
-                            android:fontFamily="@font/jetbrains_mono"
-                            android:textAppearance="?attr/textAppearanceTitleMedium" />
-                    </LinearLayout>
-                    
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAttachAudio"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="SELECT LOCAL AUDIO"
+                        android:text="INCLUDE VIDEO AUDIO"
                         android:fontFamily="@font/jetbrains_mono"
-                        app:cornerRadius="0dp"
-                        app:icon="@drawable/ic_audio"
-                        android:layout_marginTop="@dimen/spacing_small" />
+                        android:textAppearance="?attr/textAppearanceTitleMedium" />
                 </LinearLayout>
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginBottom="@dimen/spacing_medium"/>
