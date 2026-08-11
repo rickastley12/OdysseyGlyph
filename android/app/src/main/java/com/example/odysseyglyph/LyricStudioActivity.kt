@@ -121,9 +121,11 @@ class LyricStudioActivity : AppCompatActivity() {
         setContentView(R.layout.activity_lyric_studio)
         
         val scrollView = findViewById<ScrollView>(R.id.scrollView)
+        scrollView.clipToPadding = false
         ViewCompat.setOnApplyWindowInsetsListener(scrollView) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, systemBars.bottom)
+            val insetsTypes = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+            val extraPadding = (32 * resources.displayMetrics.density).toInt()
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, insetsTypes.bottom + extraPadding)
             insets
         }
         
