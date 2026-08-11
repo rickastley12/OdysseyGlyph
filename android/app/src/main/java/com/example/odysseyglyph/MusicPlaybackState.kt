@@ -5,6 +5,7 @@ import android.media.session.PlaybackState
 object MusicPlaybackState {
     var trackTitle: String = ""
     var artist: String = ""
+    var albumArt: android.graphics.Bitmap? = null
     
     var isPlaying: Boolean = false
     var position: Long = 0
@@ -33,10 +34,11 @@ object MusicPlaybackState {
         listeners.remove(listener)
     }
     
-    fun updateMetadata(newTitle: String, newArtist: String, source: String) {
+    fun updateMetadata(newTitle: String, newArtist: String, source: String, art: android.graphics.Bitmap?) {
         if (trackTitle != newTitle || artist != newArtist) {
             trackTitle = newTitle
             artist = newArtist
+            albumArt = art
             activeSource = source
             manualOverrideLyrics = null
             listeners.forEach { it.onMetadataChanged(trackTitle, artist) }

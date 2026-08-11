@@ -91,6 +91,16 @@
                 android:padding="@dimen/spacing_medium"
                 android:layout_marginBottom="@dimen/spacing_large">
                 
+                <ImageView
+                    android:id="@+id/ivAlbumArt"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="@dimen/spacing_medium"
+                    android:scaleType="centerCrop"
+                    android:background="#333333"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/tvStatus"
                     android:layout_width="match_parent"

@@ -37,8 +37,9 @@ class MediaSessionListenerService : NotificationListenerService() {
             metadata?.let {
                 val title = it.getString(MediaMetadata.METADATA_KEY_TITLE) ?: ""
                 val artist = it.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: ""
+                val art = it.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: it.getBitmap(MediaMetadata.METADATA_KEY_ART)
                 Log.d("MusicListener", "Metadata changed: $title - $artist")
-                MusicPlaybackState.updateMetadata(title, artist, activeSource)
+                MusicPlaybackState.updateMetadata(title, artist, activeSource, art)
             }
         }
 

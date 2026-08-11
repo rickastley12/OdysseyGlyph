@@ -30,6 +30,7 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
     private lateinit var switchMaster: MaterialSwitch
     private lateinit var tvStatus: TextView
     private lateinit var tvTrackInfo: TextView
+    private lateinit var ivAlbumArt: ImageView
     private lateinit var previewImage: ImageView
     
     private lateinit var permissionCard: LinearLayout
@@ -58,6 +59,7 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         switchMaster = findViewById(R.id.switchMaster)
         tvStatus = findViewById(R.id.tvStatus)
         tvTrackInfo = findViewById(R.id.tvTrackInfo)
+        ivAlbumArt = findViewById(R.id.ivAlbumArt)
         previewImage = findViewById(R.id.previewImage)
         
         permissionCard = findViewById(R.id.permissionCard)
@@ -205,9 +207,17 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         if (!MusicPlaybackState.hasActiveSession) {
             tvStatus.text = "Waiting for Music..."
             tvTrackInfo.text = "Play a track to begin."
+            ivAlbumArt.visibility = View.GONE
         } else {
             val title = MusicPlaybackState.trackTitle
             val artist = MusicPlaybackState.artist
+            
+            if (MusicPlaybackState.albumArt != null) {
+                ivAlbumArt.setImageBitmap(MusicPlaybackState.albumArt)
+                ivAlbumArt.visibility = View.VISIBLE
+            } else {
+                ivAlbumArt.visibility = View.GONE
+            }
             
             if (MusicPlaybackState.manualOverrideLyrics != null) {
                 tvStatus.text = "Live Syncing"

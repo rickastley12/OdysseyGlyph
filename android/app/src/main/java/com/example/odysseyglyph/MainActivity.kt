@@ -255,6 +255,10 @@ class MainActivity : AppCompatActivity() {
         btnProcess.setOnClickListener { startProcessing() }
         btnCancel.setOnClickListener { cancelProcessing() }
 
+        btnGallery.setOnClickListener {
+            startActivity(Intent(this, GalleryActivity::class.java))
+        }
+
         btnOpenManager.setOnClickListener {
             try {
                 val intent = Intent()
