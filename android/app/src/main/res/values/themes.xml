@@ -11,6 +11,14 @@
         <item name="colorOnSurfaceVariant">@color/colorOnSurfaceVariant</item>
         <item name="colorError">@color/colorError</item>
         
+        <!-- M3 Container Colors (Overrides Default Purple) -->
+        <item name="colorPrimaryContainer">@color/colorPrimary</item>
+        <item name="colorOnPrimaryContainer">@color/colorBackground</item>
+        <item name="colorSecondaryContainer">@color/colorSurfaceVariant</item>
+        <item name="colorOnSecondaryContainer">@color/colorOnSurface</item>
+        <item name="colorTertiaryContainer">@color/colorSurfaceVariant</item>
+        <item name="colorOutline">@color/colorOnSurfaceVariant</item>
+        
         <!-- Navigation bar & Status bar (transparent for edge-to-edge) -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

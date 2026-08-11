@@ -173,7 +173,11 @@ abstract class BaseToyService : Service() {
                     mainHandler.removeCallbacks(playbackRunnable)
                     mainHandler.post(playbackRunnable)
                     if (!isPaused) {
-                        mediaPlayer?.seekTo(currentAudioOffsetMs)
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            mediaPlayer?.seekTo(currentAudioOffsetMs.toLong(), android.media.MediaPlayer.SEEK_CLOSEST)
+                        } else {
+                            mediaPlayer?.seekTo(currentAudioOffsetMs)
+                        }
                         mediaPlayer?.start()
                     }
                 }

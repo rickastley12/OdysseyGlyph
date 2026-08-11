@@ -123,17 +123,7 @@ class LyricStudioActivity : AppCompatActivity() {
         
         val scrollView = findViewById<ScrollView>(R.id.scrollView)
         val innerLayout = scrollView.getChildAt(0)
-        ViewCompat.setOnApplyWindowInsetsListener(scrollView) { v, insets ->
-            val insetsTypes = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
-            val extraPadding = (32 * resources.displayMetrics.density).toInt()
-            innerLayout.setPadding(
-                innerLayout.paddingLeft,
-                innerLayout.paddingTop,
-                innerLayout.paddingRight,
-                insetsTypes.bottom + extraPadding
-            )
-            insets
-        }
+        // Static padding space is now handled in XML using <Space> to avoid CoordinatorLayout invalidation bugs
         
         prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
 
@@ -534,9 +524,13 @@ class LyricStudioActivity : AppCompatActivity() {
                     sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
                     
                     val sv = findViewById<ScrollView>(R.id.scrollView)
+                    // Force the ScrollView and its container to immediately remeasure their bounds
+                    sv.getChildAt(0).requestLayout()
+                    sv.requestLayout()
+                    
                     sv.postDelayed({
                         sv.smoothScrollTo(0, sv.getChildAt(0).bottom)
-                    }, 100)
+                    }, 150)
                 } else {
                     if (error != "Cancelled by user.") {
                         Snackbar.make(findViewById(android.R.id.content), "Error: $error", Snackbar.LENGTH_LONG).show()

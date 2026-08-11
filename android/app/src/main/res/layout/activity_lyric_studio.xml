@@ -327,6 +327,11 @@
                     android:visibility="gone"
                     android:layout_marginTop="@dimen/spacing_medium" />
                     
+                <!-- Static padding for system navigation bar to prevent edge-to-edge clipping bugs -->
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp" />
+                    
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
