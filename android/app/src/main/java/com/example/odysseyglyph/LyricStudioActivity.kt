@@ -360,19 +360,22 @@ class LyricStudioActivity : AppCompatActivity() {
         }
         
         if (parsedLyricsCache.isNotEmpty()) {
+            val firstLyricMs = parsedLyricsCache.first().first
             val lastLyricMs = parsedLyricsCache.last().first
             val maxSecs = Math.max(0.1f, (lastLyricMs + 5000L) / 1000f)
-            val defaultEnd = minOf(20f, maxSecs)
+            
+            val defaultStart = Math.max(0f, (firstLyricMs - 1000L) / 1000f)
+            val defaultEnd = Math.min(maxSecs, defaultStart + 20f)
             
             if (maxSecs > rangeSlider.valueTo) {
                 rangeSlider.valueTo = maxSecs
-                rangeSlider.values = listOf(0f, defaultEnd)
+                rangeSlider.values = listOf(defaultStart, defaultEnd)
             } else {
-                rangeSlider.values = listOf(0f, defaultEnd)
+                rangeSlider.values = listOf(defaultStart, defaultEnd)
                 rangeSlider.valueTo = maxSecs
             }
-            tvTrimTimes.text = String.format("%.1fs - %.1fs", 0f, defaultEnd)
-            updateLyricPreviewLine(0f)
+            tvTrimTimes.text = String.format("%.1fs - %.1fs", defaultStart, defaultEnd)
+            updateLyricPreviewLine(defaultStart)
         }
     }
 
