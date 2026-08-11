@@ -225,7 +225,7 @@ class LyricStudioActivity : AppCompatActivity() {
         // Audio
         btnAttachAudio.setOnClickListener { selectAudioLauncher.launch(arrayOf("audio/*")) }
         switchAudio.setOnCheckedChangeListener { _, isChecked ->
-            val visibility = if (isChecked) View.VISIBLE else View.GONE
+            val visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
             tvAudioStatus.visibility = visibility
             btnAttachAudio.visibility = visibility
         }
