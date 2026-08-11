@@ -52,10 +52,16 @@ class CenteredImageView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
-        if (event.pointerCount > 1) {
-            parent?.requestDisallowInterceptTouchEvent(true)
-        } else {
-            parent?.requestDisallowInterceptTouchEvent(false)
+        when (event.actionMasked) {
+            android.view.MotionEvent.ACTION_DOWN,
+            android.view.MotionEvent.ACTION_POINTER_DOWN,
+            android.view.MotionEvent.ACTION_MOVE -> {
+                parent?.requestDisallowInterceptTouchEvent(true)
+            }
+            android.view.MotionEvent.ACTION_UP,
+            android.view.MotionEvent.ACTION_CANCEL -> {
+                parent?.requestDisallowInterceptTouchEvent(false)
+            }
         }
         return super.onTouchEvent(event)
     }

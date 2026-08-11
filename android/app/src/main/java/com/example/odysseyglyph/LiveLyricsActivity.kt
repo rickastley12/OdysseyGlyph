@@ -39,10 +39,6 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
     private lateinit var toggleTypography: MaterialButtonToggleGroup
     private lateinit var btnOpenManager: MaterialButton
     
-    private lateinit var searchContainer: LinearLayout
-    private lateinit var etSearch: TextInputEditText
-    private lateinit var btnSearch: MaterialButton
-    private lateinit var resultsContainer: LinearLayout
     private lateinit var optionsContainer: LinearLayout
     
     private var currentFontStyle = GlyphFontEngine.FontStyle.SMOOTH
@@ -71,10 +67,6 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         toggleTypography = findViewById(R.id.toggleTypography)
         btnOpenManager = findViewById(R.id.btnOpenManager)
         
-        searchContainer = findViewById(R.id.searchContainer)
-        etSearch = findViewById(R.id.etSearch)
-        btnSearch = findViewById(R.id.btnSearch)
-        resultsContainer = findViewById(R.id.resultsContainer)
         optionsContainer = findViewById(R.id.optionsContainer)
         
         switchMaster.isChecked = prefs.getBoolean("live_lyrics_enabled", false)
@@ -160,12 +152,7 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
             }
         }
         
-        btnSearch.setOnClickListener {
-            val query = etSearch.text.toString().trim()
-            if (query.isNotEmpty()) {
-                performSearch(query)
-            }
-        }
+        // Search functionality removed
         
         if (prefs.getBoolean("first_run_live_v2", true)) {
             val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
@@ -218,24 +205,16 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         if (!MusicPlaybackState.hasActiveSession) {
             tvStatus.text = "Waiting for Music..."
             tvTrackInfo.text = "Play a track to begin."
-            searchContainer.visibility = View.GONE
         } else {
             val title = MusicPlaybackState.trackTitle
             val artist = MusicPlaybackState.artist
             
             if (MusicPlaybackState.manualOverrideLyrics != null) {
-                tvStatus.text = "Active Session"
-                tvTrackInfo.text = "OVERRIDE: ${MusicPlaybackState.manualOverrideTrackName}"
-                searchContainer.visibility = View.VISIBLE
+                tvStatus.text = "Live Syncing"
+                tvTrackInfo.text = "$title — $artist"
             } else if (title.isNotEmpty()) {
                 tvStatus.text = "Active Session"
-                tvTrackInfo.text = "$title — $artist"
-                
-                // Show search container for manual fallback
-                searchContainer.visibility = View.VISIBLE
-                if (etSearch.text.isNullOrEmpty()) {
-                    etSearch.setText("$title $artist")
-                }
+                tvTrackInfo.text = "$title — $artist\n(Searching for lyrics...)"
             } else {
                 tvStatus.text = "Active Session"
                 tvTrackInfo.text = "Unknown track."
@@ -243,88 +222,33 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         }
     }
 
-    private fun performSearch(query: String) {
-        resultsContainer.removeAllViews()
+    override fun onMetadataChanged(title: String, artist: String) {
+        mainHandler.post { updateUIState() }
         
-        val loadingText = TextView(this).apply {
-            text = "Searching..."
-            setTextColor(Color.WHITE)
-            gravity = android.view.Gravity.CENTER
-            setPadding(0, 32, 0, 32)
-        }
-        resultsContainer.addView(loadingText)
-        
-        thread {
-            val results = LRCLibClient.searchLyrics(query)
-            
-            mainHandler.post {
-                resultsContainer.removeAllViews()
-                if (results.isEmpty()) {
-                    resultsContainer.addView(TextView(this).apply {
-                        text = "No matches found."
-                        setTextColor(ContextCompat.getColor(this@LiveLyricsActivity, R.color.colorError))
-                        gravity = android.view.Gravity.CENTER
-                    })
-                    return@post
-                }
-                
-                val syncedResults = results.filter { it.syncedLyrics != null }
-                if (syncedResults.isEmpty()) {
-                    resultsContainer.addView(TextView(this).apply {
-                        text = "Matches found, but none have synchronized lyrics."
-                        setTextColor(Color.parseColor("#FFAA00"))
-                        gravity = android.view.Gravity.CENTER
-                    })
-                    return@post
-                }
-                
-                for (track in syncedResults) {
-                    val card = LinearLayout(this).apply {
-                        orientation = LinearLayout.VERTICAL
-                        background = android.graphics.drawable.ColorDrawable(Color.parseColor("#333333"))
-                        setPadding(32, 32, 32, 32)
-                        layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        ).apply {
-                            setMargins(0, 0, 0, 16)
-                        }
-                        
-                        isClickable = true
-                        isFocusable = true
-                        setOnClickListener {
-                            val parsed = LrcUtils.parseLrc(track.syncedLyrics!!)
-                            MusicPlaybackState.manualOverrideLyrics = parsed
-                            MusicPlaybackState.manualOverrideTrackName = track.trackName
-                            
-                            val rootView = this@LiveLyricsActivity.findViewById<View>(android.R.id.content)
-                            Snackbar.make(rootView, "Override applied: ${track.trackName}", Snackbar.LENGTH_SHORT).show()
-                            updateUIState()
+        if (title.isNotEmpty()) {
+            thread {
+                val results = LRCLibClient.searchLyrics("$title $artist")
+                val syncedResult = results.firstOrNull { it.syncedLyrics != null }
+                if (syncedResult != null) {
+                    val parsed = LrcUtils.parseLrc(syncedResult.syncedLyrics)
+                    MusicPlaybackState.manualOverrideLyrics = parsed
+                    MusicPlaybackState.manualOverrideTrackName = syncedResult.trackName
+                    mainHandler.post { updateUIState() }
+                } else {
+                    MusicPlaybackState.manualOverrideLyrics = null
+                    mainHandler.post { 
+                        if (MusicPlaybackState.trackTitle == title) {
+                            tvTrackInfo.text = "$title — $artist\n(No synced lyrics found)"
                         }
                     }
-                    
-                    val tvTrack = TextView(this).apply {
-                        text = track.trackName
-                        setTextColor(Color.WHITE)
-                        textSize = 16f
-                    }
-                    val tvArtist = TextView(this).apply {
-                        text = track.artistName + (if (track.albumName.isNotEmpty()) " • ${track.albumName}" else "")
-                        setTextColor(Color.parseColor("#888888"))
-                        textSize = 14f
-                    }
-                    
-                    card.addView(tvTrack)
-                    card.addView(tvArtist)
-                    resultsContainer.addView(card)
                 }
             }
         }
     }
 
-    override fun onMetadataChanged(title: String, artist: String) {
-        mainHandler.post { updateUIState() }
-    }
+
+
+
 
     override fun onPlaybackStateChanged(isPlaying: Boolean) {
         mainHandler.post { updateUIState() }
