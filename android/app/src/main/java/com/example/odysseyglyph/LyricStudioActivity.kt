@@ -239,7 +239,8 @@ class LyricStudioActivity : AppCompatActivity() {
 
     private fun syncSlotState() {
         val slot = prefs.getInt("selected_slot", 1)
-        slotSpinner.setText("Slot $slot", false)
+        val slotText = if (slot == 4) "Gallery Only" else "Slot $slot"
+        slotSpinner.setText(slotText, false)
     }
 
     private fun updateAudioStatus(text: String, attached: Boolean) {
@@ -506,7 +507,8 @@ class LyricStudioActivity : AppCompatActivity() {
                 progressBar.visibility = View.GONE
                 
                 if (success) {
-                    Snackbar.make(findViewById(android.R.id.content), "Success! Saved to Slot $slot.", Snackbar.LENGTH_LONG).show()
+                    val msg = if (slot == 4) "SUCCESS! SAVED TO GALLERY." else "SUCCESS! RENDERED TO SLOT $slot."
+                    Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).show()
                     btnOpenManager.visibility = View.VISIBLE
                     sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
                     

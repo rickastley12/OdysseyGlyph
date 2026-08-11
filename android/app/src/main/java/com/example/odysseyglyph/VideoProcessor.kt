@@ -324,7 +324,9 @@ object VideoProcessor {
                 }
                 
                 // Assign to requested slot
-                PresetManager.assignPresetToSlot(context, presetId, slotIndex)
+                if (slotIndex in 1..3) {
+                    PresetManager.assignPresetToSlot(context, presetId, slotIndex)
+                }
 
                 mainHandler.post { onProgress(100) }
                 mainHandler.post { onComplete(true, null) }
@@ -527,7 +529,9 @@ object VideoProcessor {
                 }
                 
                 // Assign to requested slot
-                PresetManager.assignPresetToSlot(context, presetId, slotIndex)
+                if (slotIndex in 1..3) {
+                    PresetManager.assignPresetToSlot(context, presetId, slotIndex)
+                }
 
                 mainHandler.post { onProgress(100) }
                 mainHandler.post { onComplete(true, null) }

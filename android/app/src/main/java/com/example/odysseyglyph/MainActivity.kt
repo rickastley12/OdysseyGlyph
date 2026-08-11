@@ -337,7 +337,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun syncSlotState() {
         val slot = prefs.getInt("selected_slot", 1)
-        val slotText = "Slot $slot"
+        val slotText = if (slot == 4) "Gallery Only" else "Slot $slot"
         slotSpinner.setText(slotText, false)
     }
 
@@ -487,7 +487,8 @@ class MainActivity : AppCompatActivity() {
                 progressBar.visibility = View.GONE
 
                 if (success) {
-                    Snackbar.make(findViewById(android.R.id.content), "SUCCESS! RENDERED TO SLOT $slot.", Snackbar.LENGTH_LONG).show()
+                    val msg = if (slot == 4) "SUCCESS! SAVED TO GALLERY." else "SUCCESS! RENDERED TO SLOT $slot."
+                    Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).show()
                     btnOpenManager.visibility = View.VISIBLE
                     sendBroadcast(Intent("com.example.odysseyglyph.RELOAD_FRAMES"))
                 } else {

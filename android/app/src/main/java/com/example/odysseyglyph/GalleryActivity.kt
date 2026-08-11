@@ -53,9 +53,22 @@ class GalleryActivity : AppCompatActivity() {
         } else {
             rvPresets.visibility = View.VISIBLE
             tvEmpty.visibility = View.GONE
-            adapter = PresetAdapter(presets, this::onPresetClicked)
+            adapter = PresetAdapter(presets, this::onPresetClicked, this::onDeleteClicked)
             rvPresets.adapter = adapter
         }
+    }
+
+    private fun onDeleteClicked(preset: Preset) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Preset")
+            .setMessage("Are you sure you want to delete '${preset.name}'?")
+            .setPositiveButton("Delete") { _, _ ->
+                PresetManager.deletePreset(this, preset.id)
+                loadPresets()
+                Snackbar.make(findViewById(android.R.id.content), "Preset deleted.", Snackbar.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun onPresetClicked(preset: Preset) {
@@ -152,7 +165,8 @@ class GalleryActivity : AppCompatActivity() {
 
 class PresetAdapter(
     private val presets: List<Preset>,
-    private val onClick: (Preset) -> Unit
+    private val onClick: (Preset) -> Unit,
+    private val onDelete: (Preset) -> Unit
 ) : RecyclerView.Adapter<PresetAdapter.ViewHolder>() {
 
     private val dateFormat = SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault())
@@ -161,6 +175,8 @@ class PresetAdapter(
         val tvName: TextView = view.findViewById(R.id.tvPresetName)
         val tvType: TextView = view.findViewById(R.id.tvPresetType)
         val tvDate: TextView = view.findViewById(R.id.tvPresetDate)
+        val ivThumbnail: android.widget.ImageView = view.findViewById(R.id.ivThumbnail)
+        val btnQuickDelete: android.widget.ImageButton = view.findViewById(R.id.btnQuickDelete)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -175,6 +191,38 @@ class PresetAdapter(
         holder.tvDate.text = dateFormat.format(Date(p.timestamp))
         
         holder.itemView.setOnClickListener { onClick(p) }
+        holder.btnQuickDelete.setOnClickListener { onDelete(p) }
+        
+        // Load thumbnail from bin file
+        val context = holder.itemView.context
+        val binFile = File(PresetManager.getPresetsDir(context), "${p.id}.bin")
+        if (binFile.exists() && binFile.length() > 637) {
+            try {
+                FileInputStream(binFile).use { fis ->
+                    val headerSize = if (p.type == "LYRIC") 16 else 12
+                    fis.skip(headerSize.toLong())
+                    
+                    val frameData = ByteArray(625)
+                    val read = fis.read(frameData)
+                    if (read == 625) {
+                        val bitmap = android.graphics.Bitmap.createBitmap(25, 25, android.graphics.Bitmap.Config.ARGB_8888)
+                        val pixels = IntArray(625)
+                        for (i in 0 until 625) {
+                            val bright = frameData[i].toInt() and 0xFF
+                            pixels[i] = android.graphics.Color.argb(255, bright, bright, bright)
+                        }
+                        bitmap.setPixels(pixels, 0, 25, 0, 0, 25, 25)
+                        holder.ivThumbnail.setImageBitmap(bitmap)
+                    } else {
+                        holder.ivThumbnail.setImageDrawable(null)
+                    }
+                }
+            } catch (e: Exception) {
+                holder.ivThumbnail.setImageDrawable(null)
+            }
+        } else {
+            holder.ivThumbnail.setImageDrawable(null)
+        }
     }
 
     override fun getItemCount() = presets.size
