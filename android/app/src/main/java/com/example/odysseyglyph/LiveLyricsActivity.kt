@@ -321,8 +321,8 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
                     pixels[i] = Color.argb(255, bright, bright, bright)
                 }
                 bitmap.setPixels(pixels, 0, 25, 0, 0, 25, 25)
-                val scaled = Bitmap.createScaledBitmap(bitmap, 250, 250, false)
-                previewImage.setImageBitmap(scaled)
+                previewImage.setImageBitmap(bitmap)
+                (previewImage.drawable as? android.graphics.drawable.BitmapDrawable)?.paint?.isFilterBitmap = false
             } else {
                 previewImage.setImageDrawable(null)
             }
