@@ -38,7 +38,7 @@ class SpotifyLiveToyService : Service(), SpotifyPlaybackState.StateChangeListene
             
             val prefs = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
             val fontStyleInt = prefs.getInt("live_font_style", 0)
-            fontStyle = if (fontStyleInt == 1) GlyphFontEngine.FontStyle.BLOCKY else GlyphFontEngine.FontStyle.SMOOTH
+            fontStyle = if (fontStyleInt == 1) GlyphFontEngine.FontStyle.BLOCK_BOLD else GlyphFontEngine.FontStyle.SMOOTH
             
             // Initial fetch if active
             if (SpotifyPlaybackState.hasActiveSession) {

@@ -78,8 +78,8 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
         }
         
         val savedFontStyle = prefs.getInt("live_font_style", 0)
-        currentFontStyle = if (savedFontStyle == 1) GlyphFontEngine.FontStyle.BLOCKY else GlyphFontEngine.FontStyle.SMOOTH
-        if (currentFontStyle == GlyphFontEngine.FontStyle.BLOCKY) {
+        currentFontStyle = if (savedFontStyle == 1) GlyphFontEngine.FontStyle.BLOCK_BOLD else GlyphFontEngine.FontStyle.SMOOTH
+        if (currentFontStyle == GlyphFontEngine.FontStyle.BLOCK_BOLD) {
             toggleTypography.check(R.id.btnBlocky)
         } else {
             toggleTypography.check(R.id.btnSmooth)
@@ -88,11 +88,11 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
         toggleTypography.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
                 currentFontStyle = if (checkedId == R.id.btnBlocky) {
-                    GlyphFontEngine.FontStyle.BLOCKY
+                    GlyphFontEngine.FontStyle.BLOCK_BOLD
                 } else {
                     GlyphFontEngine.FontStyle.SMOOTH
                 }
-                prefs.edit().putInt("live_font_style", if (currentFontStyle == GlyphFontEngine.FontStyle.BLOCKY) 1 else 0).apply()
+                prefs.edit().putInt("live_font_style", if (currentFontStyle == GlyphFontEngine.FontStyle.BLOCK_BOLD) 1 else 0).apply()
             }
         }
         
@@ -204,7 +204,7 @@ class SpotifyLiveActivity : AppCompatActivity(), SpotifyPlaybackState.StateChang
                 if (syncedResults.isEmpty()) {
                     resultsContainer.addView(TextView(this).apply {
                         text = "Matches found, but none have synchronized lyrics."
-                        setTextColor(ContextCompat.getColor(this@SpotifyLiveActivity, R.color.colorWarning))
+                        setTextColor(Color.parseColor("#FFAA00"))
                         gravity = android.view.Gravity.CENTER
                     })
                     return@post
