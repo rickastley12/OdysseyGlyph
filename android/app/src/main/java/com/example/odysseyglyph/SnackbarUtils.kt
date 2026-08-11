@@ -15,6 +15,15 @@ fun Snackbar.applyNothingStyle(): Snackbar {
     layout.setPadding(0, 0, 0, 0)
     layout.elevation = 0f
     
+    // Apply layout margins directly to the Snackbar container to avoid clipping
+    val params = layout.layoutParams as? android.view.ViewGroup.MarginLayoutParams
+    if (params != null) {
+        val marginPx = (16 * layout.context.resources.displayMetrics.density).toInt()
+        val marginBottomPx = (32 * layout.context.resources.displayMetrics.density).toInt()
+        params.setMargins(marginPx, params.topMargin, marginPx, marginBottomPx)
+        layout.layoutParams = params
+    }
+    
     // Inflate custom Nothing OS layout
     val customView = LayoutInflater.from(layout.context).inflate(R.layout.nothing_snackbar, layout, false)
     val tv = customView.findViewById<TextView>(R.id.tvSnackbarText)
