@@ -482,6 +482,10 @@ object VideoProcessor {
                 val finalFrames = mutableListOf<ByteArray>()
                 
                 var lyricIndex = 0
+                while (lyricIndex < parsedLines.size - 1 && validStartMs >= parsedLines[lyricIndex + 1].first) {
+                    lyricIndex++
+                }
+
                 for (i in 0 until totalFrames) {
                     if (isCancelled.get()) {
                         mainHandler.post { onComplete(false, "Cancelled by user.") }
@@ -491,7 +495,7 @@ object VideoProcessor {
                     val currentMs = validStartMs + i * 1000L / targetFps
                     
                     // Advance lyric index if current time is past the NEXT lyric
-                    if (lyricIndex < parsedLines.size - 1 && currentMs >= parsedLines[lyricIndex + 1].first) {
+                    while (lyricIndex < parsedLines.size - 1 && currentMs >= parsedLines[lyricIndex + 1].first) {
                         lyricIndex++
                     }
                     

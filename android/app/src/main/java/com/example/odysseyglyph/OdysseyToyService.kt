@@ -171,14 +171,19 @@ abstract class BaseToyService : Service() {
                 frameIndex = 0
                 mainHandler.post {
                     mainHandler.removeCallbacks(playbackRunnable)
-                    mainHandler.post(playbackRunnable)
-                    if (!isPaused) {
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                            mediaPlayer?.seekTo(currentAudioOffsetMs.toLong(), android.media.MediaPlayer.SEEK_CLOSEST)
-                        } else {
-                            mediaPlayer?.seekTo(currentAudioOffsetMs)
+                    val mp = mediaPlayer
+                    if (!isPaused && mp != null) {
+                        mp.setOnSeekCompleteListener { mp2 ->
+                            mp2.start()
+                            mainHandler.post(playbackRunnable)
                         }
-                        mediaPlayer?.start()
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            mp.seekTo(currentAudioOffsetMs.toLong(), android.media.MediaPlayer.SEEK_CLOSEST)
+                        } else {
+                            mp.seekTo(currentAudioOffsetMs)
+                        }
+                    } else {
+                        mainHandler.post(playbackRunnable)
                     }
                 }
             } catch (e: Exception) {
