@@ -99,7 +99,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 1.3 }}
             >
-              Requires Nothing Phone (3) or (4a) Pro
+              Requires Nothing Phone (3)
             </motion.p>
           </>
         )}
@@ -476,8 +476,8 @@ export default function Home() {
           <motion.div className={styles.installWarning}
             initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
-            ⚠&nbsp; Requires Nothing Phone (3) or (4a) Pro. Older models (Phone 1, 2, 2a) have
-            zone-based LED strips, not the full 25×25 addressable matrix, and are not supported.
+            ⚠&nbsp; Requires Nothing Phone (3). Older models and the (4a) Pro have
+            zone-based LED strips or lower-density arrays, not the full 25×25 addressable matrix required by this app.
           </motion.div>
 
           <ol className={styles.installSteps}>
