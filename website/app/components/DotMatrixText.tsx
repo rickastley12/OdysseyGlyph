@@ -111,7 +111,7 @@ export default function DotMatrixText({ text, color = "var(--foreground)", delay
       {letters.map((char, charIdx) => {
         const matrix = GLYPHS[char] || GLYPHS[" "];
         return (
-          <div key={charIdx} style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "4px" }}>
+          <div key={charIdx} style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "6px" }}>
             {matrix.map((row, r) =>
               row.map((val, c) => {
                 const isActive = val === 1;
@@ -122,7 +122,7 @@ export default function DotMatrixText({ text, color = "var(--foreground)", delay
                   <motion.div
                     key={`${r}-${c}`}
                     initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: isActive ? 1 : 0.1, scale: 1 }}
+                    animate={{ opacity: isActive ? 1 : 0.08, scale: 1 }}
                     transition={{
                       delay: dotDelay,
                       type: "spring",
@@ -131,11 +131,11 @@ export default function DotMatrixText({ text, color = "var(--foreground)", delay
                     }}
                     whileHover={isActive ? { scale: 1.5, filter: "brightness(1.5)", zIndex: 10 } : {}}
                     style={{
-                      width: "8px",
-                      height: "8px",
+                      width: "12px",
+                      height: "12px",
                       borderRadius: "50%",
                       backgroundColor: color,
-                      opacity: isActive ? 1 : 0.1,
+                      opacity: isActive ? 1 : 0.08,
                       transformOrigin: "center"
                     }}
                   />
