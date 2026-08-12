@@ -430,6 +430,35 @@ export default function Home() {
               Spotify and YouTube Music only fire a position update when something changes — play, pause, skip. Between those events, position estimates drift and lyrics fall out of sync. The fix is a polling loop that reads the MediaController every 500ms to stay locked to real playback position.
             </p>
           </motion.div>
+          {/* 8 — Per-Word Hyphenation */}
+          <motion.div className={styles.howCard}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.3 }}>
+            <div className={styles.howVisual}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontFamily: "var(--font-mono)", fontSize: "0.7rem", background: "#111", padding: "0.75rem 1.25rem", borderRadius: "4px", width: "100%" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                  <span style={{ color: "var(--foreground)" }}>IMPOSSIBLE</span>
+                  <span style={{ color: "var(--accent)" }}>→</span>
+                  <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.2" }}>
+                    <span style={{ color: "var(--foreground)" }}>IMPOS<span style={{ color: "var(--accent)" }}>-</span></span>
+                    <span style={{ color: "var(--foreground)" }}>SIBLE</span>
+                  </div>
+                  <span style={{ color: "var(--accent)" }}>→</span>
+                  <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
+                    <span style={{ color: "var(--foreground)" }}>IMP<span style={{ color: "var(--accent)" }}>-</span></span>
+                    <span style={{ color: "var(--muted-foreground)", fontSize: "0.5rem" }}>then</span>
+                    <span style={{ color: "var(--foreground)" }}>OSS<span style={{ color: "var(--accent)" }}>-</span></span>
+                    <span style={{ color: "var(--muted-foreground)", fontSize: "0.5rem" }}>then</span>
+                    <span style={{ color: "var(--foreground)" }}>IBLE</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <h3 className={styles.howTitle}>Per-Word Hyphenation</h3>
+            <p className={styles.howBody}>
+              A 25-pixel-wide LED grid can&apos;t fit most English words unbroken. For every word, the font engine measures its rendered pixel width, finds the mathematically optimal hyphen point that balances the two halves, and stacks them. If even that doesn&apos;t fit, it slices the word into sequential chunks and animates through them during the word&apos;s timeslice — the matrix spells out long words one piece at a time.
+            </p>
+          </motion.div>
 
         </div>
       </section>
