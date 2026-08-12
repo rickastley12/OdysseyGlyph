@@ -45,12 +45,27 @@ jobs:
       with:
         name: app-debug
         
-    - name: Generate SHA-256 Checksum
+    - name: Upload to VirusTotal
+      env:
+        VT_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
       run: |
-        echo "### Security Checksum" > release-notes.md
-        echo "\`\`\`text" >> release-notes.md
-        echo "SHA-256: $(sha256sum app-debug.apk | cut -d ' ' -f 1)" >> release-notes.md
-        echo "\`\`\`" >> release-notes.md
+        if [ -n "$VT_API_KEY" ]; then
+          echo "Uploading to VirusTotal..."
+          curl --silent --show-error --request POST \
+            --url https://www.virustotal.com/api/v3/files \
+            --header "x-apikey: $VT_API_KEY" \
+            --form file=@app-debug.apk || true
+        else
+          echo "VIRUSTOTAL_API_KEY secret not found. Skipping upload."
+        fi
+        
+    - name: Generate Release Notes
+      run: |
+        SHA=$(sha256sum app-debug.apk | cut -d ' ' -f 1)
+        echo "### Security & Trust" > release-notes.md
+        echo "This APK was compiled transparently via GitHub Actions." >> release-notes.md
+        echo "- **SHA-256**: \`$SHA\`" >> release-notes.md
+        echo "- **VirusTotal Scan**: [View Analysis Report](https://www.virustotal.com/gui/file/$SHA)" >> release-notes.md
         
     - name: Create Release
       uses: softprops/action-gh-release@v2
