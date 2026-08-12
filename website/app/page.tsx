@@ -67,7 +67,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 0.5 }}
             >
-              Unleash the Glyph. True audio-visual synergy powered by a custom animation engine.
+              An open-source lyrics engine and custom animation studio for the Nothing Glyph Matrix.
             </motion.p>
 
             <motion.div
@@ -84,14 +84,6 @@ export default function Home() {
               </a>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: shouldReduceMotion ? 0 : 1.1 }}
-              style={{ marginTop: "1.5rem" }}
-            >
-              <LedGrid />
-            </motion.div>
 
             <motion.p
               className={styles.deviceReq}
@@ -107,7 +99,7 @@ export default function Home() {
 
       {/* ── PROOF OF LIFE ──────────────────────────────────────────── */}
       {/*
-        TODO: Replace <div className={styles.proofPlaceholder}> with:
+        TODO: Replace <LedGrid /> with:
 
           <video
             className={styles.proofVideo}
@@ -115,13 +107,19 @@ export default function Home() {
             src="/media/led-matrix-demo.webm"
           />
 
-        once physical hardware footage is captured, then delete
-        proofPlaceholder, proofComing, and this comment block.
+        once physical hardware footage is captured.
       */}
       <section className={styles.proof}>
-        <div className={styles.proofPlaceholder}>
-          <p className={styles.proofComing}>[ Hardware footage coming soon ]</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={springDefault}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}
+        >
+          <LedGrid />
+          <p className={styles.proofComing} style={{ opacity: 0.5 }}>[ Interactive hardware visualization ]</p>
+        </motion.div>
       </section>
 
       {/* ── ORIGIN STORY ───────────────────────────────────────────── */}
