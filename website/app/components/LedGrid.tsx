@@ -21,16 +21,16 @@ export default function LedGrid() {
     let startTime = Date.now();
     let mousePos = { x: -1000, y: -1000, active: false };
 
-    const handlePointerMove = (e: PointerEvent) => {
+    const handleMouseMove = (e: MouseEvent) => {
       mousePos = { x: e.clientX, y: e.clientY, active: true };
     };
 
-    const handlePointerLeave = () => {
+    const handleMouseLeave = () => {
       mousePos.active = false;
     };
 
-    window.addEventListener("pointermove", handlePointerMove);
-    document.addEventListener("pointerleave", handlePointerLeave);
+    window.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseleave", handleMouseLeave);
 
     const updateLoop = () => {
       const dots = dotsRef.current;
@@ -55,7 +55,7 @@ export default function LedGrid() {
         } else if (mousePos.active) {
           // Interactive flashlight effect when mouse is active
           const dist = Math.hypot(dotX - mousePos.x, dotY - mousePos.y);
-          const maxGlowDist = 160;
+          const maxGlowDist = 150;
 
           if (dist < maxGlowDist) {
             const intensity = 1 - dist / maxGlowDist;
@@ -81,8 +81,8 @@ export default function LedGrid() {
     animationFrameId = requestAnimationFrame(updateLoop);
 
     return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      document.removeEventListener("pointerleave", handlePointerLeave);
+      window.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseleave", handleMouseLeave);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
   }, [shouldReduceMotion]);
@@ -97,7 +97,7 @@ export default function LedGrid() {
         padding: "1.5rem",
         margin: "0 auto",
         width: "fit-content",
-        pointerEvents: "none", // Allow mouse events to pass through cleanly
+        pointerEvents: "auto", // Ensure mouse events are captured properly
       }}
     >
       {Array.from({ length: TOTAL_CELLS }).map((_, i) => (

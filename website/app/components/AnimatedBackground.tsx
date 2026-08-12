@@ -10,6 +10,15 @@ interface Flicker {
   peakAlpha: number; // 0.7 - 1.0
 }
 
+interface HazePatch {
+  cx: number;
+  cy: number;
+  baseRadius: number;
+  baseAlpha: number;
+  phase: number;
+  speed: number;
+}
+
 export default function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -25,7 +34,7 @@ export default function AnimatedBackground() {
 
     const SPACING = 28;
     const DOT_RADIUS = 1.5;
-    const BASE_COLOR = "rgb(13, 13, 13)"; // #0d0d0d
+    const BASE_GRAY = 13; // #0d0d0d
     const RED_R = 234;
     const RED_G = 51;
     const RED_B = 35; // #EA3323
@@ -35,6 +44,7 @@ export default function AnimatedBackground() {
     let rows = 0;
     let totalDots = 0;
     let activeFlickers: Map<string, Flicker> = new Map();
+    let patches: HazePatch[] = [];
 
     const handleResize = () => {
       const dpr = window.devicePixelRatio || 1;
@@ -52,6 +62,14 @@ export default function AnimatedBackground() {
       rows = Math.ceil(height / SPACING) + 1;
       totalDots = cols * rows;
 
+      // Re-initialize patches relative to new screen size
+      patches = [
+        { cx: 0.2 + Math.random() * 0.1, cy: 0.3 + Math.random() * 0.2, baseRadius: Math.min(width, height) * 0.4, baseAlpha: 0.05, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
+        { cx: 0.7 + Math.random() * 0.1, cy: 0.2 + Math.random() * 0.2, baseRadius: Math.min(width, height) * 0.3, baseAlpha: 0.04, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
+        { cx: 0.5 + Math.random() * 0.1, cy: 0.7 + Math.random() * 0.2, baseRadius: Math.min(width, height) * 0.45, baseAlpha: 0.06, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
+        { cx: 0.8 + Math.random() * 0.1, cy: 0.8 + Math.random() * 0.1, baseRadius: Math.min(width, height) * 0.35, baseAlpha: 0.05, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
+      ];
+
       if (prefersReducedMotion) {
         drawStaticGrid(width, height);
       }
@@ -59,7 +77,7 @@ export default function AnimatedBackground() {
 
     const drawStaticGrid = (width: number, height: number) => {
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = BASE_COLOR;
+      ctx.fillStyle = `rgb(${BASE_GRAY}, ${BASE_GRAY}, ${BASE_GRAY})`;
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -72,10 +90,33 @@ export default function AnimatedBackground() {
       }
     };
 
+    // Helper to calculate the base color of a dot including the white haze patches
+    const getHazeIntensity = (x: number, y: number, timeSec: number, width: number, height: number) => {
+      let hazeAlpha = 0;
+      for (const p of patches) {
+        const px = p.cx * width;
+        const py = p.cy * height;
+        const dist = Math.hypot(x - px, y - py);
+        
+        // Breathing radius and intensity
+        const breathe = Math.sin(timeSec * p.speed + p.phase); // -1 to 1
+        const currentRadius = p.baseRadius + breathe * 30;
+        
+        if (dist < currentRadius) {
+          // Quadratic falloff
+          const normalized = dist / currentRadius;
+          const falloff = Math.pow(1 - normalized * normalized, 2);
+          hazeAlpha += p.baseAlpha * falloff * (1 + breathe * 0.1);
+        }
+      }
+      return Math.min(1, hazeAlpha);
+    };
+
     const render = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
       const now = performance.now();
+      const timeSec = now / 1000;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -102,14 +143,18 @@ export default function AnimatedBackground() {
         }
       }
 
-      // Draw all base dots
-      ctx.fillStyle = BASE_COLOR;
+      // Draw all base dots (with haze)
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const key = `${c},${r}`;
           if (!activeFlickers.has(key)) {
             const x = c * SPACING;
             const y = r * SPACING;
+            
+            const haze = getHazeIntensity(x, y, timeSec, width, height);
+            const val = Math.round(BASE_GRAY + (255 - BASE_GRAY) * haze);
+            
+            ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
             ctx.beginPath();
             ctx.arc(x, y, DOT_RADIUS, 0, Math.PI * 2);
             ctx.fill();
@@ -119,13 +164,15 @@ export default function AnimatedBackground() {
 
       // Draw active flickering dots
       activeFlickers.forEach((flicker, key) => {
+        const x = flicker.col * SPACING;
+        const y = flicker.row * SPACING;
+        const haze = getHazeIntensity(x, y, timeSec, width, height);
+        const baseVal = Math.round(BASE_GRAY + (255 - BASE_GRAY) * haze);
+
         const elapsed = now - flicker.startTime;
 
         if (elapsed < 0) {
-          // Waiting to start - draw base color
-          const x = flicker.col * SPACING;
-          const y = flicker.row * SPACING;
-          ctx.fillStyle = BASE_COLOR;
+          ctx.fillStyle = `rgb(${baseVal}, ${baseVal}, ${baseVal})`;
           ctx.beginPath();
           ctx.arc(x, y, DOT_RADIUS, 0, Math.PI * 2);
           ctx.fill();
@@ -136,10 +183,7 @@ export default function AnimatedBackground() {
 
         if (progress >= 1) {
           activeFlickers.delete(key);
-          // Draw base dot on cleanup frame
-          const x = flicker.col * SPACING;
-          const y = flicker.row * SPACING;
-          ctx.fillStyle = BASE_COLOR;
+          ctx.fillStyle = `rgb(${baseVal}, ${baseVal}, ${baseVal})`;
           ctx.beginPath();
           ctx.arc(x, y, DOT_RADIUS, 0, Math.PI * 2);
           ctx.fill();
@@ -156,15 +200,12 @@ export default function AnimatedBackground() {
 
         intensity *= flicker.peakAlpha;
 
-        const x = flicker.col * SPACING;
-        const y = flicker.row * SPACING;
+        // Mix red over the haze base
+        const rVal = Math.round(baseVal + (RED_R - baseVal) * intensity);
+        const gVal = Math.round(baseVal + (RED_G - baseVal) * intensity);
+        const bVal = Math.round(baseVal + (RED_B - baseVal) * intensity);
 
-        // Interpolate between base #0d0d0d (13,13,13) and red #EA3323 (234,51,35)
-        const r = Math.round(13 + (RED_R - 13) * intensity);
-        const g = Math.round(13 + (RED_G - 13) * intensity);
-        const b = Math.round(13 + (RED_B - 13) * intensity);
-
-        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.fillStyle = `rgb(${rVal}, ${gVal}, ${bVal})`;
         ctx.beginPath();
         ctx.arc(x, y, DOT_RADIUS + intensity * 0.5, 0, Math.PI * 2); // slightly expand when lit
         ctx.fill();
