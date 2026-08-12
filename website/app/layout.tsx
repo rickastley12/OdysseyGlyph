@@ -36,6 +36,7 @@ export const metadata: Metadata = {
 };
 
 import AnimatedBackground from "./components/AnimatedBackground";
+import { Providers } from "./providers";
 
 export default function RootLayout({
   children,
@@ -45,8 +46,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${ndot.variable}`}>
       <body>
-        <AnimatedBackground />
-        <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
+        <Providers>
+          <AnimatedBackground />
+          <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
+        </Providers>
       </body>
     </html>
   );

@@ -20,7 +20,8 @@ export default function AnimatedBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const osReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReducedMotion = process.env.NODE_ENV === "production" ? osReducedMotion : false;
 
     const SPACING = 28;
     const DOT_RADIUS = 1.5;
