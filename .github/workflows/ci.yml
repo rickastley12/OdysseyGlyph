@@ -45,8 +45,17 @@ jobs:
       with:
         name: app-debug
         
+    - name: Generate SHA-256 Checksum
+      run: |
+        echo "### Security Checksum" > release-notes.md
+        echo "\`\`\`text" >> release-notes.md
+        echo "SHA-256: $(sha256sum app-debug.apk | cut -d ' ' -f 1)" >> release-notes.md
+        echo "\`\`\`" >> release-notes.md
+        
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         files: app-debug.apk
         generate_release_notes: true
+        body_path: release-notes.md
+        append_body: true
