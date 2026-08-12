@@ -62,12 +62,12 @@ export default function AnimatedBackground() {
       rows = Math.ceil(height / SPACING) + 1;
       totalDots = cols * rows;
 
-      // Re-initialize patches relative to new screen size
+      // Re-initialize patches relative to new screen size with much higher visibility
       patches = [
-        { cx: 0.2 + Math.random() * 0.1, cy: 0.3 + Math.random() * 0.2, baseRadius: Math.min(width, height) * 0.4, baseAlpha: 0.05, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
-        { cx: 0.7 + Math.random() * 0.1, cy: 0.2 + Math.random() * 0.2, baseRadius: Math.min(width, height) * 0.3, baseAlpha: 0.04, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
-        { cx: 0.5 + Math.random() * 0.1, cy: 0.7 + Math.random() * 0.2, baseRadius: Math.min(width, height) * 0.45, baseAlpha: 0.06, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
-        { cx: 0.8 + Math.random() * 0.1, cy: 0.8 + Math.random() * 0.1, baseRadius: Math.min(width, height) * 0.35, baseAlpha: 0.05, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
+        { cx: 0.2 + Math.random() * 0.1, cy: 0.3 + Math.random() * 0.2, baseRadius: Math.min(width, height) * 0.4, baseAlpha: 0.15, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
+        { cx: 0.7 + Math.random() * 0.1, cy: 0.2 + Math.random() * 0.2, baseRadius: Math.min(width, height) * 0.3, baseAlpha: 0.20, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
+        { cx: 0.5 + Math.random() * 0.1, cy: 0.7 + Math.random() * 0.2, baseRadius: Math.min(width, height) * 0.45, baseAlpha: 0.18, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
+        { cx: 0.8 + Math.random() * 0.1, cy: 0.8 + Math.random() * 0.1, baseRadius: Math.min(width, height) * 0.35, baseAlpha: 0.16, phase: Math.random() * Math.PI * 2, speed: (Math.PI * 2) / (8 + Math.random() * 4) },
       ];
 
       if (prefersReducedMotion) {

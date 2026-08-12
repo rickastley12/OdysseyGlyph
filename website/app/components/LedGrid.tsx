@@ -22,7 +22,9 @@ export default function LedGrid() {
     let mousePos = { x: -1000, y: -1000, active: false };
 
     const handleMouseMove = (e: MouseEvent) => {
-      mousePos = { x: e.clientX, y: e.clientY, active: true };
+      mousePos.x = e.clientX;
+      mousePos.y = e.clientY;
+      mousePos.active = true;
     };
 
     const handleMouseLeave = () => {
@@ -50,9 +52,7 @@ export default function LedGrid() {
 
         let brightness = 0.1;
 
-        if (shouldReduceMotion) {
-          brightness = 0.2;
-        } else if (mousePos.active) {
+        if (mousePos.active) {
           // Interactive flashlight effect when mouse is active
           const dist = Math.hypot(dotX - mousePos.x, dotY - mousePos.y);
           const maxGlowDist = 150;
@@ -61,7 +61,7 @@ export default function LedGrid() {
             const intensity = 1 - dist / maxGlowDist;
             brightness = 0.1 + intensity * 0.9;
           }
-        } else if (isNarrow) {
+        } else if (isNarrow && !shouldReduceMotion) {
           // Fallback radial pulse for mobile screen when no mouse active
           const centerX = rect.left + rect.width / 2;
           const centerY = rect.top + rect.height / 2;
@@ -70,6 +70,8 @@ export default function LedGrid() {
 
           const phase = (dist / maxDist) * Math.PI * 2 - time * 2;
           brightness = 0.1 + Math.max(0, Math.sin(phase)) * 0.4;
+        } else if (shouldReduceMotion) {
+           brightness = 0.2; // Static fallback
         }
 
         dot.style.opacity = brightness.toFixed(3);
