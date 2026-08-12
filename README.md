@@ -85,7 +85,7 @@ I use it myself so when something bothers me enough I'll fix it. No roadmap, no 
 
 ## Install
 
-> **Transparency Note:** This APK is built transparently via [GitHub Actions](https://github.com/rickastley12/OdysseyGlyph/actions). You can view the build logs to verify that the APK is compiled directly from the open-source code in this repository without any tampering, and the SHA-256 checksum is provided in the release notes.
+> **Transparency Note:** This APK is built transparently via [GitHub Actions](https://github.com/rickastley12/OdysseyGlyph/actions). You can view the build logs to verify that the APK is compiled directly from the open-source code in this repository without any tampering. Additionally, every release is automatically uploaded and scanned by VirusTotal, and includes a cryptographic SHA-256 checksum right in the release notes.
 
 1. [Releases](https://github.com/rickastley12/OdysseyGlyph/releases) → download `app-debug.apk` to your phone
 2. Tap the file — Android will ask you to allow installs from unknown sources, enable it
