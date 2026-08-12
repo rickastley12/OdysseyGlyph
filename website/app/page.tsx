@@ -522,6 +522,31 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── SECURITY & TRUST ─────────────────────────────────────────── */}
+      <section id="security" className={styles.install} style={{ paddingTop: "2rem" }}>
+        <motion.h2 className={styles.sectionTitle}
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+          SECURITY & TRUST
+        </motion.h2>
+
+        <div className={styles.installInner}>
+          <motion.div className={styles.howCard} style={{ width: "100%", padding: "2rem" }}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+            <h3 className={styles.howTitle} style={{ marginBottom: "0.5rem" }}>Verifiable Open Source Builds</h3>
+            <p className={styles.howBody} style={{ marginBottom: "1.5rem" }}>
+              To guarantee safety, the APK distributed in our releases is built transparently by GitHub Actions — not on a personal computer. You can view the raw build logs to verify that the APK is compiled directly from the open-source code in this repository without any tampering.
+            </p>
+
+            <h3 className={styles.howTitle} style={{ marginBottom: "0.5rem" }}>Automated VirusTotal Scans</h3>
+            <p className={styles.howBody}>
+              Every release is automatically uploaded to VirusTotal by our automated pipeline. The release notes include a direct link to the scan analysis and the exact cryptographic SHA-256 hash of the APK, so you can be 100% certain the clean scan matches the file you download.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ── FOOTER ─────────────────────────────────────────────────── */}
       <footer className={styles.footer}>
         <div className={styles.footerInner}>

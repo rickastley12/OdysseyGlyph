@@ -3,6 +3,8 @@ GLYPH ODYSSEY
 video → 25×25 LED matrix  ·  on-device  ·  MIT
 ```
 
+**[🌐 Visit the Live Website](https://odyssey-glyph.vercel.app/)**
+
 This started because I wanted to watch the Odyssey trailer on the back of my Nothing Phone as a bit. I thought it would take a few hours. It took a weekend, three rewrites, and way more thinking about pixel averaging than any reasonable person should do for a joke.
 
 Somewhere in that process, the pipeline stopped caring what video I gave it. So I shipped it.
