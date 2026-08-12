@@ -16,7 +16,23 @@ const ndot = localFont({
 
 export const metadata: Metadata = {
   title: "Glyph Odyssey",
-  description: "Unleash the Glyph. True audio-visual synergy.",
+  description:
+    "Turn any gallery video into a Glyph Matrix animation — on-device, offline, in seconds. For Nothing Phone (3) and (4a) Pro.",
+  openGraph: {
+    title: "Glyph Odyssey",
+    description:
+      "Turn any gallery video into a Glyph Matrix animation — on-device, offline, in seconds.",
+    type: "website",
+    // TODO: add og:image once LED matrix footage is captured
+    // images: [{ url: "/og/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Glyph Odyssey",
+    description:
+      "Turn any gallery video into a Glyph Matrix animation — on-device, offline, in seconds.",
+    // TODO: images: ["/og/og-image.png"],
+  },
 };
 
 export default function RootLayout({

@@ -1,217 +1,457 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import styles from "./page.module.css";
 import { useEffect, useState } from "react";
 
-// Apple-style spring configs
-const springDefault = { type: "spring" as const, bounce: 0, duration: 0.8 };
-const springBouncy = { type: "spring" as const, bounce: 0.2, duration: 0.6 };
+import BootSequence from "./components/BootSequence";
+import DotMatrixText from "./components/DotMatrixText";
+import LedGrid from "./components/LedGrid";
 
-const titleText = "GLYPH ODYSSEY";
+const springDefault = { type: "spring" as const, bounce: 0, duration: 0.8 };
+const springBouncy  = { type: "spring" as const, bounce: 0.2, duration: 0.6 };
+
+const GITHUB_URL  = "https://github.com/rickastley12/OdysseyGlyph";
+const RELEASES_URL = "https://github.com/rickastley12/OdysseyGlyph/releases";
+
+// Precomputed grayscale values for the box-filter downsampling demo.
+// "Naive" has extreme jumps (simulating nearest-neighbour artefacts).
+// "Box filter" shows the same scene averaged into a compressed tonal range.
+const naivePixels = [92, 8, 88, 12, 95, 18, 82, 5, 78, 22, 90, 6, 85, 10, 92, 8, 80, 18, 75, 12, 88, 6, 92, 14, 82];
+const boxPixels   = [46, 38, 48, 32, 58, 36, 42, 28, 44, 40, 50, 30, 52, 34, 54, 28, 44, 38, 46, 32, 50, 28, 54, 36, 48];
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  const [isBooting, setIsBooting] = useState(true);
+  const shouldReduceMotion = useReducedMotion();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
 
   return (
     <main className={styles.main}>
+      {isBooting ? (
+        <BootSequence onComplete={() => setIsBooting(false)} />
+      ) : null}
+
+      {/* ── NAV ────────────────────────────────────────────────────── */}
       <nav className={styles.nav}>
-        <div className={styles.navLogo}>GLYPH ODYSSEY</div>
-        <div>v1.0</div>
+        <a href="#hero" className={styles.navLogo}>GLYPH ODYSSEY</a>
+        <div className={styles.navLinks}>
+          <a href="#features"     className={styles.navLink}>Features</a>
+          <a href="#how-it-works" className={styles.navLink}>How It Works</a>
+          <a href="#install"      className={styles.navLink}>Install</a>
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={styles.navLink}>GitHub</a>
+        </div>
+        <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.navCta}>
+          Download
+        </a>
       </nav>
 
-      <section className={styles.hero}>
-        <h1 className={styles.title}>
-          {titleText.split(" ").map((word, wordIndex) => (
-            <span key={wordIndex} className={styles.word}>
-              {word.split("").map((letter, letterIndex) => {
-                const baseDelay = wordIndex * 0.2 + letterIndex * 0.05;
-                return (
-                  <motion.span
-                    key={letterIndex}
-                    className={styles.letter}
-                    initial={{ opacity: 0, x: -5, skewX: 20 }}
-                    animate={{
-                      opacity: [0, 1, 0, 1, 0.5, 1, 1],
-                      x: [-5, 5, -2, 2, 0, 0],
-                      skewX: [20, -10, 10, -5, 0, 0],
-                      color: ["var(--foreground)", "var(--accent)", "var(--foreground)", "var(--foreground)"]
-                    }}
-                    transition={{
-                      duration: 0.6,
-                      times: [0, 0.15, 0.2, 0.35, 0.5, 0.7, 1],
-                      delay: baseDelay,
-                      ease: "linear"
-                    }}
-                  >
-                    {letter}
-                  </motion.span>
-                );
-              })}
-              &nbsp;
-            </span>
-          ))}
-        </h1>
+      {/* ── HERO ───────────────────────────────────────────────────── */}
+      <section id="hero" className={styles.hero}>
+        {!isBooting && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2rem" }}>
+            <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", justifyContent: "center", marginBottom: "1rem" }}>
+              <DotMatrixText text="GLYPH" color="var(--foreground)" delayOffset={0} />
+              <DotMatrixText text="ODYSSEY" color="var(--accent)" delayOffset={0.75} />
+            </div>
 
-        <motion.p
-          className={styles.subtitle}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...springDefault, delay: 1 }}
-        >
-          Unleash the Glyph. True audio-visual synergy powered by a custom animation engine.
-        </motion.p>
-
-        <motion.button
-          className={styles.downloadBtn}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ ...springDefault, delay: 1.2 }}
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.05 }}
-        >
-          Download APK
-        </motion.button>
-      </section>
-
-      <section className={styles.features}>
-        {/* Feature 1 */}
-        <div className={styles.featureCard}>
-          <div className={styles.featureContent}>
-            <motion.h2
-              className={styles.featureTitle}
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={springDefault}
-            >
-              LYRIC STUDIO
-            </motion.h2>
             <motion.p
-              className={styles.featureDesc}
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ ...springDefault, delay: 0.1 }}
+              className={styles.subtitle}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 0.5 }}
             >
-              Author precise, frame-by-frame glyph animations synced perfectly to your favorite .lrc files. Export standalone .ogg toys directly to the Nothing ecosystem.
+              Unleash the Glyph. True audio-visual synergy powered by a custom animation engine.
             </motion.p>
           </div>
+        )}
+
+        <motion.div
+          className={styles.heroCtas}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 1.2 }}
+        >
+          <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.downloadBtn}>
+            Download APK
+          </a>
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={styles.githubBtn}>
+            View on GitHub
+          </a>
+        </motion.div>
+
+        {!isBooting && (
           <motion.div
-            className={styles.visualPlaceholder}
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={springBouncy}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1.5 }}
+            style={{ marginTop: "2rem" }}
           >
+            <LedGrid />
+          </motion.div>
+        )}
+
+        <motion.p
+          className={styles.deviceReq}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 1.5 }}
+        >
+          Requires Nothing Phone (3) or (4a) Pro
+        </motion.p>
+      </section>
+
+      {/* ── PROOF OF LIFE ──────────────────────────────────────────── */}
+      {/*
+        TODO: Replace <div className={styles.proofPlaceholder}> with:
+
+          <video
+            className={styles.proofVideo}
+            autoPlay muted loop playsInline
+            src="/media/led-matrix-demo.webm"
+          />
+
+        once physical hardware footage is captured, then delete
+        proofPlaceholder, proofComing, and this comment block.
+      */}
+      <section className={styles.proof}>
+        <div className={styles.proofPlaceholder}>
+          <p className={styles.proofComing}>[ Hardware footage coming soon ]</p>
+        </div>
+      </section>
+
+      {/* ── ORIGIN STORY ───────────────────────────────────────────── */}
+      <section className={styles.origin}>
+        <motion.blockquote
+          className={styles.originText}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={springDefault}
+        >
+          It started as a joke — I wanted to watch the Odyssey trailer "as Nolan intended," on the
+          back of my phone, for a meme. Getting one video onto the Glyph Matrix properly took way more
+          fixing and iterating than expected. Somewhere in there I realized the pipeline I'd built
+          didn't care what video it was. So I generalized it.
+        </motion.blockquote>
+      </section>
+
+      {/* ── FEATURES ───────────────────────────────────────────────── */}
+      <section id="features" className={styles.features}>
+
+        {/* Lyric Studio */}
+        <div className={styles.featureCard}>
+          <div className={styles.featureContent}>
+            <motion.h2 className={styles.featureTitle}
+              initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+              LYRIC STUDIO
+            </motion.h2>
+            <motion.p className={styles.featureDesc}
+              initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
+              Compose frame-by-frame Glyph animations synced to LRC lyric files. A custom Ndot57
+              font engine renders text at 25×25 resolution — preview playback live and export
+              as a <code className={styles.inlineCode}>.bin</code> frame sequence ready to play on hardware.
+            </motion.p>
+          </div>
+          <motion.div className={styles.visualPlaceholder}
+            initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-100px" }} transition={springBouncy}>
             <div className={styles.glyphGrid}>
               {Array.from({ length: 25 }).map((_, i) => (
-                <motion.div
-                  key={i}
+                <motion.div key={i}
                   className={`${styles.glyphDot} ${i % 3 === 0 ? styles.active : ""}`}
-                  animate={{ opacity: [0.3, 1, 0.3] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: i * 0.1,
-                  }}
+                  animate={shouldReduceMotion ? {} : { opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.1 }}
                 />
               ))}
             </div>
           </motion.div>
         </div>
 
-        {/* Feature 2 */}
+        {/* Live Lyrics */}
         <div className={`${styles.featureCard} ${styles.reverse}`}>
           <div className={styles.featureContent}>
-            <motion.h2
-              className={styles.featureTitle}
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={springDefault}
-            >
+            <motion.h2 className={styles.featureTitle}
+              initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
               LIVE LYRICS
             </motion.h2>
-            <motion.p
-              className={styles.featureDesc}
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ ...springDefault, delay: 0.1 }}
-            >
-              An intelligent background service that intercepts playing media and renders real-time scrolling typography across the Glyph Matrix on your phone's back glass.
+            <motion.p className={styles.featureDesc}
+              initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
+              A background service that detects whatever is currently playing system-wide — any music
+              app — via Android&apos;s MediaSession, fetches time-synced lyrics from LRCLib, and scrolls
+              them live across the Glyph Matrix. No API key, no accounts, no setup.
             </motion.p>
           </div>
-          <motion.div
-            className={styles.visualPlaceholder}
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={springBouncy}
-          >
-            {/* Visual mock for live lyrics */}
+          <motion.div className={styles.visualPlaceholder}
+            initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-100px" }} transition={springBouncy}>
             <motion.div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "4rem",
-                color: "var(--foreground)",
-                whiteSpace: "nowrap",
-              }}
-              animate={{ x: ["100%", "-100%"] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-            >
+              style={{ fontFamily: "var(--font-mono)", fontSize: "3rem", color: "var(--foreground)", whiteSpace: "nowrap" }}
+              animate={shouldReduceMotion ? {} : { x: ["100%", "-100%"] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}>
               NEVER GONNA GIVE YOU UP
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Feature 3 */}
+        {/* Toy Manager */}
         <div className={styles.featureCard}>
           <div className={styles.featureContent}>
-            <motion.h2
-              className={styles.featureTitle}
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={springDefault}
-            >
+            <motion.h2 className={styles.featureTitle}
+              initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
               TOY MANAGER
             </motion.h2>
-            <motion.p
-              className={styles.featureDesc}
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ ...springDefault, delay: 0.1 }}
-            >
-              Seamless integration with the Nothing OS third-party ecosystem. Manage, preview, and apply your custom glyph compositions natively.
+            <motion.p className={styles.featureDesc}
+              initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
+              Save, preview, and manage your processed animations as Glyph Toys. Browse your preset
+              library, swap between them on the fly, and delete what you don&apos;t need — all without
+              touching Nothing&apos;s GlyphMatrixEditor.
             </motion.p>
           </div>
-          <motion.div
-            className={styles.visualPlaceholder}
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={springBouncy}
-            whileHover={{ scale: 1.05, rotate: 2 }}
-          >
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: "2rem" }}>
-              {"{ OGG }"}
+          <motion.div className={styles.visualPlaceholder}
+            initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-100px" }} transition={springBouncy}
+            whileHover={shouldReduceMotion ? {} : { scale: 1.05, rotate: 2 }}>
+            <div className={styles.presetList}>
+              <div className={styles.presetLabel}>[ PRESETS ]</div>
+              <div className={styles.presetItem}>odyssey.bin</div>
+              <div className={styles.presetItem} style={{ opacity: 0.6 }}>my_clip.bin</div>
+              <div className={styles.presetItem} style={{ opacity: 0.3 }}>untitled.bin</div>
             </div>
           </motion.div>
         </div>
+
       </section>
 
+      {/* ── HOW IT WORKS ───────────────────────────────────────────── */}
+      <section id="how-it-works" className={styles.howItWorks}>
+        <motion.h2 className={styles.sectionTitle}
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+          HOW IT WORKS
+        </motion.h2>
+
+        <div className={styles.howGrid}>
+
+          {/* 1 — Box-filter downsampling */}
+          <motion.div className={styles.howCard}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+            <div className={styles.howVisual}>
+              <div className={styles.beforeAfter}>
+                <div className={styles.baPanel}>
+                  <div className={styles.baPanelLabel}>NAIVE</div>
+                  <div className={styles.baGrid}>
+                    {naivePixels.map((v, i) => (
+                      <div key={i} className={styles.baCell} style={{ background: `hsl(0,0%,${v}%)` }} />
+                    ))}
+                  </div>
+                </div>
+                <div className={styles.baArrow}>→</div>
+                <div className={styles.baPanel}>
+                  <div className={styles.baPanelLabel}>BOX FILTER</div>
+                  <div className={styles.baGrid}>
+                    {boxPixels.map((v, i) => (
+                      <div key={i} className={styles.baCell} style={{ background: `hsl(0,0%,${v}%)` }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <h3 className={styles.howTitle}>Box-Filter Downsampling</h3>
+            <p className={styles.howBody}>
+              Naive pixel-dropping (nearest-neighbour) throws away most of the source frame at 25×25, turning
+              faces into unrecognizable blobs. Box-filter downsampling mathematically averages every pixel
+              in each output cell&apos;s corresponding source region — an area-weighted mean that preserves
+              edges and visible detail.
+            </p>
+          </motion.div>
+
+          {/* 2 — Adaptive S-curve */}
+          <motion.div className={styles.howCard}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
+            <div className={styles.howVisual}>
+              <div className={styles.beforeAfter} style={{ alignItems: "center" }}>
+                <div className={styles.baPanel}>
+                  <div className={styles.baPanelLabel}>FLAT</div>
+                  <div className={styles.contrastBar} style={{ background: "linear-gradient(to right,#222,#555,#888)" }} />
+                </div>
+                <div className={styles.baArrow}>→</div>
+                <div className={styles.baPanel}>
+                  <div className={styles.baPanelLabel}>S-CURVE</div>
+                  <div className={styles.contrastBar} style={{ background: "linear-gradient(to right,#080808,#fff)" }} />
+                </div>
+              </div>
+            </div>
+            <h3 className={styles.howTitle}>Adaptive S-Curve Contrast</h3>
+            <p className={styles.howBody}>
+              A flat grayscale conversion looks washed out on a 25×25 monochrome LED grid — mid-range greys
+              are indistinguishable. Per-frame local contrast stretching maps each frame&apos;s actual tonal range
+              to 0–255, then an S-curve and unsharp mask ensure faces and shapes punch through on the
+              physical hardware.
+            </p>
+          </motion.div>
+
+          {/* 3 — Gesture → pixel mapping */}
+          <motion.div className={styles.howCard}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.2 }}>
+            <div className={styles.howVisual}>
+              <div className={styles.beforeAfter} style={{ alignItems: "center" }}>
+                <div className={styles.baPanel} style={{ alignItems: "center" }}>
+                  <div className={styles.baPanelLabel}>SCREEN</div>
+                  <div className={styles.cropSource}>
+                    <div className={styles.cropCircle} />
+                  </div>
+                </div>
+                <div className={styles.baArrow}>→</div>
+                <div className={styles.baPanel} style={{ alignItems: "center" }}>
+                  <div className={styles.baPanelLabel}>SOURCE PIXELS</div>
+                  <div className={styles.cropGrid}>
+                    {Array.from({ length: 9 }).map((_, i) => (
+                      <div key={i} className={styles.cropCell} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <h3 className={styles.howTitle}>Gesture → Source Pixel Mapping</h3>
+            <p className={styles.howBody}>
+              The pinch/pan crop overlay lets you frame any portion of the video on screen. An inverse-transform
+              matrix converts the crop circle&apos;s screen coordinates into exact source-frame pixel coordinates,
+              so the box filter always samples from the right region regardless of zoom level or pan offset.
+            </p>
+          </motion.div>
+
+          {/* 4 — Live Lyrics without an API */}
+          <motion.div className={styles.howCard}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.3 }}>
+            <div className={styles.howVisual}>
+              <div className={styles.flowDiagram}>
+                {(["Music App", "MediaSession", "LRCLib", "Glyph Matrix"] as const).map((node, i, arr) => (
+                  <div key={node}>
+                    <div className={`${styles.flowNode} ${i === arr.length - 1 ? styles.flowNodeAccent : ""}`}>
+                      {node}
+                    </div>
+                    {i < arr.length - 1 && <div className={styles.flowArrow}>↓</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <h3 className={styles.howTitle}>Live Lyrics Without an API</h3>
+            <p className={styles.howBody}>
+              There is no public Android API to ask &quot;what song is playing right now.&quot; Android&apos;s{" "}
+              <code className={styles.inlineCode}>NotificationListenerService</code> combined with{" "}
+              <code className={styles.inlineCode}>MediaSession</code> lets the app read current track metadata
+              system-wide — from any music player. That metadata is passed to LRCLib to fetch time-synced
+              lyrics, which are then rendered as scrolling text on the matrix.
+            </p>
+          </motion.div>
+
+        </div>
+      </section>
+
+      {/* ── INSTALL ────────────────────────────────────────────────── */}
+      <section id="install" className={styles.install}>
+        <motion.h2 className={styles.sectionTitle}
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+          INSTALLATION
+        </motion.h2>
+
+        <div className={styles.installInner}>
+
+          <motion.div className={styles.installWarning}
+            initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+            ⚠&nbsp; Requires Nothing Phone (3) or (4a) Pro. Older models (Phone 1, 2, 2a) have
+            zone-based LED strips, not the full 25×25 addressable matrix, and are not supported.
+          </motion.div>
+
+          <ol className={styles.installSteps}>
+            {[
+              {
+                num: "01", title: "Go to Releases",
+                body: (
+                  <span>
+                    Head to{" "}
+                    <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.inlineLink}>
+                      the Releases page on GitHub
+                    </a>{" "}
+                    and find the latest release.
+                  </span>
+                ),
+              },
+              {
+                num: "02", title: "Download the APK",
+                body: (
+                  <span>
+                    Download <code className={styles.inlineCode}>app-debug.apk</code> directly to your Nothing Phone.
+                  </span>
+                ),
+              },
+              {
+                num: "03", title: "Allow Unknown Sources",
+                body: "Android will prompt you to allow installs from unknown sources. Enable it for your browser or Files app, then tap the downloaded APK to install.",
+              },
+              {
+                num: "04", title: "Grant Permissions",
+                body: "On first launch, grant media access. For Live Lyrics, also enable Notification Access in Android settings — the app will guide you there.",
+              },
+            ].map(({ num, title, body }, i) => (
+              <motion.li key={num} className={styles.installStep}
+                initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ ...springDefault, delay: i * 0.1 }}>
+                <span className={styles.stepNum}>{num}</span>
+                <div>
+                  <div className={styles.stepTitle}>{title}</div>
+                  <div className={styles.stepBody}>{body}</div>
+                </div>
+              </motion.li>
+            ))}
+          </ol>
+
+          <details className={styles.buildFromSource}>
+            <summary className={styles.buildSummary}>Building from source</summary>
+            <div className={styles.buildContent}>
+              <p>Clone the repo, open in Android Studio, sync Gradle, and run to a connected Nothing Phone.</p>
+              <code className={styles.codeBlock}>git clone https://github.com/rickastley12/OdysseyGlyph.git</code>
+            </div>
+          </details>
+
+        </div>
+      </section>
+
+      {/* ── FOOTER ─────────────────────────────────────────────────── */}
       <footer className={styles.footer}>
-        <p>Built for the Nothing ecosystem. Not affiliated with Nothing Technology Limited.</p>
+        <div className={styles.footerInner}>
+          <div className={styles.footerLinks}>
+            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
+              GitHub
+            </a>
+            <a href={`${GITHUB_URL}/blob/main/LICENSE`} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
+              MIT License
+            </a>
+          </div>
+          <p className={styles.footerDisclaimer}>Not affiliated with Nothing Technology Limited.</p>
+          <p className={styles.footerPrivacy}>
+            Live Lyrics reads notification and media metadata locally on your device.
+            No data is transmitted or stored externally.
+          </p>
+        </div>
       </footer>
+
     </main>
   );
 }

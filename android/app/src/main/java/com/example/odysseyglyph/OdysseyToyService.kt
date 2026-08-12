@@ -138,12 +138,12 @@ abstract class BaseToyService : Service() {
             }
         }
         val filter = android.content.IntentFilter("com.example.odysseyglyph.RELOAD_FRAMES")
-        // Exported = false for security
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(broadcastReceiver, filter, RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(broadcastReceiver, filter)
-        }
+        androidx.core.content.ContextCompat.registerReceiver(
+            this,
+            broadcastReceiver,
+            filter,
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+        )
     }
 
     override fun onDestroy() {
