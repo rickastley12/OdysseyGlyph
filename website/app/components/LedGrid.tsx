@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useReducedMotion } from "framer-motion";
 
 const COLS = 48;
 const ROWS = 12;
@@ -12,13 +11,15 @@ const TOTAL_HEIGHT = ROWS * DOT_SIZE + (ROWS - 1) * GAP;
 
 export default function LedGrid() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: false }); // optimize for opaque background if possible, but here we just draw rects
     if (!ctx) return;
+
+    const osReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const shouldReduceMotion = process.env.NODE_ENV === "production" ? osReducedMotion : false;
 
     // Handle high-DPI displays for crisp rendering
     const dpr = window.devicePixelRatio || 1;
@@ -109,7 +110,7 @@ export default function LedGrid() {
       document.removeEventListener("mouseleave", handleMouseLeave);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
-  }, [shouldReduceMotion]);
+  }, []);
 
   return (
     <div style={{ padding: "1.5rem", margin: "0 auto", width: "fit-content", pointerEvents: "auto" }}>
