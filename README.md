@@ -15,6 +15,22 @@ somewhere in that process the pipeline stopped caring what video i gave it. so i
 
 ---
 
+## what it does
+
+**video → glyph matrix**  
+pick any video from your gallery. pinch and pan to crop a region into the 25×25 overlay with live video playback behind the frame. trim start and end. hit process. the app extracts frames, runs the pipeline, plays the result on your matrix. entirely on-device, works offline, no account needed.
+
+**lyric studio**  
+load an LRC lyric file, pick a font mode, preview frame-by-frame. sync to audio, export as a Glyph toy. the font engine renders directly to the 25px matrix — getting text to actually read at that resolution across three different typography sizes took more iteration than i'd like to admit.
+
+**live lyrics**  
+a background service that detects whatever's currently playing on your phone — any music app, not just Spotify — via Android's MediaSession. fetches time-synced lyrics from LRCLib and scrolls them across the matrix in real time. no API key. works in basically any language.
+
+**toy manager**  
+browse, preview, delete your saved animations. nothing exciting, just necessary.
+
+---
+
 ## how this is different from what already exists
 
 if you are looking for a general-purpose Glyph animation tool, you should probably be using **Glyph Museum** (by pauwma) on the Play Store. it has 15,000+ active users, gallery/GIF import, live matrix preview, audio-reactive light shows, and a massive library. it is the gold standard for the community. pauwma also maintains **GlyphMatrixEditor**, an excellent web app for deliberate, frame-by-frame animation work with onion skinning.
@@ -29,22 +45,6 @@ other apps do audio-reactive light shows (EQ bars bouncing to the beat). Odyssey
 
 **3. lyric studio**  
 an LRC file-based authoring tool. it uses a custom Ndot57 font engine with dynamic per-word hyphenation and chunking to render legible text on a 25-pixel-wide constraint, so you can export hardcoded lyric animations as Glyph toys.
-
----
-
-## what it does
-
-**video → glyph matrix**  
-pick any video from your gallery. pinch and pan to crop a region into the 25×25 overlay with live video playback behind the frame. trim start and end. hit process. the app extracts frames, runs the pipeline, plays the result on your matrix. entirely on-device, works offline, no account needed.
-
-**lyric studio**  
-load an LRC lyric file, pick a font mode, preview frame-by-frame. sync to audio, export as a Glyph toy. the font engine renders directly to the 25px matrix — getting text to actually read at that resolution across three different typography sizes took more iteration than i'd like to admit.
-
-**live lyrics**  
-a background service that detects whatever's currently playing on your phone — any music app, not just Spotify — via Android's MediaSession. fetches time-synced lyrics from LRCLib and scrolls them across the matrix in real time. no API key. works in basically any language.
-
-**toy manager**  
-browse, preview, delete your saved animations. nothing exciting, just necessary.
 
 ---
 
