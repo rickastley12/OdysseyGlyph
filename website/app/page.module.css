@@ -327,6 +327,15 @@
   text-align: center;
 }
 
+.sectionSublabel {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
 .howGrid {
   max-width: 1100px;
   margin: 0 auto;

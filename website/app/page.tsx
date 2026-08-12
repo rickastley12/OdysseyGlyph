@@ -241,6 +241,7 @@ export default function Home() {
           HOW IT WORKS
         </motion.h2>
 
+        <div className={styles.sectionSublabel}>[ VIDEO PIPELINE ]</div>
         <div className={styles.howGrid}>
 
           {/* 1 — Box-filter downsampling */}
@@ -357,6 +358,76 @@ export default function Home() {
               <code className={styles.inlineCode}>MediaSession</code> lets the app read current track metadata
               system-wide — from any music player. That metadata is passed to LRCLib to fetch time-synced
               lyrics, which are then rendered as scrolling text on the matrix.
+            </p>
+          </motion.div>
+
+        </div>
+
+        <div className={styles.sectionSublabel} style={{ marginTop: "4rem" }}>[ LYRICS ENGINE ]</div>
+        <div className={styles.howGrid}>
+
+          {/* 5 — Script-Agnostic Transliteration */}
+          <motion.div className={styles.howCard}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+            <div className={styles.howVisual}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", fontFamily: "var(--font-mono)", fontSize: "0.85rem", background: "#111", padding: "0.75rem 1.5rem", borderRadius: "4px" }}>
+                <span style={{ color: "var(--accent)" }}>夜に駆ける</span>
+                <span style={{ color: "var(--muted-foreground)" }}>→</span>
+                <span style={{ color: "var(--foreground)" }}>yoru ni kakeru</span>
+              </div>
+            </div>
+            <h3 className={styles.howTitle}>Script-Agnostic Transliteration</h3>
+            <p className={styles.howBody}>
+              LRC lyrics arrive in whatever language the song is in. Japanese kanji, Korean Hangul, Arabic — none of those characters exist in a 25×25 pixel font. Android&apos;s built-in ICU Transliterator converts any script to phonetic Latin on-device, no network call, no API key. The matrix scrolls what the song sounds like, not untranslatable glyphs.
+            </p>
+          </motion.div>
+
+          {/* 6 — Wordless Timestamps */}
+          <motion.div className={styles.howCard}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
+            <div className={styles.howVisual}>
+              <div style={{ display: "flex", width: "80%", height: "16px", gap: "2px", background: "#1a1a1a", padding: "4px" }}>
+                <div style={{ flex: 4, background: "var(--foreground)" }}></div>
+                <div style={{ flex: 1, background: "transparent" }}></div>
+                <div style={{ flex: 2, background: "var(--foreground)" }}></div>
+                <div style={{ flex: 1, background: "transparent" }}></div>
+                <div style={{ flex: 6, background: "var(--foreground)" }}></div>
+                <div style={{ flex: 1, background: "transparent" }}></div>
+              </div>
+            </div>
+            <h3 className={styles.howTitle}>Wordless Timestamps</h3>
+            <p className={styles.howBody}>
+              LRC files mark the start of each line, never individual words. The app estimates per-word timing by weighting each word proportionally by character count — longer words get more time — with extra hold added after punctuation since those have natural spoken pauses. A 25% blank gap at the end of each word creates a discrete strobe rather than a smear. No ML, no word-level data.
+            </p>
+          </motion.div>
+
+          {/* 7 — Drift Prevention */}
+          <motion.div className={styles.howCard}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.2 }}>
+            <div className={styles.howVisual}>
+              <div className={styles.beforeAfter} style={{ width: "100%", alignItems: "center" }}>
+                <div className={styles.baPanel}>
+                  <div className={styles.baPanelLabel}>CALLBACK ONLY</div>
+                  <div style={{ position: "relative", width: "100%", height: "2px", background: "#333", marginTop: "10px" }}>
+                    <div style={{ position: "absolute", left: "50%", top: "-4px", width: "2px", height: "10px", background: "#555" }}></div>
+                    <div style={{ position: "absolute", left: "70%", top: "-4px", width: "6px", height: "10px", background: "var(--accent)" }}></div>
+                  </div>
+                </div>
+                <div className={styles.baPanel}>
+                  <div className={styles.baPanelLabel}>500MS POLL</div>
+                  <div style={{ position: "relative", width: "100%", height: "2px", background: "#333", marginTop: "10px" }}>
+                    <div style={{ position: "absolute", left: "50%", top: "-4px", width: "2px", height: "10px", background: "#555" }}></div>
+                    <div style={{ position: "absolute", left: "50%", top: "-4px", width: "6px", height: "10px", background: "var(--foreground)", transform: "translateX(-2px)" }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <h3 className={styles.howTitle}>Drift Prevention</h3>
+            <p className={styles.howBody}>
+              Spotify and YouTube Music only fire a position update when something changes — play, pause, skip. Between those events, position estimates drift and lyrics fall out of sync. The fix is a polling loop that reads the MediaController every 500ms to stay locked to real playback position.
             </p>
           </motion.div>
 
