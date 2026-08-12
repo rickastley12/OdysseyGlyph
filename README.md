@@ -9,9 +9,9 @@ Somewhere in that process, the pipeline stopped caring what video I gave it. So 
 
 ---
 
-> **If you're on a Nothing Phone 1, 2, or 2a — close this tab.**
+> **If you're on a Nothing Phone 1, 2, 2a, or (4a) Pro — close this tab.**
 >
-> Those have zone-based LED strips. They can light up in regions, not individual pixels. The 25×25 addressable matrix only exists on the **Nothing Phone (3)** and **Nothing Phone (4a) Pro**. This app does nothing useful on older models.
+> Those have zone-based LED strips or lower-density matrices (like the 137-LED array on the 4a Pro). They can light up in regions or rough shapes, not individual pixels. The 25×25 addressable matrix strictly requires the flagship **Nothing Phone (3)**. This app does nothing useful on other models.
 
 ---
 
