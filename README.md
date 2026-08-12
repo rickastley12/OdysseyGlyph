@@ -67,25 +67,33 @@ Spotify and YouTube Music fire a PlaybackState callback when something changes �
 
 ---
 
-## Anticipated questions
+## Security & Trust
 
-**It's a debug APK**  
-Yes. Signing infrastructure and a release pipeline for a personal project that uses hardware APIs that'd fail Play Store review anyway felt like the wrong use of a Saturday. The debug flag doesn't affect functionality. If that bothers you, build from source.
+**How do I know this APK is safe?**  
+This app is distributed outside the Play Store, so you shouldn't just trust it blindly. To guarantee its safety, the APK attached to our releases is built transparently by [GitHub Actions](https://github.com/rickastley12/OdysseyGlyph/actions) — not on a personal computer. You can view the raw build logs to verify that the APK is compiled directly from the open-source code in this repository without any tampering.
+
+**Verifiable VirusTotal Scans**  
+Every release is automatically uploaded to VirusTotal by our automated pipeline. The release notes include a direct link to the scan analysis and the exact cryptographic SHA-256 hash of the APK. Because the link is tied to the exact hash, you can be 100% certain the scan matches the file you download.
 
 **Notification access is a scary permission**  
 Fair. Live Lyrics needs it to read track metadata across all apps — title, artist, playback position. That's the full scope of what's read. Nothing is logged, stored, or sent anywhere except the LRCLib lyrics fetch which only gets song title and artist. If you don't trust that, skip Live Lyrics — the rest works fine without it.
 
-**Does it drain battery**  
+---
+
+## FAQ
+
+**It's a debug APK?**  
+Yes. Signing infrastructure and a release pipeline for a personal project that uses hardware APIs that'd fail Play Store review anyway felt like the wrong use of a Saturday. The debug flag doesn't affect functionality. If that bothers you, build from source.
+
+**Does it drain battery?**  
 Video processing is CPU-heavy but finishes in seconds. The Live Lyrics service runs a MediaSession poll and a ~12fps canvas render loop. Roughly equivalent to a music visualizer.
 
-**Will this get maintained**  
+**Will this get maintained?**  
 I use it myself so when something bothers me enough I'll fix it. No roadmap, no promises.
 
 ---
 
 ## Install
-
-> **Transparency Note:** This APK is built transparently via [GitHub Actions](https://github.com/rickastley12/OdysseyGlyph/actions). You can view the build logs to verify that the APK is compiled directly from the open-source code in this repository without any tampering. Additionally, every release is automatically uploaded and scanned by VirusTotal, and includes a cryptographic SHA-256 checksum right in the release notes.
 
 1. [Releases](https://github.com/rickastley12/OdysseyGlyph/releases) → download `app-debug.apk` to your phone
 2. Tap the file — Android will ask you to allow installs from unknown sources, enable it
