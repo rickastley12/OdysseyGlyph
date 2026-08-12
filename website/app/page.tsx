@@ -97,18 +97,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* ── PROOF OF LIFE ──────────────────────────────────────────── */}
-      {/*
-        TODO: Replace <LedGrid /> with:
-
-          <video
-            className={styles.proofVideo}
-            autoPlay muted loop playsInline
-            src="/media/led-matrix-demo.webm"
-          />
-
-        once physical hardware footage is captured.
-      */}
+      {/* ── INTERACTIVE MATRIX SIMULATION ──────────────────────────── */}
       <section className={styles.proof}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -118,7 +107,7 @@ export default function Home() {
           style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}
         >
           <LedGrid />
-          <p className={styles.proofComing} style={{ opacity: 0.5 }}>[ Hardware footage coming soon ]</p>
+          <p className={styles.proofComing} style={{ opacity: 0.5, letterSpacing: "1px" }}>[ INTERACTIVE HARDWARE SIMULATION ]</p>
         </motion.div>
       </section>
 
