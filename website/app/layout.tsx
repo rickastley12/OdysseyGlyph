@@ -35,6 +35,8 @@ export const metadata: Metadata = {
   },
 };
 
+import AnimatedBackground from "./components/AnimatedBackground";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,7 +44,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${ndot.variable}`}>
-      <body>{children}</body>
+      <body>
+        <AnimatedBackground />
+        <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
+      </body>
     </html>
   );
 }

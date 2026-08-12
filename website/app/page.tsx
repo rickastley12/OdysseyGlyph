@@ -51,8 +51,8 @@ export default function Home() {
       {/* ── HERO ───────────────────────────────────────────────────── */}
       <section id="hero" className={styles.hero}>
         {!isBooting && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2rem" }}>
-            <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", justifyContent: "center", marginBottom: "1rem" }}>
+          <>
+            <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", justifyContent: "center", marginBottom: "1rem" }}>
               <DotMatrixText text="GLYPH" color="var(--foreground)" delayOffset={0} />
               <DotMatrixText text="ODYSSEY" color="var(--accent)" delayOffset={0.75} />
             </div>
@@ -65,42 +65,40 @@ export default function Home() {
             >
               Unleash the Glyph. True audio-visual synergy powered by a custom animation engine.
             </motion.p>
-          </div>
+
+            <motion.div
+              className={styles.heroCtas}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 0.8 }}
+            >
+              <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.downloadBtn}>
+                Download APK
+              </a>
+              <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={styles.githubBtn}>
+                View on GitHub
+              </a>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: shouldReduceMotion ? 0 : 1.1 }}
+              style={{ marginTop: "1.5rem" }}
+            >
+              <LedGrid />
+            </motion.div>
+
+            <motion.p
+              className={styles.deviceReq}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 1.3 }}
+            >
+              Requires Nothing Phone (3) or (4a) Pro
+            </motion.p>
+          </>
         )}
-
-        <motion.div
-          className={styles.heroCtas}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 1.2 }}
-        >
-          <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.downloadBtn}>
-            Download APK
-          </a>
-          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={styles.githubBtn}>
-            View on GitHub
-          </a>
-        </motion.div>
-
-        {!isBooting && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1.5 }}
-            style={{ marginTop: "2rem" }}
-          >
-            <LedGrid />
-          </motion.div>
-        )}
-
-        <motion.p
-          className={styles.deviceReq}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 1.5 }}
-        >
-          Requires Nothing Phone (3) or (4a) Pro
-        </motion.p>
       </section>
 
       {/* ── PROOF OF LIFE ──────────────────────────────────────────── */}
