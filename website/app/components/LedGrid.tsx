@@ -8,6 +8,15 @@ const DOT_SIZE = 8;
 const GAP = 4;
 const TOTAL_WIDTH = COLS * DOT_SIZE + (COLS - 1) * GAP;
 const TOTAL_HEIGHT = ROWS * DOT_SIZE + (ROWS - 1) * GAP;
+const TOTAL_CELLS = COLS * ROWS;
+
+interface DotState {
+  val: number;
+  target: number;
+  duration: number;
+  elapsed: number;
+  isRed: boolean;
+}
 
 export default function LedGrid() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,7 +24,7 @@ export default function LedGrid() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false }); // optimize for opaque background if possible, but here we just draw rects
+    const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
     const osReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -29,8 +38,17 @@ export default function LedGrid() {
     canvas.style.height = `${TOTAL_HEIGHT}px`;
     ctx.scale(dpr, dpr);
 
+    // Initialize per-dot noise states
+    const dotsState: DotState[] = Array.from({ length: TOTAL_CELLS }, () => ({
+      val: Math.random() * 0.8,
+      target: Math.random() * 0.8,
+      duration: 300 + Math.random() * 500,
+      elapsed: Math.random() * 800,
+      isRed: Math.random() < 0.01,
+    }));
+
     let animationFrameId: number;
-    let startTime = Date.now();
+    let lastTime = Date.now();
     let mousePos = { x: -1000, y: -1000, active: false };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -47,57 +65,82 @@ export default function LedGrid() {
     document.addEventListener("mouseleave", handleMouseLeave);
 
     const updateLoop = () => {
+      const now = Date.now();
+      const dt = now - lastTime;
+      lastTime = now;
+
       const rect = canvas.getBoundingClientRect();
-      const time = (Date.now() - startTime) / 1000;
       const isNarrow = window.innerWidth <= 768;
 
-      // Scan line configuration
-      const scanSpeed = 15;
-      const scanCol = (time * scanSpeed) % (COLS + 20) - 10;
-
-      // Clear the canvas with the background color (matches hero background roughly)
       ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, TOTAL_WIDTH, TOTAL_HEIGHT);
 
-      for (let row = 0; row < ROWS; row++) {
-        for (let col = 0; col < COLS; col++) {
-          const rectX = col * (DOT_SIZE + GAP);
-          const rectY = row * (DOT_SIZE + GAP);
-          const dotCenterX = rect.left + rectX + DOT_SIZE / 2;
-          const dotCenterY = rect.top + rectY + DOT_SIZE / 2;
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        const row = Math.floor(i / COLS);
+        const col = i % COLS;
+        const rectX = col * (DOT_SIZE + GAP);
+        const rectY = row * (DOT_SIZE + GAP);
+        const dotCenterX = rect.left + rectX + DOT_SIZE / 2;
+        const dotCenterY = rect.top + rectY + DOT_SIZE / 2;
 
-          let brightness = 0.08; // Base idle brightness (8%)
+        const ds = dotsState[i];
 
-          if (shouldReduceMotion) {
-            brightness = 0.08;
-          } else {
-            // Scan line layer
-            const distToScan = scanCol - col;
-            if (distToScan >= 0 && distToScan < 12) {
-              const wakeIntensity = 1 - (distToScan / 12);
-              // Base is 0.08, wake peaks at ~0.20 (+0.12)
-              brightness += (0.12 * wakeIntensity);
+        if (!shouldReduceMotion) {
+          ds.elapsed += dt;
+          if (ds.elapsed >= ds.duration) {
+            ds.elapsed = 0;
+            ds.val = ds.target;
+            
+            // Re-roll noise target (mostly mid-gray, some near-white, some near-black)
+            const rand = Math.random();
+            if (rand < 0.1) {
+              ds.target = 0.8 + Math.random() * 0.2; // 10% near-white
+            } else if (rand < 0.3) {
+              ds.target = 0.05 + Math.random() * 0.1; // 20% near-black
+            } else {
+              ds.target = 0.2 + Math.random() * 0.4; // 70% mid-gray
             }
-
-            // Mouse hotspot layer (additive)
-            if (mousePos.active && !isNarrow) {
-              const mouseDist = Math.hypot(dotCenterX - mousePos.x, dotCenterY - mousePos.y);
-              const maxGlowDist = 100;
-
-              if (mouseDist < maxGlowDist) {
-                const intensity = 1 - (mouseDist / maxGlowDist);
-                // Add radial brightness boost
-                brightness += intensity * 0.8;
-              }
-            }
+            
+            ds.duration = 300 + Math.random() * 500;
+            ds.isRed = Math.random() < 0.005; // 0.5% chance to spike red
           }
-
-          brightness = Math.min(1.0, brightness);
-          const colorValue = Math.round(255 * brightness);
-          
-          ctx.fillStyle = `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
-          ctx.fillRect(rectX, rectY, DOT_SIZE, DOT_SIZE);
         }
+
+        const progress = ds.elapsed / ds.duration;
+        let currentVal = ds.val + (ds.target - ds.val) * progress;
+
+        // Static fallback for reduced motion
+        if (shouldReduceMotion) {
+          currentVal = 0.15;
+          ds.isRed = false;
+        }
+
+        // Mouse proximity boost multiplier (reveals noise, doesn't override it)
+        let multiplier = 1.0;
+        if (mousePos.active && !isNarrow && !shouldReduceMotion) {
+          const mouseDist = Math.hypot(dotCenterX - mousePos.x, dotCenterY - mousePos.y);
+          const maxGlowDist = 80;
+
+          if (mouseDist < maxGlowDist) {
+            const intensity = 1 - (mouseDist / maxGlowDist);
+            multiplier = 1.0 + intensity * 3.0; // Up to 4x brighter
+          }
+        }
+
+        const finalVal = Math.min(1.0, currentVal * multiplier);
+
+        if (ds.isRed) {
+          // #EA3323 (R:234, G:51, B:35)
+          const r = Math.round(234 * finalVal);
+          const g = Math.round(51 * finalVal);
+          const b = Math.round(35 * finalVal);
+          ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        } else {
+          const gray = Math.round(255 * finalVal);
+          ctx.fillStyle = `rgb(${gray}, ${gray}, ${gray})`;
+        }
+
+        ctx.fillRect(rectX, rectY, DOT_SIZE, DOT_SIZE);
       }
 
       animationFrameId = requestAnimationFrame(updateLoop);
