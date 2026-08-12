@@ -91,18 +91,18 @@ export default function LedGrid() {
             ds.elapsed = 0;
             ds.val = ds.target;
             
-            // Re-roll noise target (mostly mid-gray, some near-white, some near-black)
+            // Re-roll noise target (contrasty: mostly blacks and whites, bit of grey)
             const rand = Math.random();
-            if (rand < 0.1) {
-              ds.target = 0.8 + Math.random() * 0.2; // 10% near-white
-            } else if (rand < 0.3) {
-              ds.target = 0.05 + Math.random() * 0.1; // 20% near-black
+            if (rand < 0.45) {
+              ds.target = 0.0 + Math.random() * 0.15; // 45% near-black
+            } else if (rand < 0.85) {
+              ds.target = 0.7 + Math.random() * 0.3; // 40% near-white
             } else {
-              ds.target = 0.2 + Math.random() * 0.4; // 70% mid-gray
+              ds.target = 0.3 + Math.random() * 0.3; // 15% mid-gray
             }
             
             ds.duration = 300 + Math.random() * 500;
-            ds.isRed = Math.random() < 0.005; // 0.5% chance to spike red
+            ds.isRed = Math.random() < 0.02; // 2% chance to spike red
           }
         }
 
