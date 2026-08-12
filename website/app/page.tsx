@@ -99,28 +99,12 @@ export default function Home() {
 
       {/* ── PROOF OF LIFE ──────────────────────────────────────────── */}
       {/*
-        TODO: Replace <LedGrid /> with:
-
-          <video
-            className={styles.proofVideo}
-            autoPlay muted loop playsInline
-            src="/media/led-matrix-demo.webm"
-          />
-
+        TODO: Replace this section with a real video of the phone:
+        <section className={styles.proof}>
+          <video className={styles.proofVideo} autoPlay muted loop playsInline src="/media/led-matrix-demo.webm" />
+        </section>
         once physical hardware footage is captured.
       */}
-      <section className={styles.proof}>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={springDefault}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}
-        >
-          <LedGrid />
-          <p className={styles.proofComing} style={{ opacity: 0.5 }}>[ Interactive hardware visualization ]</p>
-        </motion.div>
-      </section>
 
       {/* ── ORIGIN STORY ───────────────────────────────────────────── */}
       <section className={styles.origin}>
@@ -238,6 +222,17 @@ export default function Home() {
           viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
           HOW IT WORKS
         </motion.h2>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.2 }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "5rem", gap: "1.5rem" }}
+        >
+          <LedGrid />
+          <div className={styles.sectionSublabel} style={{ marginTop: 0, opacity: 0.5 }}>
+            [ THE CANVAS: 48×12 INDEPENDENT LEDS ]
+          </div>
+        </motion.div>
 
         <div className={styles.sectionSublabel}>[ VIDEO PIPELINE ]</div>
         <div className={styles.howGrid}>
