@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import styles from "./page.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import BootSequence from "./components/BootSequence";
 import DotMatrixText from "./components/DotMatrixText";
@@ -25,13 +25,17 @@ export default function Home() {
   const [isBooting, setIsBooting] = useState(true);
   const shouldReduceMotion = useReducedMotion();
 
+  const handleBootComplete = useCallback(() => {
+    setIsBooting(false);
+  }, []);
+
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
 
   return (
     <main className={styles.main}>
       {isBooting ? (
-        <BootSequence onComplete={() => setIsBooting(false)} />
+        <BootSequence onComplete={handleBootComplete} />
       ) : null}
 
       {/* ── NAV ────────────────────────────────────────────────────── */}

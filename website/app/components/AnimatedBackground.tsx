@@ -78,11 +78,14 @@ export default function AnimatedBackground() {
 
       ctx.clearRect(0, 0, width, height);
 
-      // Target ~1.5% of total dots active at any time
-      const targetActiveCount = Math.max(3, Math.floor(totalDots * 0.015));
+      // Target ~1.5% of total dots active at any time, bounded by total available dots
+      const maxPossible = cols * rows;
+      const targetActiveCount = Math.min(maxPossible, Math.max(1, Math.floor(totalDots * 0.015)));
 
-      // Spawn new flickers if needed
-      while (activeFlickers.size < targetActiveCount) {
+      // Spawn new flickers if needed (with failsafe counter to prevent infinite loops)
+      let failsafe = 0;
+      while (activeFlickers.size < targetActiveCount && failsafe < 50) {
+        failsafe++;
         const randomCol = Math.floor(Math.random() * cols);
         const randomRow = Math.floor(Math.random() * rows);
         const key = `${randomCol},${randomRow}`;
