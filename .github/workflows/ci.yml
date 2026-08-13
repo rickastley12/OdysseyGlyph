@@ -86,4 +86,3 @@ jobs:
         files: app-release.apk
         generate_release_notes: true
         body_path: release-notes.md
-        append_body: true
