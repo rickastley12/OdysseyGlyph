@@ -17,29 +17,6 @@ Somewhere in that process, the pipeline stopped caring what video I gave it. So 
 
 ---
 
-## ⚠️ Install currently requires ADB — here's why
-
-Google Play Protect is hard-blocking the APK at install time. Not because it's malicious — **0 of 66 security vendors on VirusTotal flag it** — but because of an automatic policy: any sideloaded app that declares the `NOTIFICATION_LISTENER` permission gets blocked, no exceptions, regardless of what it actually does with it. Spyware and banking trojans abuse that permission heavily, so Google treats it as an automatic hard block for anything not on the Play Store. Our app needs it for Live Lyrics (reading current track metadata, nothing else), and that's enough to trigger it.
-
-A Play Protect appeal has been submitted with the VirusTotal report. If it gets approved, normal sideload install will work again. Until then, **ADB is the only way in**.
-
-**Install via ADB (one command):**
-
-Plug your phone into your computer with USB debugging enabled, then:
-
-```bash
-adb install app-release.apk
-```
-
-That's it. ADB bypasses Play Protect entirely. If you haven't used ADB before:
-1. Enable **Developer Options** on your phone: Settings → About Phone → tap Build Number 7 times
-2. Enable **USB Debugging** inside Developer Options
-3. Install [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools) on your computer
-4. Download `app-release.apk` from the [latest release](https://github.com/rickastley12/OdysseyGlyph/releases)
-5. Run `adb install app-release.apk`
-
----
-
 ## What it does
 
 **Video → Glyph Matrix**
@@ -92,10 +69,62 @@ Spotify and YouTube Music fire a PlaybackState callback when something changes �
 
 ---
 
-## Security & Trust
+## Install
 
-**Why Play Protect blocks it**
-`NOTIFICATION_LISTENER` + sideloaded = automatic block, by Google's own policy, regardless of what the app actually does. Our VirusTotal scan (0/66 vendors) confirms it's clean. A Play Protect appeal is in progress — if approved, normal sideload will work again.
+> **⚠️ Normal sideload is temporarily blocked by Play Protect — ADB required for now.**
+> See the section below for the full explanation and step-by-step instructions.
+
+**Step 1 — Download the APK**
+
+Go to the [latest release](https://github.com/rickastley12/OdysseyGlyph/releases) and download `app-release.apk` to your computer (not your phone).
+
+**Step 2 — Set up ADB on your computer**
+
+ADB (Android Debug Bridge) is a free official Google tool that lets your computer talk directly to your phone. You only need to do this once.
+
+- Go to [developer.android.com/tools/releases/platform-tools](https://developer.android.com/tools/releases/platform-tools)
+- Download Platform Tools for your OS (Windows / Mac / Linux)
+- Extract the zip anywhere — e.g. `C:\platform-tools` on Windows
+- Move `app-release.apk` into that same folder so it's easy to find
+
+**Step 3 — Enable USB Debugging on your phone**
+
+USB Debugging lets ADB communicate with your device. It's a standard developer setting, not anything sketchy.
+
+1. Open **Settings → About Phone**
+2. Find **Build Number** and tap it **7 times** — you'll see "You are now a developer"
+3. Go back to **Settings → System → Developer Options**
+4. Enable **USB Debugging**
+
+**Step 4 — Connect and install**
+
+Plug your phone into your computer with a USB cable. Your phone will show a prompt asking to trust this computer — tap **Allow**.
+
+Then open a terminal (Command Prompt on Windows, Terminal on Mac/Linux), navigate to your platform-tools folder, and run:
+
+```bash
+adb install app-release.apk
+```
+
+You'll see `Success` when it's done. The app will appear in your app drawer.
+
+**Step 5 — Grant permissions on first launch**
+
+Open Glyph Odyssey. Grant media access when prompted. For Live Lyrics, the app will ask you to enable **Notification Access** in Android settings — follow the prompt, it takes you there directly.
+
+---
+
+## Why ADB and not just download and tap?
+
+Google Play Protect is automatically hard-blocking the APK at install — not because it's malicious, but because of a blanket policy: any app sideloaded from the internet that declares the `NOTIFICATION_LISTENER` permission gets blocked, full stop, regardless of what it actually does with it. That permission is heavily abused by spyware, so Google nukes anything sideloaded that uses it.
+
+This app needs `NOTIFICATION_LISTENER` for Live Lyrics — to read the current track title and artist from whatever music app you're using. That's the entire extent of what it does with the permission. **0 of 66 security vendors on VirusTotal flag it.** A Play Protect appeal has been submitted. If it's approved, tapping the APK to install will work again and you won't need ADB.
+
+ADB bypasses Play Protect entirely because it's a direct developer channel — your computer talks to the phone directly, Play Protect never sees the install.
+
+---
+
+## Security & Trust
 
 **How do I know the APK is safe?**
 Every release is built transparently by [GitHub Actions](https://github.com/rickastley12/OdysseyGlyph/actions) from the open-source code in this repo — not on a personal machine. Build logs are public. Every release includes a SHA-256 hash and a direct VirusTotal link in the release notes.
@@ -106,9 +135,6 @@ Fair. Live Lyrics needs it to read track metadata — title, artist, playback po
 ---
 
 ## FAQ
-
-**Why not just put it on the Play Store?**
-The appeal is more effort than this project warrants right now. It's a hobby tool for a niche hardware feature on one phone model. If the Play Protect appeal goes through, sideload installs become painless and that's good enough.
 
 **Does it drain battery?**
 Video processing is CPU-heavy but finishes in seconds. The Live Lyrics service runs a MediaSession poll and a ~12fps render loop. Roughly equivalent to a music visualizer widget.

@@ -525,11 +525,11 @@ export default function Home() {
               {
                 num: "05", title: "Run ADB Install",
                 body: (
-                  <span>
+                  <div>
                     Plug in your phone via USB, accept the debugging prompt on-device, then run:
                     <code className={styles.adbCommand}>adb install app-release.apk</code>
                     That{"'"}s it. No Play Protect, no blocked install.
-                  </span>
+                  </div>
                 ),
               },
             ].map(({ num, title, body }, i) => (
