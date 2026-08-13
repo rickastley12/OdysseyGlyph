@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="com.nothing.ketchum.permission.ENABLE" />
 
@@ -82,7 +81,7 @@
 
         <service
             android:name=".MediaSessionListenerService"
-            android:label="Odyssey Spotify Listener"
+            android:label="Live Lyrics"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
             <intent-filter>

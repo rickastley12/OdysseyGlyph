@@ -8,7 +8,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.odysseyglyph"
+        applicationId "com.rickastley.glyphodyssey"
         minSdk 33
         targetSdk 34
         versionCode 2
