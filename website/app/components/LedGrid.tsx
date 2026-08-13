@@ -35,9 +35,6 @@ export default function LedGrid() {
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
-    const osReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const shouldReduceMotion = process.env.NODE_ENV === "production" ? osReducedMotion : false;
-
     // Handle high-DPI displays for crisp rendering
     const dpr = window.devicePixelRatio || 1;
     canvas.width = TOTAL_WIDTH * dpr;
@@ -104,54 +101,47 @@ export default function LedGrid() {
 
         const ds = dotsState[i];
 
-        if (!shouldReduceMotion) {
-          // 1. Process base grayscale noise
-          ds.elapsed += dt;
-          if (ds.elapsed >= ds.duration) {
-            ds.elapsed = 0;
-            ds.val = ds.target;
-            
-            // Re-roll noise target (mostly blacks and whites, bit of grey)
-            const rand = Math.random();
-            if (rand < 0.45) {
-              ds.target = 0.0 + Math.random() * 0.15; // 45% near-black
-            } else if (rand < 0.85) {
-              ds.target = 0.7 + Math.random() * 0.3; // 40% near-white
-            } else {
-              ds.target = 0.3 + Math.random() * 0.3; // 15% mid-gray
-            }
-            
-            ds.duration = 300 + Math.random() * 500;
-          }
-
-          // 2. Process independent red spikes (2-3% of dots red at any given time)
-          if (!ds.isRed) {
-            // To maintain ~2.5% red coverage with ~225ms average duration:
-            // Rate = 0.025 / 0.225s = ~0.111 spikes per second per dot
-            if (Math.random() < 0.111 * dtSec) {
-              ds.isRed = true;
-              ds.redElapsed = 0;
-              ds.redDuration = 150 + Math.random() * 150; // 150-300ms
-            }
+        // 1. Process base grayscale noise
+        ds.elapsed += dt;
+        if (ds.elapsed >= ds.duration) {
+          ds.elapsed = 0;
+          ds.val = ds.target;
+          
+          // Re-roll noise target (mostly blacks and whites, bit of grey)
+          const rand = Math.random();
+          if (rand < 0.45) {
+            ds.target = 0.0 + Math.random() * 0.15; // 45% near-black
+          } else if (rand < 0.85) {
+            ds.target = 0.7 + Math.random() * 0.3; // 40% near-white
           } else {
-            ds.redElapsed += dt;
-            if (ds.redElapsed >= ds.redDuration) {
-              ds.isRed = false;
-            }
+            ds.target = 0.3 + Math.random() * 0.3; // 15% mid-gray
+          }
+          
+          ds.duration = 300 + Math.random() * 500;
+        }
+
+        // 2. Process independent red spikes (2-3% of dots red at any given time)
+        if (!ds.isRed) {
+          // To maintain ~2.5% red coverage with ~225ms average duration:
+          // Rate = 0.025 / 0.225s = ~0.111 spikes per second per dot
+          if (Math.random() < 0.111 * dtSec) {
+            ds.isRed = true;
+            ds.redElapsed = 0;
+            ds.redDuration = 150 + Math.random() * 150; // 150-300ms
+          }
+        } else {
+          ds.redElapsed += dt;
+          if (ds.redElapsed >= ds.redDuration) {
+            ds.isRed = false;
           }
         }
 
         const progress = ds.elapsed / ds.duration;
         let currentVal = ds.val + (ds.target - ds.val) * progress;
 
-        if (shouldReduceMotion) {
-          currentVal = 0.15;
-          ds.isRed = false;
-        }
-
         // 3. Process Mouse Interaction Spring
         let targetMult = 1.0;
-        if (mousePos.active && !isNarrow && !shouldReduceMotion) {
+        if (mousePos.active && !isNarrow) {
           const mouseDist = Math.hypot(dotCenterX - mousePos.x, dotCenterY - mousePos.y);
           // Pure boolean radius check, no smooth falloff gradient
           if (mouseDist < 80) {
