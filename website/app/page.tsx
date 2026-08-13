@@ -460,6 +460,7 @@ export default function Home() {
 
         <div className={styles.installInner}>
 
+          {/* Device requirement */}
           <motion.div className={styles.installWarning}
             initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
@@ -467,41 +468,75 @@ export default function Home() {
             zone-based LED strips or lower-density arrays, not the full 25×25 addressable matrix required by this app.
           </motion.div>
 
+          {/* Play Protect blocking notice */}
+          <motion.div className={styles.playProtectWarning}
+            initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
+            <div className={styles.playProtectTitle}>🚫 Google Play Protect is currently blocking normal sideload install</div>
+            <p>
+              Any app declaring the <code className={styles.inlineCode}>NOTIFICATION_LISTENER</code> permission gets
+              automatically hard-blocked by Play Protect when sideloaded — not based on actual harm, but blanket policy.
+              0 of 66 VirusTotal vendors flag this APK. A formal Play Protect appeal is in progress with Google.
+            </p>
+            <p>Until the appeal clears, use ADB install below — it bypasses the PackageInstaller entirely.</p>
+          </motion.div>
+
+          {/* Primary: ADB install */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.15 }}>
+            <div className={styles.methodLabel}>PRIMARY METHOD</div>
+          </motion.div>
+
           <ol className={styles.installSteps}>
             {[
               {
-                num: "01", title: "Go to Releases",
+                num: "01", title: "Enable Developer Options",
+                body: "On your Nothing Phone (3), go to Settings → About Phone → tap Build Number 7 times. You'll see \"You are now a developer!\"",
+              },
+              {
+                num: "02", title: "Enable USB Debugging",
+                body: "Go to Settings → System → Developer Options → toggle USB Debugging on.",
+              },
+              {
+                num: "03", title: "Install Android Platform Tools",
                 body: (
                   <span>
-                    Head to{" "}
-                    <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.inlineLink}>
-                      the Releases page on GitHub
+                    Download{" "}
+                    <a href="https://developer.android.com/tools/releases/platform-tools" target="_blank" rel="noopener noreferrer" className={styles.inlineLink}>
+                      Android Platform Tools
                     </a>{" "}
-                    and find the latest release.
+                    for your computer. Extract it and open a terminal in that folder.
                   </span>
                 ),
               },
               {
-                num: "02", title: "Download the APK",
+                num: "04", title: "Download the APK",
                 body: (
                   <span>
-                    Download <code className={styles.inlineCode}>app-release.apk</code> directly to your Nothing Phone.
+                    Go to{" "}
+                    <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.inlineLink}>
+                      the Releases page
+                    </a>{" "}
+                    and download <code className={styles.inlineCode}>app-release.apk</code> to your computer.
                   </span>
                 ),
               },
               {
-                num: "03", title: "Allow Unknown Sources",
-                body: "Android will prompt you to allow installs from unknown sources. Enable it for your browser or Files app, then tap the downloaded APK to install.",
-              },
-              {
-                num: "04", title: "Grant Permissions",
-                body: "On first launch, grant media access. For Live Lyrics, also enable Notification Access in Android settings — the app will guide you there.",
+                num: "05", title: "Run ADB Install",
+                body: (
+                  <span>
+                    Plug in your phone via USB, accept the debugging prompt on-device, then run:
+                    <code className={styles.adbCommand}>adb install app-release.apk</code>
+                    That{"'"}s it. No Play Protect, no blocked install.
+                  </span>
+                ),
               },
             ].map(({ num, title, body }, i) => (
               <motion.li key={num} className={styles.installStep}
                 initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
-                transition={{ ...springDefault, delay: i * 0.1 }}>
+                transition={{ ...springDefault, delay: i * 0.08 }}>
                 <span className={styles.stepNum}>{num}</span>
                 <div>
                   <div className={styles.stepTitle}>{title}</div>
@@ -510,6 +545,33 @@ export default function Home() {
               </motion.li>
             ))}
           </ol>
+
+          {/* Secondary: normal sideload — pending appeal */}
+          <details className={styles.pendingInstall}>
+            <summary className={styles.pendingSummary}>
+              <span className={styles.pendingBadge}>PENDING PLAY PROTECT APPEAL</span>
+              {" "}Normal sideload install
+            </summary>
+            <div className={styles.pendingContent}>
+              <p>Once the appeal clears, you{"'"}ll be able to install directly from your phone without a computer.</p>
+              <ol className={styles.installSteps} style={{ marginTop: "1.25rem" }}>
+                {[
+                  { num: "01", title: "Go to Releases", body: (<span>Head to <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.inlineLink}>the Releases page on GitHub</a> and find the latest release.</span>) },
+                  { num: "02", title: "Download the APK", body: (<span>Download <code className={styles.inlineCode}>app-release.apk</code> directly to your Nothing Phone.</span>) },
+                  { num: "03", title: "Allow Unknown Sources", body: "Android will prompt you to allow installs from unknown sources. Enable it for your browser or Files app, then tap the downloaded APK to install." },
+                  { num: "04", title: "Grant Permissions", body: "On first launch, grant media access. For Live Lyrics, also enable Notification Access in Android settings — the app will guide you there." },
+                ].map(({ num, title, body }) => (
+                  <li key={num} className={styles.installStep} style={{ opacity: 0.55 }}>
+                    <span className={styles.stepNum}>{num}</span>
+                    <div>
+                      <div className={styles.stepTitle}>{title}</div>
+                      <div className={styles.stepBody}>{body}</div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </details>
 
           <details className={styles.buildFromSource}>
             <summary className={styles.buildSummary}>Building from source</summary>
@@ -521,6 +583,7 @@ export default function Home() {
 
         </div>
       </section>
+
 
       {/* ── SECURITY & TRUST ─────────────────────────────────────────── */}
       <section id="security" className={styles.install} style={{ paddingTop: "2rem" }}>

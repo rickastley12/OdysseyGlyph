@@ -520,6 +520,100 @@
   line-height: 1.65;
 }
 
+.playProtectWarning {
+  border: 1px solid #b02a2a;
+  background: rgba(176, 42, 42, 0.06);
+  padding: 1rem 1.25rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.65;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.playProtectTitle {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: #d94f4f;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.methodLabel {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  text-transform: uppercase;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--accent);
+  display: inline-block;
+}
+
+.adbCommand {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: #050505;
+  border: 1px solid #1e1e1e;
+  padding: 0.65rem 1rem;
+  color: #a3e0a3;
+  margin: 0.6rem 0 0.4rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.pendingInstall {
+  border: 1px solid #1a1a1a;
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+.pendingSummary {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pendingSummary::-webkit-details-marker { display: none; }
+.pendingSummary:hover { color: var(--muted-foreground); }
+
+.pendingBadge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: #888;
+  border: 1px solid #2a2a2a;
+  padding: 0.15rem 0.5rem;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.pendingContent {
+  padding: 1rem;
+  border-top: 1px solid #1a1a1a;
+}
+
+.pendingContent > p {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin-bottom: 0;
+}
+
 .installSteps {
   list-style: none;
   display: flex;
