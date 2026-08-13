@@ -539,9 +539,9 @@ export default function Home() {
               To guarantee safety, the APK distributed in our releases is built transparently by GitHub Actions — not on a personal computer. You can view the raw build logs to verify that the APK is compiled directly from the open-source code in this repository without any tampering.
             </p>
 
-            <h3 className={styles.howTitle} style={{ marginBottom: "0.5rem" }}>Automated VirusTotal Scans</h3>
+            <h3 className={styles.howTitle} style={{ marginBottom: "0.5rem" }}>Cryptographic Checksums</h3>
             <p className={styles.howBody}>
-              Every release is automatically uploaded to VirusTotal by our automated pipeline. The release notes include a direct link to the scan analysis and the exact cryptographic SHA-256 hash of the APK, so you can be 100% certain the clean scan matches the file you download.
+              Every release includes the exact cryptographic SHA-256 hash of the APK directly in the automated release notes, allowing you to easily verify the integrity of the file you download.
             </p>
           </motion.div>
         </div>
