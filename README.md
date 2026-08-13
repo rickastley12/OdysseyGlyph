@@ -71,9 +71,11 @@ Spotify and YouTube Music fire a PlaybackState callback when something changes �
 
 ## Security & Trust
 
-To guarantee the APK is safe and hasn't been tampered with:
-- All releases are built transparently using [GitHub Actions](.github/workflows/ci.yml).
-- Each release includes a SHA-256 checksum in the release notes so you can verify the build. You can view the raw build logs to verify that the APK is compiled directly from the open-source code in this repository without any tampering.
+**How do I know this APK is safe?**  
+This app is distributed outside the Play Store, so you shouldn't just trust it blindly. To guarantee its safety, the APK attached to our releases is built transparently by [GitHub Actions](https://github.com/rickastley12/OdysseyGlyph/actions) — not on a personal computer. You can view the raw build logs to verify that the APK is compiled directly from the open-source code in this repository without any tampering.
+
+**Verifiable VirusTotal Scans**  
+Every release is automatically uploaded to VirusTotal by our automated pipeline. The release notes include a direct link to the scan analysis and the exact cryptographic SHA-256 hash of the APK. Because the link is tied to the exact hash, you can be 100% certain the scan matches the file you download.
 
 **Notification access is a scary permission**  
 Fair. Live Lyrics needs it to read track metadata across all apps — title, artist, playback position. That's the full scope of what's read. Nothing is logged, stored, or sent anywhere except the LRCLib lyrics fetch which only gets song title and artist. If you don't trust that, skip Live Lyrics — the rest works fine without it.
