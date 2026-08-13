@@ -24,14 +24,27 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x android/gradlew
       
-    - name: Build Debug APK
-      run: cd android && ./gradlew assembleDebug
+    - name: Decode Keystore
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      run: |
+        if [ -n "$KEYSTORE_BASE64" ]; then
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/release.jks
+        fi
+
+    - name: Build Release APK
+      env:
+        KEYSTORE_FILE: "release.jks"
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: cd android && ./gradlew assembleRelease
       
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        name: app-release
+        path: android/app/build/outputs/apk/release/app-release.apk
 
   release:
     needs: build
@@ -43,7 +56,7 @@ jobs:
     - name: Download APK
       uses: actions/download-artifact@v4
       with:
-        name: app-debug
+        name: app-release
         
     - name: Upload to VirusTotal
       env:
@@ -54,23 +67,23 @@ jobs:
           curl --silent --show-error --request POST \
             --url https://www.virustotal.com/api/v3/files \
             --header "x-apikey: $VT_API_KEY" \
-            --form file=@app-debug.apk || true
+            --form file=@app-release.apk || true
         else
           echo "VIRUSTOTAL_API_KEY secret not found. Skipping upload."
         fi
         
     - name: Generate Release Notes
       run: |
-        SHA=$(sha256sum app-debug.apk | cut -d ' ' -f 1)
+        SHA=$(sha256sum app-release.apk | cut -d ' ' -f 1)
         echo "### Security & Trust" > release-notes.md
-        echo "This APK was compiled transparently via GitHub Actions." >> release-notes.md
+        echo "This signed Release APK was compiled transparently via GitHub Actions." >> release-notes.md
         echo "- **SHA-256**: \`$SHA\`" >> release-notes.md
         echo "- **VirusTotal Scan**: [View Analysis Report](https://www.virustotal.com/gui/file/$SHA)" >> release-notes.md
         
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: app-debug.apk
+        files: app-release.apk
         generate_release_notes: true
         body_path: release-notes.md
         append_body: true
