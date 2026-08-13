@@ -107,11 +107,11 @@ export default function DotMatrixText({ text, color = "var(--foreground)", delay
   const letters = useMemo(() => text.toUpperCase().split(""), [text]);
 
   return (
-    <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
+    <div style={{ display: "flex", gap: "clamp(0.3rem, 2vw, 1rem)", flexWrap: "nowrap", justifyContent: "center" }}>
       {letters.map((char, charIdx) => {
         const matrix = GLYPHS[char] || GLYPHS[" "];
         return (
-          <div key={charIdx} style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "6px" }}>
+          <div key={charIdx} style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "clamp(2px, 0.6vw, 6px)" }}>
             {matrix.map((row, r) =>
               row.map((val, c) => {
                 const isActive = val === 1;
@@ -131,8 +131,8 @@ export default function DotMatrixText({ text, color = "var(--foreground)", delay
                     }}
                     whileHover={isActive ? { scale: 1.5, filter: "brightness(1.5)", zIndex: 10 } : {}}
                     style={{
-                      width: "12px",
-                      height: "12px",
+                      width: "clamp(4px, 1.2vw, 12px)",
+                      height: "clamp(4px, 1.2vw, 12px)",
                       borderRadius: "50%",
                       backgroundColor: color,
                       opacity: isActive ? 1 : 0.08,

@@ -198,8 +198,8 @@ export default function LedGrid() {
   }, []);
 
   return (
-    <div style={{ padding: "1.5rem", margin: "0 auto", width: "fit-content", pointerEvents: "auto" }}>
-      <canvas ref={canvasRef} style={{ display: "block" }} />
+    <div style={{ padding: "1.5rem 0", margin: "0 auto", width: "100%", maxWidth: "100%", overflow: "hidden", display: "flex", justifyContent: "center", pointerEvents: "auto" }}>
+      <canvas ref={canvasRef} style={{ display: "block", maxWidth: "100%", height: "auto" }} />
     </div>
   );
 }
