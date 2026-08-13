@@ -84,8 +84,8 @@ Fair. Live Lyrics needs it to read track metadata across all apps — title, art
 
 ## FAQ
 
-**Why isn't this on the Play Store?**  
-The app relies on hidden/system-level APIs to scrape the `MediaSession` and drive the Glyph matrix directly. These would instantly fail a Play Store review. It is distributed here as a signed Release APK instead. If you don't trust sideloaded apps, you can easily build it from source.
+**It's a debug APK?**  
+Yes. Signing infrastructure and a release pipeline for a personal project that uses hardware APIs that'd fail Play Store review anyway felt like the wrong use of a Saturday. The debug flag doesn't affect functionality. If that bothers you, build from source.
 
 **Does it drain battery?**  
 Video processing is CPU-heavy but finishes in seconds. The Live Lyrics service runs a MediaSession poll and a ~12fps canvas render loop. Roughly equivalent to a music visualizer.
@@ -97,7 +97,7 @@ I use it myself so when something bothers me enough I'll fix it. No roadmap, no 
 
 ## Install
 
-1. [Releases](https://github.com/rickastley12/OdysseyGlyph/releases) → download `app-release.apk` to your phone
+1. [Releases](https://github.com/rickastley12/OdysseyGlyph/releases) → download `app-debug.apk` to your phone
 2. Tap the file — Android will ask you to allow installs from unknown sources, enable it
 3. Open the app, grant media permissions
 4. For Live Lyrics: enable Notification Access when the app prompts you
