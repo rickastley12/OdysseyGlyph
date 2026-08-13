@@ -95,7 +95,7 @@ I use it myself so when something bothers me enough I'll fix it. No roadmap, no 
 
 ## Install
 
-1. [Releases](https://github.com/rickastley12/OdysseyGlyph/releases) → download `app-debug.apk` to your phone
+1. [Releases](https://github.com/rickastley12/OdysseyGlyph/releases) → download `app-release.apk` to your phone
 2. Tap the file — Android will ask you to allow installs from unknown sources, enable it
 3. Open the app, grant media permissions
 4. For Live Lyrics: enable Notification Access when the app prompts you

@@ -485,7 +485,7 @@ export default function Home() {
                 num: "02", title: "Download the APK",
                 body: (
                   <span>
-                    Download <code className={styles.inlineCode}>app-debug.apk</code> directly to your Nothing Phone.
+                    Download <code className={styles.inlineCode}>app-release.apk</code> directly to your Nothing Phone.
                   </span>
                 ),
               },
