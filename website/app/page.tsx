@@ -47,8 +47,8 @@ export default function Home() {
           <a href="#install"      className={styles.navLink}>Install</a>
           <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={styles.navLink}>GitHub</a>
         </div>
-        <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.navCta}>
-          Download
+        <a href="#install" className={styles.navCta}>
+          Install Guide
         </a>
       </nav>
 
@@ -76,8 +76,8 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 0.8 }}
             >
-              <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" className={styles.downloadBtn}>
-                Download APK
+              <a href="#install" className={styles.downloadBtn}>
+                Install Instructions
               </a>
               <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={styles.githubBtn}>
                 View on GitHub
