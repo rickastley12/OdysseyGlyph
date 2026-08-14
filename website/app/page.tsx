@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback } from "react";
 import BootSequence from "./components/BootSequence";
 import DotMatrixText from "./components/DotMatrixText";
 import LedGrid from "./components/LedGrid";
+import CopyButton from "./components/CopyButton";
 
 const springDefault = { type: "spring" as const, bounce: 0, duration: 0.8 };
 const springBouncy  = { type: "spring" as const, bounce: 0.2, duration: 0.6 };
@@ -527,7 +528,10 @@ export default function Home() {
                 body: (
                   <div>
                     Plug in your phone via USB, accept the debugging prompt on-device, then run:
-                    <code className={styles.adbCommand}>adb install app-release.apk</code>
+                    <div className={styles.codeWrapper}>
+                      <code className={styles.adbCommand}>adb install app-release.apk</code>
+                      <CopyButton text="adb install app-release.apk" />
+                    </div>
                     That{"'"}s it. No Play Protect, no blocked install.
                   </div>
                 ),
