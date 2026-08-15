@@ -3,7 +3,12 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="com.nothing.ketchum.permission.ENABLE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -101,10 +106,38 @@
             <meta-data android:name="com.nothing.glyph.toy.longpress" android:value="0" />
         </service>
 
+        <service
+            android:name=".LiveLyricsService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback|microphone" />
+
+        <service
+            android:name=".VisualizerService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback|microphone" />
+
+        <service
+            android:name=".LiveLyricsTileService"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Odyssey Glyph"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".GalleryActivity"
             android:exported="false"
             android:theme="@style/Theme.OdysseyGlyph" />
+
+        <activity
+            android:name=".WidgetToggleActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.NoDisplay"
+            android:excludeFromRecents="true"
+            android:taskAffinity="" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -115,6 +148,17 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <receiver
+            android:name=".OdysseyWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/odyssey_widget_info" />
+        </receiver>
 
     </application>
 </manifest>

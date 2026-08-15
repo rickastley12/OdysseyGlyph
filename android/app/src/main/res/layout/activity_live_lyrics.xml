@@ -74,13 +74,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Reads what's currently playing locally on your phone — nothing is uploaded."
+                    android:fontFamily="@font/jetbrains_mono"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginBottom="@dimen/spacing_small" />
                     
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnGrantPermission"
-                    android:layout_width="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:cornerRadius="0dp"
+                    android:fontFamily="@font/jetbrains_mono"
                     android:text="GRANT PERMISSION" />
             </LinearLayout>
 
@@ -244,6 +248,33 @@
                     android:text="PIXEL"
                     android:fontFamily="@font/jetbrains_mono" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <!-- Fallback Visualizer Toggle -->
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchFallback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="FALLBACK VISUALIZER"
+                android:fontFamily="@font/jetbrains_mono"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:layout_marginBottom="@dimen/spacing_small" />
+                
+            <TextView
+                android:id="@+id/tvFallbackDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Keeps the matrix alive with a dynamic animation when a song is playing but no lyrics are available."
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="@dimen/spacing_small" />
+                
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCustomizeFallback"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="CUSTOMIZE FALLBACK VISUAL"
+                android:fontFamily="@font/jetbrains_mono"
+                android:layout_marginBottom="@dimen/spacing_large" />
             
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpenManager"
@@ -255,6 +286,42 @@
                 app:cornerRadius="0dp"
                 android:paddingVertical="12dp"
                 android:layout_marginBottom="@dimen/spacing_large" />
+                
+            <!-- Always On QS Tile Card -->
+            <LinearLayout
+                android:id="@+id/layoutAlwaysOnMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="?attr/colorSurfaceVariant"
+                android:padding="@dimen/spacing_medium"
+                android:layout_marginBottom="@dimen/spacing_large">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ALWAYS ON MODE (OPTIONAL)"
+                    android:fontFamily="@font/jetbrains_mono"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:layout_marginBottom="@dimen/spacing_small"
+                    android:textColor="?attr/colorPrimary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nothing OS enforces a 10-minute maximum timeout on all Glyph Toys. To bypass this and run Live Lyrics indefinitely, use the Quick Settings Tile from your notification dropdown."
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:layout_marginBottom="@dimen/spacing_medium" />
+                    
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddTile"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cornerRadius="0dp"
+                    android:fontFamily="@font/jetbrains_mono"
+                    android:text="ADD QUICK SETTINGS TILE" />
+            </LinearLayout>
                 
             <!-- Static padding for system navigation bar to prevent edge-to-edge clipping bugs -->
             <Space

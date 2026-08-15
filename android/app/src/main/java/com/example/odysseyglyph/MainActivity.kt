@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnOpenGallerySuccess: MaterialButton
 
     private lateinit var btnLaunchLyricStudio: MaterialButton
+    private lateinit var btnLaunchVisualizer: MaterialButton
     private lateinit var btnLaunchLiveLyrics: MaterialButton
     private lateinit var bottomActionBar: LinearLayout
 
@@ -154,7 +155,25 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        val isTileAdded = prefs.getBoolean("tile_added", false)
+        val appWidgetManager = android.appwidget.AppWidgetManager.getInstance(this)
+        val widgetProvider = android.content.ComponentName(this, OdysseyWidgetProvider::class.java)
+        val isWidgetAdded = appWidgetManager.getAppWidgetIds(widgetProvider).isNotEmpty()
+        
+        val quickAccessSection = findViewById<View>(R.id.quickAccessSection)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            quickAccessSection.visibility = if (isTileAdded || isWidgetAdded) View.GONE else View.VISIBLE
+        } else {
+            quickAccessSection.visibility = if (isWidgetAdded) View.GONE else View.VISIBLE
+        }
         syncSlotState()
+        checkToysManagerVisibility()
+        if (currentMediaType == 0) {
+            videoView.start()
+        }
+    }
+
+    private fun processMedia() {
         checkToysManagerVisibility()
         if (currentMediaType == 0) {
             videoView.start()
@@ -191,6 +210,7 @@ class MainActivity : AppCompatActivity() {
     private fun bindViews() {
         btnSelectVideo = findViewById(R.id.btnSelectVideo)
         btnLaunchLyricStudio = findViewById(R.id.btnLaunchLyricStudio)
+        btnLaunchVisualizer = findViewById(R.id.btnLaunchVisualizer)
         btnLaunchLiveLyrics = findViewById(R.id.btnLaunchLiveLyrics)
         toolbar = findViewById(R.id.toolbar)
         launcherGroup = findViewById(R.id.launcherGroup)
@@ -224,8 +244,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnSelectVideo.setOnClickListener {
-            if (prefs.getBoolean("first_run_main_v2", true)) {
-                showOnboardingDialog()
+            if (prefs.getBoolean("first_run_media", true)) {
+                showMediaOnboardingDialog()
             } else {
                 selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
             }
@@ -234,7 +254,7 @@ class MainActivity : AppCompatActivity() {
         toolbar.inflateMenu(R.menu.menu_info)
         toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.action_info) {
-                showOnboardingDialog()
+                showAppInfoDialog()
                 true
             } else {
                 false
@@ -251,8 +271,133 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, LyricStudioActivity::class.java))
         }
 
+        val btnAddTileMain = findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAddTileMain)
+        btnAddTileMain.setOnClickListener {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                val statusBarManager = getSystemService(android.app.StatusBarManager::class.java)
+                val componentName = android.content.ComponentName(this, LiveLyricsTileService::class.java)
+                statusBarManager?.requestAddTileService(
+                    componentName,
+                    "Odyssey Glyph",
+                    android.graphics.drawable.Icon.createWithResource(this, R.mipmap.ic_launcher),
+                    mainExecutor,
+                    { result ->
+                        if (result == android.app.StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED || 
+                            result == android.app.StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
+                            prefs.edit().putBoolean("tile_added", true).apply()
+                            findViewById<View>(R.id.quickAccessSection).visibility = View.GONE
+                        } else {
+                            Snackbar.make(findViewById(android.R.id.content), "Failed to add tile.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
+                        }
+                    }
+                )
+            } else {
+                Snackbar.make(findViewById(android.R.id.content), "Pull down your notification shade and edit tiles to add 'Odyssey Glyph'.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
+            }
+        }
+
+        val btnAddWidgetMain = findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAddWidgetMain)
+        btnAddWidgetMain.setOnClickListener {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                val appWidgetManager = android.appwidget.AppWidgetManager.getInstance(this)
+                val myProvider = android.content.ComponentName(this, OdysseyWidgetProvider::class.java)
+                if (appWidgetManager.isRequestPinAppWidgetSupported) {
+                    val successCallback = android.app.PendingIntent.getBroadcast(
+                        this, 0,
+                        android.content.Intent(this, OdysseyWidgetProvider::class.java).apply { action = OdysseyWidgetProvider.ACTION_UPDATE_WIDGET },
+                        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+                    )
+                    appWidgetManager.requestPinAppWidget(myProvider, null, successCallback)
+                } else {
+                    Snackbar.make(findViewById(android.R.id.content), "Your launcher does not support automatic widget pinning. Please add it manually from your launcher's widget menu.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
+                }
+            } else {
+                Snackbar.make(findViewById(android.R.id.content), "Automatic widget pinning requires Android 8.0+. Please add it manually from your launcher's widget menu.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
+            }
+        }
+
+        btnLaunchVisualizer.setOnClickListener {
+            if (prefs.getBoolean("first_run_visualizer", true)) {
+                showVisualizerOnboardingDialog()
+                return@setOnClickListener
+            }
+            
+            val isGranted = androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
+            if (!isGranted) {
+                val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
+                val dialog = androidx.appcompat.app.AlertDialog.Builder(this).setView(dialogView).create()
+                dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+                
+                dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "PERMISSION REQUIRED"
+                dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "The visualizer needs permission to read your music player state so it knows when to automatically start and stop the LEDs.\n\nPlease enable Odyssey Glyph in the next screen."
+                dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDialogAction).apply {
+                    text = "GRANT PERMISSION"
+                    setOnClickListener {
+                        dialog.dismiss()
+                        startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+                    }
+                }
+                dialog.show()
+                return@setOnClickListener
+            }
+            
+            val bottomSheet = FallbackStyleBottomSheet()
+            bottomSheet.setOnStyleSelectedListener { style ->
+                val permissionsToRequest = mutableListOf<String>()
+                
+                if (android.os.Build.VERSION.SDK_INT >= 33) {
+                    if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                        permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
+                
+                if (style == 2 || style == 3 || style == 5 || style == 8) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            permissionsToRequest.add(android.Manifest.permission.RECORD_AUDIO)
+                        }
+                    }
+                }
+                
+                if (permissionsToRequest.isNotEmpty()) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        requestPermissions(permissionsToRequest.toTypedArray(), 101)
+                        Snackbar.make(findViewById(android.R.id.content), "Please grant permissions, then try again.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
+                        return@setOnStyleSelectedListener
+                    }
+                }
+                
+                prefs.edit().putString("last_used_service", "visualizer").apply()
+                val intent = Intent(this, VisualizerService::class.java)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    startForegroundService(intent)
+                } else {
+                    startService(intent)
+                }
+                Snackbar.make(findViewById(android.R.id.content), "Visualizer Started! Check your notifications to stop it.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
+            }
+            bottomSheet.show(supportFragmentManager, "FallbackStyleBottomSheet")
+        }
+
         btnLaunchLiveLyrics.setOnClickListener {
-            startActivity(Intent(this, Class.forName("com.example.odysseyglyph.LiveLyricsActivity")))
+            val isGranted = androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
+            if (!isGranted) {
+                val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
+                val dialog = androidx.appcompat.app.AlertDialog.Builder(this).setView(dialogView).create()
+                dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+                dialogView.findViewById<android.widget.TextView>(R.id.tvDialogTitle).text = "PERMISSION REQUIRED"
+                dialogView.findViewById<android.widget.TextView>(R.id.tvDialogMessage).text = "Live Lyrics needs permission to detect what music is playing so it can sync lyrics to your glyphs.\n\nPlease enable Odyssey Glyph in the next screen."
+                dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDialogAction).apply {
+                    text = "GRANT PERMISSION"
+                    setOnClickListener {
+                        dialog.dismiss()
+                        startActivity(android.content.Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+                    }
+                }
+                dialog.show()
+                return@setOnClickListener
+            }
+            startActivity(Intent(this, LiveLyricsActivity::class.java))
         }
 
         btnAdvancedToggle.setOnClickListener {
@@ -348,19 +493,60 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun showOnboardingDialog() {
+    private fun showMediaOnboardingDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
-        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         
-        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "WELCOME TO ODYSSEY"
-        dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "Choose a Video or Image to crop, pan, and transform into a custom LED matrix animation. Pinch to zoom and drag to center your subject in the circle."
-        dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).setOnClickListener {
-            prefs.edit().putBoolean("first_run_main_v2", false).apply()
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "CUSTOM MEDIA ANIMATIONS"
+        dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = 
+            "Convert your own videos, GIFs, or images into custom LED animations.\n\n" +
+            "1. CHOOSE\nPick any media from your gallery.\n\n" +
+            "2. CROP & TRIM\nPosition the circular crop area and select the exact segment you want to animate.\n\n" +
+            "3. RENDER\nThe app mathematically converts your pixels into Glyph commands and saves them directly to your phone's native Glyph Toys Manager."
+            
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDialogAction).setOnClickListener {
+            prefs.edit().putBoolean("first_run_media", false).apply()
             dialog.dismiss()
-            if (selectedMediaUri == null) {
-                selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
-            }
+            selectMediaLauncher.launch(arrayOf("video/*", "image/*"))
+        }
+        dialog.show()
+    }
+
+    private fun showVisualizerOnboardingDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "STANDALONE VISUALIZER"
+        dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = 
+            "A high-performance visualizer that reacts to your music in real-time.\n\n" +
+            "• SMART SYNC\nIt automatically pauses itself when your music stops to save battery."
+            
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDialogAction).setOnClickListener {
+            prefs.edit().putBoolean("first_run_visualizer", false).apply()
+            dialog.dismiss()
+            // Immediately open the visualizer selector bottom sheet
+            btnLaunchVisualizer.performClick()
+        }
+        dialog.show()
+    }
+
+    private fun showAppInfoDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_nothing_onboarding, null)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "ODYSSEY GLYPH"
+        dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = 
+            "Transform your Nothing phone into an interactive canvas.\n\n" +
+            "1. CHOOSE MEDIA\nCrop and render your own videos or images into custom LED animations.\n\n" +
+            "2. LYRIC STUDIO\nMathematically render text and lyric files into scrolling LED banners.\n\n" +
+            "3. STANDALONE VISUALIZER\nA high-performance visualizer that reacts to your music.\n\n" +
+            "4. LIVE LYRICS\nDetects when music starts playing system-wide and projects synced lyrics."
+            
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDialogAction).setOnClickListener {
+            dialog.dismiss()
         }
         dialog.show()
     }

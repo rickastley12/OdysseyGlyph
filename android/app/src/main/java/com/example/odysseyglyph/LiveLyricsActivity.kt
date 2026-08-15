@@ -37,7 +37,10 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
     
     private lateinit var toggleAnimation: MaterialButtonToggleGroup
     private lateinit var toggleTypography: MaterialButtonToggleGroup
+    private lateinit var switchFallback: MaterialSwitch
+    private lateinit var tvFallbackDesc: TextView
     private lateinit var btnOpenManager: MaterialButton
+    private lateinit var btnAddTile: MaterialButton
     
     private lateinit var optionsContainer: LinearLayout
     
@@ -83,7 +86,10 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         
         toggleAnimation = findViewById(R.id.toggleAnimation)
         toggleTypography = findViewById(R.id.toggleTypography)
+        switchFallback = findViewById(R.id.switchFallback)
+        tvFallbackDesc = findViewById(R.id.tvFallbackDesc)
         btnOpenManager = findViewById(R.id.btnOpenManager)
+        btnAddTile = findViewById(R.id.btnAddTile)
         
         optionsContainer = findViewById(R.id.optionsContainer)
         
@@ -93,6 +99,21 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         switchMaster.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("live_lyrics_enabled", isChecked).apply()
             optionsContainer.visibility = if (isChecked) View.VISIBLE else View.GONE
+            if (isChecked) {
+                prefs.edit().putString("last_used_service", "live_lyrics").apply()
+                val stopVisualizer = Intent(this, VisualizerService::class.java).apply { action = "STOP_VISUALIZER" }
+                startService(stopVisualizer)
+                
+                val startLyrics = Intent(this, LiveLyricsService::class.java).apply { action = "START_LIVE_LYRICS" }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    startForegroundService(startLyrics)
+                } else {
+                    startService(startLyrics)
+                }
+            } else {
+                val stopLyrics = Intent(this, LiveLyricsService::class.java).apply { action = "STOP_LIVE_LYRICS" }
+                startService(stopLyrics)
+            }
         }
         
         val savedAnimStyle = prefs.getInt("live_anim_style", 0)
@@ -156,6 +177,46 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
             }
         }
         
+        switchFallback.isChecked = prefs.getBoolean("fallback_enabled", true)
+        val fallbackEnabled = switchFallback.isChecked
+        
+        val fallbackVisibility = if (fallbackEnabled) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.btnCustomizeFallback).visibility = fallbackVisibility
+        tvFallbackDesc.visibility = fallbackVisibility
+        
+        switchFallback.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("fallback_enabled", isChecked).apply()
+            val vis = if (isChecked) View.VISIBLE else View.GONE
+            findViewById<View>(R.id.btnCustomizeFallback).visibility = vis
+            tvFallbackDesc.visibility = vis
+            
+            if (isChecked) {
+                // If it's turning on and a mic option is selected, check permission
+                val style = prefs.getInt("fallback_style", 0)
+                if (style == 2 || style == 3 || style == 5 || style == 8) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), 101)
+                        }
+                    }
+                }
+            }
+        }
+        
+        findViewById<View>(R.id.btnCustomizeFallback).setOnClickListener {
+            val bottomSheet = FallbackStyleBottomSheet()
+            bottomSheet.setOnStyleSelectedListener { style ->
+                if (style == 2 || style == 3 || style == 5 || style == 8) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), 101)
+                        }
+                    }
+                }
+            }
+            bottomSheet.show(supportFragmentManager, "FallbackStyleBottomSheet")
+        }
+        
         btnGrantPermission.setOnClickListener {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
@@ -170,6 +231,30 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
             }
         }
         
+        btnAddTile.setOnClickListener {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                val statusBarManager = getSystemService(android.app.StatusBarManager::class.java)
+                val componentName = ComponentName(this, LiveLyricsTileService::class.java)
+                statusBarManager?.requestAddTileService(
+                    componentName,
+                    "Live Lyrics",
+                    android.graphics.drawable.Icon.createWithResource(this, R.mipmap.ic_launcher),
+                    mainExecutor,
+                    { result ->
+                        if (result == android.app.StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED || 
+                            result == android.app.StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED) {
+                            prefs.edit().putBoolean("tile_added", true).apply()
+                            findViewById<View>(R.id.layoutAlwaysOnMode).visibility = View.GONE
+                        } else {
+                            Snackbar.make(findViewById(android.R.id.content), "Failed to add tile.", Snackbar.LENGTH_SHORT).applyNothingStyle().show()
+                        }
+                    }
+                )
+            } else {
+                Snackbar.make(findViewById(android.R.id.content), "Pull down your notification shade and edit tiles to add 'Live Lyrics'.", Snackbar.LENGTH_LONG).applyNothingStyle().show()
+            }
+        }
+        
         if (prefs.getBoolean("first_run_live_v2", true)) {
             showOnboardingDialog()
         }
@@ -180,6 +265,11 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         checkNotificationPermission()
         MusicPlaybackState.addListener(this)
         updateUIState()
+        
+        val isTileAdded = getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE).getBoolean("tile_added", false)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            findViewById<View>(R.id.layoutAlwaysOnMode).visibility = if (isTileAdded) View.GONE else View.VISIBLE
+        }
         
         if (MusicPlaybackState.hasActiveSession && 
             MusicPlaybackState.trackTitle.isNotEmpty() && 
@@ -284,7 +374,13 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         
         dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "LIVE LYRICS"
-        dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = "This mode analyzes your system's current playing media to generate a real-time visualizer on your Glyph matrix.\n\nYou must grant Notification Access so the app can detect when music starts/stops across any app."
+        dialogView.findViewById<TextView>(R.id.tvDialogMessage).text = 
+            "Project synced lyrics directly onto your Glyph matrix!\n\n" +
+            "HOW DO YOU WANT TO RUN IT?\n\n" +
+            "1. INDEFINITE BACKGROUND SERVICE\n" +
+            "Toggle the master switch above. It runs infinitely in the background and can be quickly turned on/off using the 'Odyssey Glyph' Quick Settings Tile.\n\n" +
+            "2. NATIVE GLYPH TOY\n" +
+            "Tap 'TOYS MANAGER' to add it to your Nothing OS settings. You can launch it using the physical Glyph button on the back of your phone. It will play for a short time and automatically go to sleep."
         dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).text = "GOT IT"
         dialogView.findViewById<MaterialButton>(R.id.btnDialogAction).setOnClickListener {
             prefs.edit().putBoolean("first_run_live_v2", false).apply()

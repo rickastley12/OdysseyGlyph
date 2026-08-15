@@ -56,7 +56,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Select media to map to the Glyph Matrix."
+                    android:text="Project real-time synced lyrics or map custom media directly to your Glyph Matrix."
                     android:fontFamily="@font/jetbrains_mono"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant"
@@ -87,6 +87,18 @@
                     android:layout_marginBottom="@dimen/spacing_medium" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLaunchVisualizer"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="STANDALONE VISUALIZER"
+                    android:fontFamily="@font/jetbrains_mono"
+                    app:cornerRadius="0dp"
+                    android:paddingVertical="12dp"
+                    app:icon="@drawable/ic_audio"
+                    android:layout_marginBottom="@dimen/spacing_medium" />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnLaunchLiveLyrics"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -97,7 +109,58 @@
                     app:icon="@drawable/ic_audio"
                     app:iconTint="#FFFFFF"
                     app:backgroundTint="#FF0000"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="@dimen/spacing_medium" />
+
+                <!-- Quick Access Section (hides once tile is added) -->
+                <LinearLayout
+                    android:id="@+id/quickAccessSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="@dimen/spacing_small">
+                    
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="QUICK ACCESS — OPTIONAL"
+                        android:fontFamily="@font/jetbrains_mono"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:layout_marginBottom="8dp" />
+                        
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddTileMain"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="QS TILE"
+                            android:fontFamily="@font/jetbrains_mono"
+                            app:cornerRadius="0dp"
+                            android:paddingVertical="8dp"
+                            app:icon="@drawable/ic_settings" />
+                            
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddWidgetMain"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:text="WIDGET"
+                            android:fontFamily="@font/jetbrains_mono"
+                            app:cornerRadius="0dp"
+                            android:paddingVertical="8dp"
+                            app:icon="@drawable/ic_folder" />
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Settings Panel -->

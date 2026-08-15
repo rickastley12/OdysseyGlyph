@@ -13,8 +13,8 @@ object MusicPlaybackState {
     var playbackSpeed: Float = 1.0f
     
     var hasActiveSession: Boolean = false
-    var manualOverrideLyrics: List<Pair<Long, String>>? = null
-    var manualOverrideTrackName: String = ""
+    @Volatile var manualOverrideLyrics: List<Pair<Long, String>>? = null
+    @Volatile var manualOverrideTrackName: String = ""
     var activeSource: String = "" // "Spotify" or "YT Music"
     
     interface StateChangeListener {
