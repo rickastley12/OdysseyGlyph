@@ -25,11 +25,17 @@ Pick any video from your gallery. Pinch and pan to crop a region into the 25×25
 **Lyric Studio**
 Load an LRC lyric file, pick a font mode, and preview frame-by-frame. Sync to audio and export as a Glyph toy. The font engine renders directly to the 25px matrix — getting text to actually read at that resolution across three different typography sizes took more iteration than I'd like to admit.
 
-**Live Lyrics**
-A background service that detects whatever's currently playing on your phone — any music app, not just Spotify — via Android's MediaSession. It fetches time-synced lyrics from LRCLib and scrolls them across the matrix in real time. No API key required, works in basically any language.
+**Live Lyrics & Fallback Visualizer**
+A true background service that detects whatever's currently playing on your phone — any music app, not just Spotify — via Android's MediaSession. It fetches time-synced lyrics from LRCLib and scrolls them across the matrix in real time. No API key required, works in basically any language. If a song has no lyrics available, it seamlessly falls back to a built-in audio visualizer to keep the light show going.
+
+**Audio Visualizer**
+A standalone audio-reactive visualizer that drives the glyph matrix based on whatever audio is currently playing on the device. It runs entirely in the background.
+
+**Quick Settings & Widgets**
+Both Live Lyrics and the Audio Visualizer operate as true background services, completely independent of the main app. You can toggle them instantly from anywhere using the included Home Screen Widget or the Quick Settings (QS) Tile.
 
 **Toy Manager**
-Browse, preview, and delete your saved animations. Nothing exciting, just necessary.
+Browse, preview, and delete your saved animations from Lyric Studio or the Video processor. Nothing exciting, just necessary.
 
 ---
 
@@ -42,8 +48,8 @@ Glyph Odyssey is built to solve a narrower set of problems:
 **1. The video processing pipeline**
 Glyph Museum imports GIFs and images. Odyssey is built specifically to crush real-world video footage — faces, cinematic shots, motion — into 25×25 pixels and have it remain legible. Box-filter downsampling, S-curve contrast stretching, unsharp masking, with live video playback running behind your gesture-crop frame.
 
-**2. Live lyrics**
-Other apps do audio-reactive light shows (EQ bars bouncing to the beat). Odyssey does *Live Lyrics* — it reads MediaSession metadata from whatever music app you're using, fetches time-synced lyrics from LRCLib, and scrolls the actual text across the matrix in real time.
+**2. Live lyrics & True Background Services**
+Other apps do audio-reactive light shows (EQ bars bouncing to the beat). Odyssey does *Live Lyrics* — it reads MediaSession metadata from whatever music app you're using, fetches time-synced lyrics from LRCLib, and scrolls the actual text across the matrix in real time. Even better, it runs as a true background service with Home Screen Widgets and QS Tiles, meaning you don't need to keep the app open to use it. If lyrics aren't found, it seamlessly transitions into a sleek fallback audio visualizer.
 
 **3. Lyric studio**
 An LRC file-based authoring tool with a custom Ndot57 font engine. Dynamic per-word hyphenation and chunking to render legible text on a 25-pixel-wide constraint.
