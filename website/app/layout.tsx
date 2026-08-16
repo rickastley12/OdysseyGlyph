@@ -37,6 +37,7 @@ export const metadata: Metadata = {
 
 import AnimatedBackground from "./components/AnimatedBackground";
 import { Providers } from "./providers";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function RootLayout({
   children,
@@ -50,6 +51,7 @@ export default function RootLayout({
           <AnimatedBackground />
           <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
