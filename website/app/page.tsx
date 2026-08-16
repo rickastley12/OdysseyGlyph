@@ -175,7 +175,9 @@ export default function Home() {
               viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
               A background service that detects whatever is currently playing system-wide — any music
               app — via Android&apos;s MediaSession, fetches time-synced lyrics from LRCLib, and scrolls
-              them live across the Glyph Matrix. No API key, no accounts, no setup.
+              them live across the Glyph Matrix. No API key, no accounts, no setup. If a song has no
+              lyrics available, it seamlessly switches to the built-in audio visualizer so the matrix
+              never just sits there dark.
             </motion.p>
           </div>
           <motion.div className={styles.visualPlaceholder}
@@ -190,7 +192,74 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* Toy Manager */}
+        {/* Audio Visualizer */}
+        <div className={styles.featureCard}>
+          <div className={styles.featureContent}>
+            <motion.h2 className={styles.featureTitle}
+              initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+              AUDIO VISUALIZER
+            </motion.h2>
+            <motion.p className={styles.featureDesc}
+              initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
+              A standalone audio-reactive mode that drives the matrix from whatever is playing on the
+              device — no lyrics needed. Multiple styles to choose from, all running as a true background
+              service independent of the main app.
+            </motion.p>
+          </div>
+          <motion.div className={styles.visualPlaceholder}
+            initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-100px" }} transition={springBouncy}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "3px", height: "60px", padding: "0 8px" }}>
+              {[0.4, 0.7, 0.5, 1.0, 0.8, 0.6, 0.9, 0.3, 0.75, 0.55, 0.85, 0.45, 0.65].map((h, i) => (
+                <motion.div
+                  key={i}
+                  style={{ flex: 1, background: "var(--foreground)", borderRadius: "2px 2px 0 0" }}
+                  animate={shouldReduceMotion ? {} : { scaleY: [h, h * 0.4, h * 1.2, h * 0.6, h] }}
+                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.08, ease: "easeInOut" }}
+                  initial={{ scaleY: h, originY: 1 }}
+                />
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Widget & QS Tile */}
+        <div className={`${styles.featureCard} ${styles.reverse}`}>
+          <div className={styles.featureContent}>
+            <motion.h2 className={styles.featureTitle}
+              initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
+              WIDGET &amp; QS TILE
+            </motion.h2>
+            <motion.p className={styles.featureDesc}
+              initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
+              Live Lyrics and the Visualizer started out as standard Glyph Toys inside Nothing&apos;s
+              carousel — which works, but Glyph Toys have a hard 10-minute timeout. Someone pointed
+              that out in a review after using it for a full album. The fix was running them as true
+              background services instead, toggleable from a home screen widget or Quick Settings tile
+              without ever opening the app. They stay on as long as you want.
+            </motion.p>
+          </div>
+          <motion.div className={styles.visualPlaceholder}
+            initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-100px" }} transition={springBouncy}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", alignItems: "center" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--muted-foreground)", letterSpacing: "2px" }}>QUICK SETTINGS</div>
+              <motion.div
+                style={{ width: "72px", height: "72px", borderRadius: "18px", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1.5rem" }}
+                whileTap={shouldReduceMotion ? {} : { scale: 0.92 }}
+                animate={shouldReduceMotion ? {} : { borderColor: ["var(--border)", "var(--foreground)", "var(--border)"] }}
+                transition={{ duration: 2, repeat: Infinity }}>
+                ◈
+              </motion.div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.55rem", color: "var(--accent)", letterSpacing: "1px" }}>GLYPH ODYSSEY</div>
+            </div>
+          </motion.div>
+        </div>
+
         <div className={styles.featureCard}>
           <div className={styles.featureContent}>
             <motion.h2 className={styles.featureTitle}
