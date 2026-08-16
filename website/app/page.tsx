@@ -176,8 +176,9 @@ export default function Home() {
               A background service that detects whatever is currently playing system-wide — any music
               app — via Android&apos;s MediaSession, fetches time-synced lyrics from LRCLib, and scrolls
               them live across the Glyph Matrix. No API key, no accounts, no setup. If a song has no
-              lyrics available, it seamlessly switches to the built-in audio visualizer so the matrix
-              never just sits there dark.
+              lyrics, it falls back to a built-in visualizer so the matrix isn&apos;t just sitting there
+              dark. That visualizer turned out useful enough that you can also run it standalone from
+              the same widget toggle.
             </motion.p>
           </div>
           <motion.div className={styles.visualPlaceholder}
@@ -189,39 +190,6 @@ export default function Home() {
               transition={{ duration: 5, repeat: Infinity, ease: "linear" }}>
               NEVER GONNA GIVE YOU UP
             </motion.div>
-          </motion.div>
-        </div>
-
-        {/* Audio Visualizer */}
-        <div className={styles.featureCard}>
-          <div className={styles.featureContent}>
-            <motion.h2 className={styles.featureTitle}
-              initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }} transition={springDefault}>
-              AUDIO VISUALIZER
-            </motion.h2>
-            <motion.p className={styles.featureDesc}
-              initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }} transition={{ ...springDefault, delay: 0.1 }}>
-              A standalone audio-reactive mode that drives the matrix from whatever is playing on the
-              device — no lyrics needed. Multiple styles to choose from, all running as a true background
-              service independent of the main app.
-            </motion.p>
-          </div>
-          <motion.div className={styles.visualPlaceholder}
-            initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-100px" }} transition={springBouncy}>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: "3px", height: "60px", padding: "0 8px" }}>
-              {[0.4, 0.7, 0.5, 1.0, 0.8, 0.6, 0.9, 0.3, 0.75, 0.55, 0.85, 0.45, 0.65].map((h, i) => (
-                <motion.div
-                  key={i}
-                  style={{ flex: 1, background: "var(--foreground)", borderRadius: "2px 2px 0 0" }}
-                  animate={shouldReduceMotion ? {} : { scaleY: [h, h * 0.4, h * 1.2, h * 0.6, h] }}
-                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.08, ease: "easeInOut" }}
-                  initial={{ scaleY: h, originY: 1 }}
-                />
-              ))}
-            </div>
           </motion.div>
         </div>
 

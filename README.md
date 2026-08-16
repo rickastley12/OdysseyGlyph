@@ -27,10 +27,7 @@ Pick any video from your gallery. Pinch and pan to crop a region into the 25×25
 Load an LRC lyric file, pick a font mode, and preview frame-by-frame. Sync to audio and export as a Glyph toy. The font engine renders directly to the 25px matrix — getting text to actually read at that resolution across three different typography sizes took more iteration than I'd like to admit.
 
 **Live Lyrics**
-Detects whatever's playing on your phone — any music app, not just Spotify — via Android's MediaSession. Fetches time-synced lyrics from LRCLib and scrolls them across the matrix in real time. No API key required, works in basically any language. If a song doesn't have lyrics available, it falls back to a built-in audio visualizer so the matrix isn't just sitting there doing nothing.
-
-**Audio Visualizer**
-A standalone mode that drives the matrix directly from audio, no lyrics involved. Useful if you just want something reactive running without caring about what song it is.
+Detects whatever's playing on your phone — any music app, not just Spotify — via Android's MediaSession. Fetches time-synced lyrics from LRCLib and scrolls them across the matrix in real time. No API key required, works in basically any language. If a song doesn't have lyrics available, it falls back to a built-in audio visualizer so the matrix isn't just sitting there doing nothing. That visualizer ended up being useful enough on its own that you can also run it standalone from the same widget/tile toggle.
 
 **Quick Settings Tile & Home Screen Widget**
 Live Lyrics and the visualizer originally ran as Glyph Toys inside Nothing's carousel system. Someone pointed out that Glyph Toys have a hard 10-minute timeout — so if you're mid-album, the lights just stop. I hadn't noticed because I'd been using shorter playlists. The fix was to make them proper background services that run independently of the Toy system. You can now toggle them from a Quick Settings tile or a home screen widget, and they'll stay running as long as you want.
