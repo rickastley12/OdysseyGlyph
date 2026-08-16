@@ -85,6 +85,17 @@ export default function Home() {
               </a>
             </motion.div>
 
+            <motion.div
+              style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 1.0 }}
+            >
+              <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer">
+                <img src="https://img.shields.io/github/downloads/tezz-e/OdysseyGlyph/total?style=flat-square&color=blue" alt="Total Downloads" />
+              </a>
+            </motion.div>
+
 
             <motion.p
               className={styles.deviceReq}
