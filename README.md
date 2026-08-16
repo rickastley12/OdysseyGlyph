@@ -3,7 +3,8 @@ GLYPH ODYSSEY
 video → 25×25 LED matrix  ·  on-device  ·  MIT
 ```
 
-**[🌐 Visit the Live Website](https://odyssey-glyph.vercel.app/)**
+**[🌐 Visit the Live Website](https://odyssey-glyph.vercel.app/)**  
+![Downloads](https://img.shields.io/github/downloads/rickastley12/OdysseyGlyph/total?style=flat-square&color=blue)
 
 This started because I wanted to watch the Odyssey trailer on the back of my Nothing Phone as a bit. I thought it would take a few hours. It took a weekend, three rewrites, and way more thinking about pixel averaging than any reasonable person should do for a joke.
 
@@ -49,7 +50,9 @@ Glyph Odyssey is built to solve a narrower set of problems:
 Glyph Museum imports GIFs and images. Odyssey is built specifically to crush real-world video footage — faces, cinematic shots, motion — into 25×25 pixels and have it remain legible. Box-filter downsampling, S-curve contrast stretching, unsharp masking, with live video playback running behind your gesture-crop frame.
 
 **2. Live lyrics & True Background Services**
-Other apps do audio-reactive light shows (EQ bars bouncing to the beat). Odyssey does *Live Lyrics* — it reads MediaSession metadata from whatever music app you're using, fetches time-synced lyrics from LRCLib, and scrolls the actual text across the matrix in real time. Even better, it runs as a true background service with Home Screen Widgets and QS Tiles, meaning you don't need to keep the app open to use it. If lyrics aren't found, it seamlessly transitions into a sleek fallback audio visualizer.
+Other apps do audio-reactive light shows (EQ bars bouncing to the beat). Odyssey does *Live Lyrics* — it reads MediaSession metadata from whatever music app you're using, fetches time-synced lyrics from LRCLib, and scrolls the actual text across the matrix in real time. 
+
+**Why bypass the Glyph Toy system?** The native Nothing OS "Glyph Toy" system hard-caps all custom animations to a strict **10-minute timeout**. If you're listening to an album, your lights will just shut off mid-song. To fix this, Odyssey's Live Lyrics and Audio Visualizer run as **true background services**, completely bypassing the Toy system. They will run indefinitely for as long as your music plays. You can instantly toggle them on or off using the included Home Screen Widget or Quick Settings (QS) Tile without ever needing to open the app.
 
 **3. Lyric studio**
 An LRC file-based authoring tool with a custom Ndot57 font engine. Dynamic per-word hyphenation and chunking to render legible text on a 25-pixel-wide constraint.
