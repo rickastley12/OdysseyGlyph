@@ -4,7 +4,7 @@ video → 25×25 LED matrix  ·  on-device  ·  GNU GPLv3
 ```
 
 **[🌐 Visit the Live Website](https://odyssey-glyph.vercel.app/)**  
-![Downloads](https://img.shields.io/github/downloads/rickastley12/OdysseyGlyph/total?style=flat-square&color=blue)
+![Downloads](https://img.shields.io/github/downloads/tezz-e/OdysseyGlyph/total?style=flat-square&color=blue)
 
 This started because I wanted to watch the Odyssey trailer on the back of my Nothing Phone as a bit. I thought it would take a few hours. It took a weekend, three rewrites, and way more thinking about pixel averaging than any reasonable person should do for a joke.
 
@@ -80,7 +80,7 @@ Spotify and YouTube Music fire a PlaybackState callback when something changes �
 
 **Step 1 — Download the APK**
 
-Go to the [latest release](https://github.com/rickastley12/OdysseyGlyph/releases) and download `app-release.apk` to your computer (not your phone).
+Go to the [latest release](https://github.com/tezz-e/OdysseyGlyph/releases) and download `app-release.apk` to your computer (not your phone).
 
 **Step 2 — Set up ADB on your computer**
 
@@ -131,7 +131,7 @@ ADB bypasses Play Protect entirely because it's a direct developer channel — y
 ## Security & Trust
 
 **How do I know the APK is safe?**
-Every release is built transparently by [GitHub Actions](https://github.com/rickastley12/OdysseyGlyph/actions) from the open-source code in this repo — not on a personal machine. Build logs are public. Every release includes a SHA-256 hash and a direct VirusTotal link in the release notes.
+Every release is built transparently by [GitHub Actions](https://github.com/tezz-e/OdysseyGlyph/actions) from the open-source code in this repo — not on a personal machine. Build logs are public. Every release includes a SHA-256 hash and a direct VirusTotal link in the release notes.
 
 **Notification access is a scary permission**
 Fair. Live Lyrics needs it to read track metadata — title, artist, playback position. That's it. Nothing is logged, stored, or transmitted except the LRCLib lyrics fetch which only sends song title and artist. If you'd rather not grant it, skip Live Lyrics — everything else works without it.
@@ -151,7 +151,7 @@ I use it myself so when something bothers me enough I'll fix it. No roadmap, no 
 ## Build from source
 
 ```bash
-git clone https://github.com/rickastley12/OdysseyGlyph.git
+git clone https://github.com/tezz-e/OdysseyGlyph.git
 ```
 
 Open in Android Studio → sync Gradle → run to a connected Nothing Phone. The `glyph-matrix-sdk-2.0.aar` is already in `android/app/libs/`.

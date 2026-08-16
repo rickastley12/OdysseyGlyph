@@ -12,8 +12,8 @@ import CopyButton from "./components/CopyButton";
 const springDefault = { type: "spring" as const, bounce: 0, duration: 0.8 };
 const springBouncy  = { type: "spring" as const, bounce: 0.2, duration: 0.6 };
 
-const GITHUB_URL  = "https://github.com/rickastley12/OdysseyGlyph";
-const RELEASES_URL = "https://github.com/rickastley12/OdysseyGlyph/releases";
+const GITHUB_URL  = "https://github.com/tezz-e/OdysseyGlyph";
+const RELEASES_URL = "https://github.com/tezz-e/OdysseyGlyph/releases";
 
 // Precomputed grayscale values for the box-filter downsampling demo.
 // "Naive" has extreme jumps (simulating nearest-neighbour artefacts).
@@ -618,7 +618,7 @@ export default function Home() {
             <summary className={styles.buildSummary}>Building from source</summary>
             <div className={styles.buildContent}>
               <p>Clone the repo, open in Android Studio, sync Gradle, and run to a connected Nothing Phone.</p>
-              <code className={styles.codeBlock}>git clone https://github.com/rickastley12/OdysseyGlyph.git</code>
+              <code className={styles.codeBlock}>git clone https://github.com/tezz-e/OdysseyGlyph.git</code>
             </div>
           </details>
 
