@@ -1,6 +1,6 @@
 ```
 GLYPH ODYSSEY
-video → 25×25 LED matrix  ·  on-device  ·  MIT
+video → 25×25 LED matrix  ·  on-device  ·  GNU GPLv3
 ```
 
 **[🌐 Visit the Live Website](https://odyssey-glyph.vercel.app/)**  
@@ -157,5 +157,5 @@ git clone https://github.com/rickastley12/OdysseyGlyph.git
 Open in Android Studio → sync Gradle → run to a connected Nothing Phone. The `glyph-matrix-sdk-2.0.aar` is already in `android/app/libs/`.
 
 ---
-
-MIT. Not affiliated with Nothing Technology Limited.
+## License
+GNU GPLv3. Not affiliated with Nothing Technology Limited.

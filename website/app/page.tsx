@@ -659,7 +659,7 @@ export default function Home() {
               GitHub
             </a>
             <a href={`${GITHUB_URL}/blob/main/LICENSE`} target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
-              MIT License
+              GNU GPLv3 License
             </a>
           </div>
           <p className={styles.footerDisclaimer}>Not affiliated with Nothing Technology Limited.</p>
