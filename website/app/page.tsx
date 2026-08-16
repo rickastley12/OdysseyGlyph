@@ -91,8 +91,8 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...springDefault, delay: shouldReduceMotion ? 0 : 1.0 }}
             >
-              <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer">
-                <img src="https://img.shields.io/github/downloads/tezz-e/OdysseyGlyph/total?style=flat-square&color=blue" alt="Total Downloads" />
+              <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer" style={{ opacity: 0.8, transition: "opacity 0.2s" }} onMouseOver={(e) => e.currentTarget.style.opacity = "1"} onMouseOut={(e) => e.currentTarget.style.opacity = "0.8"}>
+                <img src="https://img.shields.io/github/downloads/tezz-e/OdysseyGlyph/total?style=for-the-badge&color=black&labelColor=111111&logo=github" alt="Total Downloads" style={{ border: "1px solid #333" }} />
               </a>
             </motion.div>
 
