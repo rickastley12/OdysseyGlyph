@@ -368,6 +368,11 @@ class MainActivity : AppCompatActivity() {
                 }
                 
                 prefs.edit().putString("last_used_service", "visualizer").apply()
+                
+                // Stop live lyrics first if it's running
+                val stopLyrics = Intent(this@MainActivity, LiveLyricsService::class.java).apply { action = "STOP_LIVE_LYRICS" }
+                startService(stopLyrics)
+                
                 val intent = Intent(this, VisualizerService::class.java)
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     startForegroundService(intent)

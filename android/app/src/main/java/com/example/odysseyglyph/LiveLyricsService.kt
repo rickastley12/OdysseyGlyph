@@ -285,9 +285,13 @@ class LiveLyricsService : Service(), MusicPlaybackState.StateChangeListener, Sha
                 "STOP_LIVE_LYRICS" -> {
                     getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE).edit().putBoolean("live_lyrics_enabled", false).apply()
                     isRunning = false
+                    isRegistered = false
                     mainHandler.removeCallbacks(playbackRunnable)
                     visualizerHelper.stop()
                     try { glyphManager?.turnOff() } catch (e: Exception) {}
+                    if (!VisualizerService.isRunning) {
+                        try { glyphManager?.unInit() } catch (e: Exception) {}
+                    }
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     LiveLyricsTileService.requestTileUpdate(this)
                     OdysseyWidgetProvider.updateAllWidgets(this)
@@ -343,14 +347,28 @@ class LiveLyricsService : Service(), MusicPlaybackState.StateChangeListener, Sha
         } catch (e: Exception) {}
     }
 
-    private fun buildNotification(): Notification {
+    private fun updateNotification(trackName: String, hasLyrics: Boolean) {
+        if (!isRunning) return
+        val title = if (trackName.isNotEmpty()) "Live Lyrics: $trackName" else "Live Lyrics Active"
+        val text = if (trackName.isNotEmpty()) {
+            if (hasLyrics) "Syncing lyrics to Glyph matrix." else "No lyrics found. Running fallback visualizer."
+        } else {
+            "Waiting for music..."
+        }
+        val notification = buildNotification(title, text)
+        val manager = getSystemService(NotificationManager::class.java)
+        manager?.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun buildNotification(title: String = "Live Lyrics Active", text: String = "Glyph matrix is rendering lyrics indefinitely."): Notification {
         val notificationIntent = Intent(this, LiveLyricsActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Live Lyrics Active")
-            .setContentText("Glyph matrix is rendering lyrics indefinitely.")
+            .setContentTitle(title)
+            .setContentText(text)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)
+            .setOnlyAlertOnce(true)
             .build()
     }
 
@@ -373,6 +391,8 @@ class LiveLyricsService : Service(), MusicPlaybackState.StateChangeListener, Sha
             currentTrackId = trackId
             currentParsedLyrics = emptyList()
             
+            updateNotification(title, false) // Initial state while searching
+            
             thread {
                 val query = LrcQueryCleaner.clean("$title $artist")
                 val results = LRCLibClient.searchLyrics(query)
@@ -382,10 +402,19 @@ class LiveLyricsService : Service(), MusicPlaybackState.StateChangeListener, Sha
                     mainHandler.post {
                         if (currentTrackId == trackId) {
                             currentParsedLyrics = parsed
+                            updateNotification(title, true)
+                        }
+                    }
+                } else {
+                    mainHandler.post {
+                        if (currentTrackId == trackId) {
+                            updateNotification(title, false)
                         }
                     }
                 }
             }
+        } else if (title.isEmpty()) {
+            updateNotification("", false)
         }
     }
 

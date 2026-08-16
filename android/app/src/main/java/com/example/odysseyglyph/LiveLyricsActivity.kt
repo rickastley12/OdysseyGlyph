@@ -337,7 +337,8 @@ class LiveLyricsActivity : AppCompatActivity(), MusicPlaybackState.StateChangeLi
         
         if (title.isNotEmpty()) {
             thread {
-                val results = LRCLibClient.searchLyrics("$title $artist")
+                val query = LrcQueryCleaner.clean("$title $artist")
+                val results = LRCLibClient.searchLyrics(query)
                 val syncedResult = results.firstOrNull { it.syncedLyrics != null }
                 if (syncedResult != null) {
                     val parsed = LrcUtils.parseLrc(syncedResult.syncedLyrics!!)

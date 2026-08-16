@@ -34,11 +34,26 @@ class MediaSessionListenerService : NotificationListenerService() {
     private val controllerCallback = object : MediaController.Callback() {
         override fun onMetadataChanged(metadata: MediaMetadata?) {
             super.onMetadataChanged(metadata)
-            metadata?.let {
-                val title = it.getString(MediaMetadata.METADATA_KEY_TITLE) ?: ""
-                val artist = it.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: ""
-                val art = it.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: it.getBitmap(MediaMetadata.METADATA_KEY_ART)
-                Log.d("MusicListener", "Metadata changed: $title - $artist")
+            
+            // Some players send an empty metadata bundle initially; don't wipe existing valid data if so
+            if (metadata == null) return
+            
+            val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE) 
+                ?: metadata.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) 
+                ?: ""
+                
+            val artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST) 
+                ?: metadata.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                ?: metadata.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE) 
+                ?: ""
+                
+            val art = metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) 
+                ?: metadata.getBitmap(MediaMetadata.METADATA_KEY_ART)
+                
+            Log.d("MusicListener", "Metadata changed: $title - $artist")
+            
+            // Only update if we actually got a title, or if we were previously unknown.
+            if (title.isNotEmpty() || MusicPlaybackState.trackTitle.isEmpty()) {
                 MusicPlaybackState.updateMetadata(title, artist, activeSource, art)
             }
         }
@@ -81,12 +96,28 @@ class MediaSessionListenerService : NotificationListenerService() {
     }
 
     private fun updateActiveSessions(controllers: List<MediaController>?) {
-        if (!isConnected) return
+        if (!isConnected || controllers.isNullOrEmpty()) {
+            if (activeController != null) {
+                activeController?.unregisterCallback(controllerCallback)
+                handler.removeCallbacks(positionSyncRunnable)
+                activeController = null
+                MusicPlaybackState.hasActiveSession = false
+                Log.d("MusicListener", "Music session ended")
+            }
+            return
+        }
         
-        // Prioritize Spotify or YT Music if multiple exist
-        val musicController = controllers?.find { 
+        val preferredPlaying = controllers.find { 
+            (it.packageName == "com.spotify.music" || it.packageName == "com.google.android.apps.youtube.music") && it.playbackState?.state == PlaybackState.STATE_PLAYING 
+        }
+        
+        val anyPlaying = controllers.find { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+        
+        val preferredAny = controllers.find { 
             it.packageName == "com.spotify.music" || it.packageName == "com.google.android.apps.youtube.music" 
         }
+        
+        val musicController = preferredPlaying ?: anyPlaying ?: preferredAny ?: controllers.firstOrNull()
         
         if (musicController != null) {
             if (activeController?.sessionToken != musicController.sessionToken) {
@@ -94,7 +125,14 @@ class MediaSessionListenerService : NotificationListenerService() {
                 handler.removeCallbacks(positionSyncRunnable)
                 
                 activeController = musicController
-                activeSource = if (musicController.packageName.contains("spotify")) "Spotify" else "YouTube Music"
+                
+                val pm = packageManager
+                activeSource = try {
+                    val info = pm.getApplicationInfo(musicController.packageName, 0)
+                    pm.getApplicationLabel(info).toString()
+                } catch (e: Exception) {
+                    musicController.packageName
+                }
                 
                 activeController?.registerCallback(controllerCallback)
                 
@@ -107,14 +145,6 @@ class MediaSessionListenerService : NotificationListenerService() {
                 
                 // Start active position polling to prevent drift
                 handler.post(positionSyncRunnable)
-            }
-        } else {
-            if (activeController != null) {
-                activeController?.unregisterCallback(controllerCallback)
-                handler.removeCallbacks(positionSyncRunnable)
-                activeController = null
-                MusicPlaybackState.hasActiveSession = false
-                Log.d("MusicListener", "Music session ended")
             }
         }
     }
