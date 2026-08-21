@@ -13,6 +13,12 @@ import com.nothing.ketchum.Glyph
 import com.nothing.ketchum.GlyphMatrixManager
 import com.nothing.ketchum.GlyphToy
 import java.io.InputStream
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import androidx.core.app.NotificationCompat
+import android.os.Build
 
 /**
  * Glyph Toy that plays back a pre-baked sequence of 25x25 monochrome frames
@@ -24,6 +30,73 @@ import java.io.InputStream
 abstract class BaseToyService : Service() {
     
     abstract fun getFramesFileName(): String
+
+    companion object {
+        const val ACTION_START_STANDALONE = "com.example.odysseyglyph.ACTION_START_STANDALONE"
+        const val ACTION_STOP_STANDALONE = "com.example.odysseyglyph.ACTION_STOP_STANDALONE"
+    }
+
+    private var isStandalone = false
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_START_STANDALONE) {
+            isStandalone = true
+            createNotificationChannel()
+            val stopIntent = Intent(this, this::class.java).apply {
+                action = ACTION_STOP_STANDALONE
+            }
+            val stopPendingIntent = PendingIntent.getService(
+                this, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            
+            val notification = NotificationCompat.Builder(this, "toy_playback")
+                .setContentTitle("Playing Glyph Toy")
+                .setContentText("Playing \${getFramesFileName()}")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .addAction(R.mipmap.ic_launcher, "Stop", stopPendingIntent)
+                .setOngoing(true)
+                .build()
+                
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(2, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            } else {
+                startForeground(2, notification)
+            }
+            
+            init()
+            return START_STICKY
+        } else if (intent?.action == ACTION_STOP_STANDALONE) {
+            stopStandalone()
+            return START_NOT_STICKY
+        }
+        return START_NOT_STICKY
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "toy_playback",
+                "Toy Playback",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun stopStandalone() {
+        if (isStandalone) {
+            isStandalone = false
+            mainHandler.removeCallbacks(playbackRunnable)
+            glyphManager?.turnOff()
+            glyphManager?.unInit()
+            glyphManager = null
+            mediaPlayer?.release()
+            mediaPlayer = null
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+        }
+    }
 
     private var glyphManager: GlyphMatrixManager? = null
     private var mediaPlayer: android.media.MediaPlayer? = null

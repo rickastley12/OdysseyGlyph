@@ -73,6 +73,16 @@
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPlayOnGlyph"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PLAY ON GLYPH"
+        android:fontFamily="@font/jetbrains_mono"
+        android:layout_marginBottom="8dp"
+        style="?attr/materialButtonOutlinedStyle"
+        app:strokeColor="?attr/colorPrimary" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnShare"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
