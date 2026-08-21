@@ -69,7 +69,7 @@ class VisualizerService : Service(), SharedPreferences.OnSharedPreferenceChangeL
             if (currentHash != lastFrameHash) {
                 lastFrameHash = currentHash
                 try {
-                    glyphManager?.setMatrixFrame(toIntArray(frameBytes))
+                    glyphManager?.setMatrixFrame(MatrixConfig.formatForHardware(frameBytes))
                 } catch (e: GlyphException) {
                     e.printStackTrace()
                 }

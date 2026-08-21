@@ -46,7 +46,8 @@ object LrcUtils {
         parsedLines: List<Pair<Long, String>>,
         currentMs: Long,
         fontStyle: GlyphFontEngine.FontStyle,
-        animationStyle: Int
+        animationStyle: Int,
+        matrixSize: Float = 25f
     ): Pair<String, Float>? {
         if (parsedLines.isEmpty()) return null
 
@@ -81,7 +82,7 @@ object LrcUtils {
             frameText = text
             val textWidth = GlyphFontEngine.measureTextWidth(text, fontStyle, autoScale = false)
             val progress = timeSinceStart.toFloat() / lineDuration
-            offsetX = 25f - (progress * (textWidth + 25f))
+            offsetX = matrixSize - (progress * (textWidth + matrixSize))
         } else {
             // Flash Word-by-Word with character-length proportional timing
             val words = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
@@ -129,16 +130,16 @@ object LrcUtils {
                             // HYBRID: Flash words, but if a word is too long, scroll it leftwards during its time slice.
                             frameText = cleanWord
                             val textWidth = GlyphFontEngine.measureTextWidth(cleanWord, fontStyle, autoScale = false)
-                            if (textWidth > 25f) {
-                                offsetX = 25f - (chunkProgress * (textWidth + 25f))
+                            if (textWidth > matrixSize) {
+                                offsetX = matrixSize - (chunkProgress * (textWidth + matrixSize))
                             } else {
-                                offsetX = (25f - textWidth) / 2f
+                                offsetX = (matrixSize - textWidth) / 2f
                             }
                         } else {
                             // FLASH: Multi-line or strobe chunks for long words
-                            frameText = GlyphFontEngine.formatWordForDisplay(cleanWord, fontStyle, chunkProgress)
+                            frameText = GlyphFontEngine.formatWordForDisplay(cleanWord, fontStyle, chunkProgress, matrixSize.toInt())
                             val textWidth = GlyphFontEngine.measureTextWidth(frameText, fontStyle, autoScale = false)
-                            offsetX = (25f - textWidth) / 2f
+                            offsetX = (matrixSize - textWidth) / 2f
                         }
                         break
                     }

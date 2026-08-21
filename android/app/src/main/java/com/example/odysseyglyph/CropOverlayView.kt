@@ -62,8 +62,8 @@ class CropOverlayView @JvmOverloads constructor(
         
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         
-        // Draw 25x25 grid
-        val gridSize = 25
+        // Draw dynamic grid
+        val gridSize = MatrixConfig.getMatrixSize(context)
         val startX = circleX - circleRadius
         val startY = circleY - circleRadius
         val step = (circleRadius * 2) / gridSize

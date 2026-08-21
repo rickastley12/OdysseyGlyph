@@ -99,7 +99,7 @@ class LiveLyricsToyService : Service(), MusicPlaybackState.StateChangeListener, 
                     val currentHash = frameBytes.contentHashCode()
                     if (currentHash != lastFrameHash) {
                         lastFrameHash = currentHash
-                        glyphManager?.setMatrixFrame(toIntArray(frameBytes))
+                        glyphManager?.setMatrixFrame(MatrixConfig.formatForHardware(frameBytes))
                     }
                     mainHandler.postDelayed(this, 16L) // ~60fps poll
                 } else {
@@ -136,7 +136,7 @@ class LiveLyricsToyService : Service(), MusicPlaybackState.StateChangeListener, 
                     val currentHash = frameBytes.contentHashCode()
                     if (currentHash != lastFrameHash) {
                         lastFrameHash = currentHash
-                        glyphManager?.setMatrixFrame(toIntArray(frameBytes))
+                        glyphManager?.setMatrixFrame(MatrixConfig.formatForHardware(frameBytes))
                     }
                 } else {
                     if (lastFrameHash != -1) {
@@ -154,7 +154,7 @@ class LiveLyricsToyService : Service(), MusicPlaybackState.StateChangeListener, 
                 val currentHash = frameBytes.contentHashCode()
                 if (currentHash != lastFrameHash) {
                     lastFrameHash = currentHash
-                    glyphManager?.setMatrixFrame(toIntArray(frameBytes))
+                    glyphManager?.setMatrixFrame(MatrixConfig.formatForHardware(frameBytes))
                 }
             }
             

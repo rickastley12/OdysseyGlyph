@@ -238,8 +238,14 @@ abstract class BaseToyService : Service() {
 
         // Check if old 8-byte header, 12-byte header, or new 16-byte header
         val frameCountOld = readU32(0)
-        val isNewFormat = (data.size - 12) == frameCountOld * 625
-        val isFormatV3 = (data.size - 16) == frameCountOld * 625
+        var bytesPerFrame = 625
+        val isNewFormat = (data.size - 12) > 0 && (data.size - 12) % frameCountOld == 0
+        val isFormatV3 = (data.size - 16) > 0 && (data.size - 16) % frameCountOld == 0
+        
+        if (isFormatV3) bytesPerFrame = (data.size - 16) / frameCountOld
+        else if (isNewFormat) bytesPerFrame = (data.size - 12) / frameCountOld
+        else if ((data.size - 8) > 0 && (data.size - 8) % frameCountOld == 0) bytesPerFrame = (data.size - 8) / frameCountOld
+
         
         var frameCount = frameCountOld
         var fps = readU32(4)
@@ -261,17 +267,14 @@ abstract class BaseToyService : Service() {
             offset = 8
         }
 
-        val cellsPerFrame = 25 * 25
-
         val result = ArrayList<IntArray>(frameCount)
         repeat(frameCount) {
-            val arr = IntArray(cellsPerFrame)
-            for (i in 0 until cellsPerFrame) {
-                // Scale 8-bit (0-255) to 12-bit (0-4095) for the Glyph SDK
-                arr[i] = (data[offset + i].toInt() and 0xFF) * 16
+            val frameBytes = ByteArray(bytesPerFrame)
+            for (i in 0 until bytesPerFrame) {
+                frameBytes[i] = data[offset + i]
             }
-            result.add(arr)
-            offset += cellsPerFrame
+            result.add(MatrixConfig.formatForHardware(frameBytes))
+            offset += bytesPerFrame
         }
         
         // We'll store playbackMode and offset in global variables for the Runnable to use

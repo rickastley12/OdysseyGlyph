@@ -19,9 +19,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 object VideoProcessor {
-    const val MATRIX_SIZE = 25
+    
 
     fun processMedia(
+        
         context: Context, 
         mediaUri: Uri, 
         audioUri: Uri?,
@@ -44,6 +45,7 @@ object VideoProcessor {
         onProgress: (Int) -> Unit, 
         onComplete: (Boolean, String?) -> Unit
     ) {
+        val matrixSize = MatrixConfig.getMatrixSize(context)
         val mainHandler = Handler(Looper.getMainLooper())
         
         thread {
@@ -93,7 +95,7 @@ object VideoProcessor {
                             val timeUs = (validStartMs + i * intervalMs) * 1000
                             val bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST)
                             if (bitmap != null) {
-                                val frame = extractAndDownsampleFrame(bitmap, videoCx, videoCy, videoRadius)
+                                val frame = extractAndDownsampleFrame(bitmap, videoCx, videoCy, videoRadius, matrixSize)
                                 if (frame != null) rawFrames.add(frame)
                                 bitmap.recycle()
                             }
@@ -136,7 +138,7 @@ object VideoProcessor {
                         canvas.drawColor(android.graphics.Color.TRANSPARENT, android.graphics.PorterDuff.Mode.CLEAR)
                         movie.draw(canvas, 0f, 0f)
                         
-                        val frame = extractAndDownsampleFrame(bitmap, videoCx, videoCy, videoRadius)
+                        val frame = extractAndDownsampleFrame(bitmap, videoCx, videoCy, videoRadius, matrixSize)
                         if (frame != null) rawFrames.add(frame)
                         
                         val prog = (i.toFloat() / totalFrames * 50).toInt()
@@ -190,7 +192,7 @@ object VideoProcessor {
                     val scaledCy = videoCy * scaleY
                     val scaledRadius = videoRadius * Math.max(scaleX, scaleY)
                     
-                    val frame = extractAndDownsampleFrame(fullBitmap, scaledCx, scaledCy, scaledRadius)
+                    val frame = extractAndDownsampleFrame(fullBitmap, scaledCx, scaledCy, scaledRadius, matrixSize)
                     if (frame != null) {
                         val totalFrames = imageDurationSec * targetFps
                         for (i in 0 until totalFrames) {
@@ -213,24 +215,24 @@ object VideoProcessor {
 
                 // Process contrast and sharpening for all frames
                 val finalFrames = mutableListOf<ByteArray>()
-                val center = (MATRIX_SIZE - 1) / 2f
-                val radiusSq = (MATRIX_SIZE / 2f) * (MATRIX_SIZE / 2f)
+                val center = (matrixSize - 1) / 2f
+                val radiusSq = (matrixSize / 2f) * (matrixSize / 2f)
 
                 for ((index, frame) in rawFrames.withIndex()) {
                     if (isCancelled.get()) {
                         mainHandler.post { onComplete(false, "Cancelled by user.") }
                         return@thread
                     }
-                    val processedFrame = ByteArray(MATRIX_SIZE * MATRIX_SIZE)
+                    val processedFrame = ByteArray(matrixSize * matrixSize)
                     
                     // Extract to 2D grid for spatial filtering
-                    val grid = Array(MATRIX_SIZE) { FloatArray(MATRIX_SIZE) }
+                    val grid = Array(matrixSize) { FloatArray(matrixSize) }
                     var frameMin = 255f
                     var frameMax = 0f
-                    for (y in 0 until MATRIX_SIZE) {
-                        for (x in 0 until MATRIX_SIZE) {
+                    for (y in 0 until matrixSize) {
+                        for (x in 0 until matrixSize) {
                             val distSq = (x - center) * (x - center) + (y - center) * (y - center)
-                            val v = (frame[y * MATRIX_SIZE + x].toInt() and 0xFF).toFloat()
+                            val v = (frame[y * matrixSize + x].toInt() and 0xFF).toFloat()
                             grid[y][x] = v
                             if (distSq <= radiusSq) {
                                 if (v < frameMin) frameMin = v
@@ -243,10 +245,10 @@ object VideoProcessor {
                     val frameRange = frameMax - frameMin
 
                     // Apply 3x3 Sharpening kernel
-                    val sharpenedGrid = Array(MATRIX_SIZE) { FloatArray(MATRIX_SIZE) }
-                    for (y in 0 until MATRIX_SIZE) {
-                        for (x in 0 until MATRIX_SIZE) {
-                            if (y == 0 || y == MATRIX_SIZE - 1 || x == 0 || x == MATRIX_SIZE - 1 || !sharpen) {
+                    val sharpenedGrid = Array(matrixSize) { FloatArray(matrixSize) }
+                    for (y in 0 until matrixSize) {
+                        for (x in 0 until matrixSize) {
+                            if (y == 0 || y == matrixSize - 1 || x == 0 || x == matrixSize - 1 || !sharpen) {
                                 sharpenedGrid[y][x] = grid[y][x]
                             } else {
                                 val sum = 5 * grid[y][x] - grid[y-1][x] - grid[y+1][x] - grid[y][x-1] - grid[y][x+1]
@@ -255,10 +257,10 @@ object VideoProcessor {
                         }
                     }
 
-                    for (y in 0 until MATRIX_SIZE) {
-                        for (x in 0 until MATRIX_SIZE) {
+                    for (y in 0 until matrixSize) {
+                        for (x in 0 until matrixSize) {
                             val distSq = (x - center) * (x - center) + (y - center) * (y - center)
-                            val idx = y * MATRIX_SIZE + x
+                            val idx = y * matrixSize + x
                             if (distSq <= radiusSq) {
                                 val original = sharpenedGrid[y][x]
                                 
@@ -337,7 +339,7 @@ object VideoProcessor {
         }
     }
 
-    private fun extractAndDownsampleFrame(bitmap: Bitmap, videoCx: Float, videoCy: Float, videoRadius: Float): ByteArray? {
+    private fun extractAndDownsampleFrame(bitmap: Bitmap, videoCx: Float, videoCy: Float, videoRadius: Float, matrixSize: Int): ByteArray? {
         val cropSide = (videoRadius * 2).toInt()
         val left = (videoCx - videoRadius).toInt().coerceIn(0, bitmap.width - 1)
         val top = (videoCy - videoRadius).toInt().coerceIn(0, bitmap.height - 1)
@@ -347,22 +349,22 @@ object VideoProcessor {
         if (width <= 0 || height <= 0) return null
 
         val square = Bitmap.createBitmap(bitmap, left, top, width, height)
-        val result = downsampleSquareFrame(square)
+        val result = downsampleSquareFrame(square, matrixSize)
         if (square != bitmap) square.recycle()
         return result
     }
 
-    private fun downsampleSquareFrame(square: Bitmap): ByteArray? {
-        val small = Bitmap.createBitmap(MATRIX_SIZE, MATRIX_SIZE, Bitmap.Config.ARGB_8888)
-        val scaleX = square.width.toFloat() / MATRIX_SIZE
-        val scaleY = square.height.toFloat() / MATRIX_SIZE
+    private fun downsampleSquareFrame(square: Bitmap, matrixSize: Int): ByteArray? {
+        val small = Bitmap.createBitmap(matrixSize, matrixSize, Bitmap.Config.ARGB_8888)
+        val scaleX = square.width.toFloat() / matrixSize
+        val scaleY = square.height.toFloat() / matrixSize
         
         val pixels = IntArray(square.width * square.height)
         square.getPixels(pixels, 0, square.width, 0, 0, square.width, square.height)
         
-        val outPixels = IntArray(MATRIX_SIZE * MATRIX_SIZE)
-        for (y in 0 until MATRIX_SIZE) {
-            for (x in 0 until MATRIX_SIZE) {
+        val outPixels = IntArray(matrixSize * matrixSize)
+        for (y in 0 until matrixSize) {
+            for (x in 0 until matrixSize) {
                 var rSum = 0L
                 var gSum = 0L
                 var bSum = 0L
@@ -385,7 +387,7 @@ object VideoProcessor {
                 }
                 
                 if (count > 0) {
-                    outPixels[y * MATRIX_SIZE + x] = android.graphics.Color.rgb(
+                    outPixels[y * matrixSize + x] = android.graphics.Color.rgb(
                         (rSum / count).toInt(),
                         (gSum / count).toInt(),
                         (bSum / count).toInt()
@@ -393,7 +395,7 @@ object VideoProcessor {
                 }
             }
         }
-        small.setPixels(outPixels, 0, MATRIX_SIZE, 0, 0, MATRIX_SIZE, MATRIX_SIZE)
+        small.setPixels(outPixels, 0, matrixSize, 0, 0, matrixSize, matrixSize)
         
         val grayFrame = convertToGrayscaleByteArray(small)
         small.recycle()
@@ -432,6 +434,7 @@ object VideoProcessor {
         onProgress: (Int) -> Unit,
         onComplete: (Boolean, String?) -> Unit
     ) {
+        val matrixSize = MatrixConfig.getMatrixSize(context)
         val mainHandler = Handler(Looper.getMainLooper())
         
         thread {
@@ -478,7 +481,7 @@ object VideoProcessor {
                     
                     val frameData = LrcUtils.getFrameTextAtTime(parsedLines, currentMs, fontStyle, animationStyle)
                     if (frameData == null) {
-                        finalFrames.add(ByteArray(625)) // Blank frame
+                        finalFrames.add(ByteArray(MatrixConfig.getCellCount(context))) // Blank frame
                     } else {
                         val frameText = frameData.first
                         val offsetX = frameData.second

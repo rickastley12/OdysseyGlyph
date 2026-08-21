@@ -13,6 +13,7 @@ class OdysseyWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val ACTION_UPDATE_WIDGET = "com.example.odysseyglyph.ACTION_UPDATE_WIDGET"
+        const val ACTION_TOGGLE_SERVICE = "com.example.odysseyglyph.ACTION_TOGGLE_SERVICE"
 
         fun updateAllWidgets(context: Context) {
             val intent = Intent(context, OdysseyWidgetProvider::class.java).apply {
@@ -32,7 +33,53 @@ class OdysseyWidgetProvider : AppWidgetProvider() {
         super.onReceive(context, intent)
         if (intent.action == ACTION_UPDATE_WIDGET) {
             updateAllWidgetsUI(context)
+        } else if (intent.action == ACTION_TOGGLE_SERVICE) {
+            toggleService(context)
         }
+    }
+
+    private fun toggleService(context: Context) {
+        val prefs = context.getSharedPreferences("OdysseyPrefs", Context.MODE_PRIVATE)
+        val isLyricsRunning = LiveLyricsService.isRunning
+        val isVisualizerRunning = VisualizerService.isRunning
+
+        if (isLyricsRunning || isVisualizerRunning) {
+            if (isVisualizerRunning) {
+                prefs.edit().putString("last_used_service", "visualizer").apply()
+            } else {
+                prefs.edit().putString("last_used_service", "live_lyrics").apply()
+            }
+            if (isLyricsRunning) {
+                try {
+                    val stopLyrics = Intent(context, LiveLyricsService::class.java).apply { action = "STOP_LIVE_LYRICS" }
+                    context.startService(stopLyrics)
+                } catch (e: Exception) {}
+            }
+            if (isVisualizerRunning) {
+                try {
+                    val stopVisualizer = Intent(context, VisualizerService::class.java).apply { action = "STOP_VISUALIZER" }
+                    context.startService(stopVisualizer)
+                } catch (e: Exception) {}
+            }
+        } else {
+            val lastUsed = prefs.getString("last_used_service", "live_lyrics")
+            if (lastUsed == "visualizer") {
+                val visualizerIntent = Intent(context, VisualizerService::class.java)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    try { androidx.core.content.ContextCompat.startForegroundService(context, visualizerIntent) } catch (e: Exception) {}
+                } else {
+                    context.startService(visualizerIntent)
+                }
+            } else {
+                val startLyrics = Intent(context, LiveLyricsService::class.java).apply { action = "START_LIVE_LYRICS" }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    try { androidx.core.content.ContextCompat.startForegroundService(context, startLyrics) } catch (e: Exception) {}
+                } else {
+                    context.startService(startLyrics)
+                }
+            }
+        }
+        updateAllWidgetsUI(context)
     }
 
     private fun updateAllWidgetsUI(context: Context) {
@@ -68,10 +115,10 @@ class OdysseyWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widgetSubtitle, "Tap to activate")
         }
 
-        val intent = Intent(context, WidgetToggleActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val intent = Intent(context, OdysseyWidgetProvider::class.java).apply {
+            action = ACTION_TOGGLE_SERVICE
         }
-        val pendingIntent = PendingIntent.getActivity(
+        val pendingIntent = PendingIntent.getBroadcast(
             context,
             0,
             intent,

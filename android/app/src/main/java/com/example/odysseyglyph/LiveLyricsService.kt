@@ -126,7 +126,7 @@ class LiveLyricsService : Service(), MusicPlaybackState.StateChangeListener, Sha
                     val currentHash = frameBytes.contentHashCode()
                     if (currentHash != lastFrameHash) {
                         lastFrameHash = currentHash
-                        try { glyphManager?.setMatrixFrame(toIntArray(frameBytes)) } catch (e: Exception) {}
+                        try { glyphManager?.setMatrixFrame(MatrixConfig.formatForHardware(frameBytes)) } catch (e: Exception) {}
                     }
                     mainHandler.postDelayed(this, 16L)
                 } else {
@@ -167,7 +167,7 @@ class LiveLyricsService : Service(), MusicPlaybackState.StateChangeListener, Sha
                     val currentHash = frameBytes.contentHashCode()
                     if (currentHash != lastFrameHash) {
                         lastFrameHash = currentHash
-                        try { glyphManager?.setMatrixFrame(toIntArray(frameBytes)) } catch (e: Exception) {}
+                        try { glyphManager?.setMatrixFrame(MatrixConfig.formatForHardware(frameBytes)) } catch (e: Exception) {}
                     }
                 } else {
                     if (lastFrameHash != -1) {
@@ -189,7 +189,7 @@ class LiveLyricsService : Service(), MusicPlaybackState.StateChangeListener, Sha
                 val currentHash = frameBytes.contentHashCode()
                 if (currentHash != lastFrameHash) {
                     lastFrameHash = currentHash
-                    try { glyphManager?.setMatrixFrame(toIntArray(frameBytes)) } catch (e: Exception) {}
+                    try { glyphManager?.setMatrixFrame(MatrixConfig.formatForHardware(frameBytes)) } catch (e: Exception) {}
                 }
             }
             

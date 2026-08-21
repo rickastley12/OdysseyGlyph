@@ -413,22 +413,23 @@ class LyricStudioActivity : AppCompatActivity() {
             textToPreview
         }
         
+        val mSize = MatrixConfig.getMatrixSize(this)
         val offsetX = if (currentAnimStyle == 0) {
             val textWidth = GlyphFontEngine.measureTextWidth(displayText, currentFontStyle, autoScale = false)
-            (25f - textWidth) / 2f
+            (mSize.toFloat() - textWidth) / 2f
         } else {
             0f
         }
         
-        val rawBytes = GlyphFontEngine.renderTextFrame(displayText, currentFontStyle, offsetX, autoScale = false)
+        val rawBytes = GlyphFontEngine.renderTextFrame(displayText, currentFontStyle, offsetX, autoScale = false, matrixSize = mSize)
         
-        val bitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
-        val pixels = IntArray(625)
-        for (i in 0 until 625) {
+        val bitmap = Bitmap.createBitmap(mSize, mSize, Bitmap.Config.ARGB_8888)
+        val pixels = IntArray(mSize * mSize)
+        for (i in 0 until mSize * mSize) {
             val v = rawBytes[i].toInt() and 0xFF
             pixels[i] = Color.rgb(v, v, v)
         }
-        bitmap.setPixels(pixels, 0, 25, 0, 0, 25, 25)
+        bitmap.setPixels(pixels, 0, mSize, 0, 0, mSize, mSize)
         
         previewImage.setImageBitmap(bitmap)
         // The bitmap is only 25x25 — without disabling the default bilinear

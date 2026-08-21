@@ -11,7 +11,8 @@ class GlyphProgressView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private val gridCols = 25
+    private val gridCols
+        get() = MatrixConfig.getMatrixSize(context)
     private var progress = 0
 
     private val paintInactive = Paint(Paint.ANTI_ALIAS_FLAG).apply {

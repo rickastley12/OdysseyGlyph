@@ -60,8 +60,8 @@ object GlyphFontEngine {
      * @param autoScale Whether to shrink text to fit the 25px width.
      * @return 625-byte array of brightness values (0-255).
      */
-    fun renderTextFrame(text: String, style: FontStyle, scrollOffsetX: Float, autoScale: Boolean = false): ByteArray {
-        val bitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
+    fun renderTextFrame(text: String, style: FontStyle, scrollOffsetX: Float, autoScale: Boolean = false, matrixSize: Int = 25): ByteArray {
+        val bitmap = Bitmap.createBitmap(matrixSize, matrixSize, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.BLACK)
         
@@ -79,36 +79,36 @@ object GlyphFontEngine {
             val leftBearingOffset = if (bounds.left < 0) -bounds.left.toFloat() else 0f
             
             val textOffset = textHeight / 2 - fontMetrics.bottom
-            val y = 25f / 2f + textOffset
+            val y = matrixSize.toFloat() / 2f + textOffset
             canvas.drawText(line, scrollOffsetX + leftBearingOffset, y, paint)
         } else {
             // Compress line spacing so words don't hit the narrow top/bottom edges of the circular matrix
             val lineHeight = textHeight * 0.8f
             val totalHeight = lineHeight * lines.size
-            var startY = (25f - totalHeight) / 2f - fontMetrics.top
+            var startY = (matrixSize.toFloat() - totalHeight) / 2f - fontMetrics.top
             for (line in lines) {
                 paint.getTextBounds(line, 0, line.length, bounds)
                 val leftBearingOffset = if (bounds.left < 0) -bounds.left.toFloat() else 0f
                 
                 // Ignore scrollOffsetX for multiline since it's only used in Flash mode, which calculates its own line X
                 val lineWidth = paint.measureText(line)
-                val lineX = (25f - lineWidth) / 2f
+                val lineX = (matrixSize.toFloat() - lineWidth) / 2f
                 canvas.drawText(line, lineX + leftBearingOffset, startY, paint)
                 startY += lineHeight
             }
         }
         
         // Extract to ByteArray
-        val pixels = IntArray(625)
-        bitmap.getPixels(pixels, 0, 25, 0, 0, 25, 25)
+        val pixels = IntArray(matrixSize * matrixSize)
+        bitmap.getPixels(pixels, 0, matrixSize, 0, 0, matrixSize, matrixSize)
         
-        val output = ByteArray(625)
+        val output = ByteArray(matrixSize * matrixSize)
         val center = 12f
         val radiusSq = 12f * 12f
         
-        for (i in 0 until 625) {
-            val px = i % 25
-            val py = i / 25
+        for (i in 0 until matrixSize * matrixSize) {
+            val px = i % matrixSize
+            val py = i / matrixSize
             
             // Circular mask
             val distSq = (px - center) * (px - center) + (py - center) * (py - center)
@@ -141,7 +141,7 @@ object GlyphFontEngine {
      * Adapts a single word into 1, 2, or multiple chunks based on raw pixel width.
      * Ensures chunks do not exceed the 25px matrix width (using 24f for safety).
      */
-    fun formatWordForDisplay(word: String, style: FontStyle, progress: Float = 0f): String {
+    fun formatWordForDisplay(word: String, style: FontStyle, progress: Float = 0f, matrixSize: Int = 25): String {
         // Measure the unscaled text width.
         val singleLineWidth = measureTextWidth(word, style, autoScale = false)
         if (singleLineWidth <= 24f) {
@@ -204,8 +204,8 @@ object GlyphFontEngine {
      * @param style 0: Static Note, 1: Math EQ, 2: Mic EQ, 3: Mic Ring
      * @param timeMs Used for Math EQ animation.
      */
-    fun renderFallbackFrame(audioLevels: FloatArray, style: Int, timeMs: Long): ByteArray {
-        val bitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
+    fun renderFallbackFrame(audioLevels: FloatArray, style: Int, timeMs: Long, matrixSize: Int = 25): ByteArray {
+        val bitmap = Bitmap.createBitmap(matrixSize, matrixSize, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(android.graphics.Color.TRANSPARENT, android.graphics.PorterDuff.Mode.CLEAR)
         
@@ -371,7 +371,7 @@ object GlyphFontEngine {
             6 -> {
                 // Matrix Rain (Math)
                 paint.style = Paint.Style.FILL
-                for (x in 0 until 25) {
+                for (x in 0 until matrixSize) {
                     // Pseudo-random deterministic parameters for each column
                     val seed = x * 1337
                     val speed = 30.0 + (seed % 20)
@@ -427,7 +427,7 @@ object GlyphFontEngine {
                 var prevX = 0f
                 var prevY = center + (amplitude * Math.sin(phase)).toFloat()
                 
-                for (x in 1..25) {
+                for (x in 1..matrixSize) {
                     val px = x.toFloat()
                     val py = center + (amplitude * Math.sin(px / 3.0 + phase)).toFloat()
                     canvas.drawLine(prevX, prevY, px, py, paint)
@@ -437,14 +437,14 @@ object GlyphFontEngine {
             }
         }
         
-        val pixels = IntArray(625)
-        bitmap.getPixels(pixels, 0, 25, 0, 0, 25, 25)
-        val output = ByteArray(625)
+        val pixels = IntArray(matrixSize * matrixSize)
+        bitmap.getPixels(pixels, 0, matrixSize, 0, 0, matrixSize, matrixSize)
+        val output = ByteArray(matrixSize * matrixSize)
         val radiusSq = 12.5f * 12.5f
         
-        for (i in 0 until 625) {
-            val px = i % 25
-            val py = i / 25
+        for (i in 0 until matrixSize * matrixSize) {
+            val px = i % matrixSize
+            val py = i / matrixSize
             
             // Circular mask
             val distSq = (px - center) * (px - center) + (py - center) * (py - center)
@@ -464,15 +464,15 @@ object GlyphFontEngine {
     /**
      * Generates a static high-res preview bitmap for UI display.
      */
-    fun generatePreviewBitmap(style: Int): Bitmap {
+    fun generatePreviewBitmap(style: Int, matrixSize: Int = 25): Bitmap {
         // Dummy audio data to simulate activity
         val dummyAudio = floatArrayOf(0.7f, 0.6f, 0.4f, 0.3f, 0.8f, 0.7f, 0.5f, 0.4f, 0.3f, 0.9f, 0.6f, 0.2f, 0.8f)
-        val rawBytes = renderFallbackFrame(dummyAudio, style, 500L) // Fixed time 500ms
+        val rawBytes = renderFallbackFrame(dummyAudio, style, 500L, matrixSize) // Fixed time 500ms
         
         // Render 25x25 bitmap based on bytes
         val smallBitmap = Bitmap.createBitmap(25, 25, Bitmap.Config.ARGB_8888)
-        val pixels = IntArray(625)
-        for (i in 0 until 625) {
+        val pixels = IntArray(matrixSize * matrixSize)
+        for (i in 0 until matrixSize * matrixSize) {
             val v = rawBytes[i].toInt() and 0xFF
             pixels[i] = Color.argb(255, v, v, v)
         }
